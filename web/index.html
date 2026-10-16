@@ -1,0 +1,475 @@
+<title>evesim Fit Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Rajdhani:wght@600;700&display=swap">
+<style>
+/* Layout: a fitting-bay console. Input rack on the left, ship readout on the right; stacks on phones. */
+:root {
+  --bg: #e9edf1; --panel: #ffffff; --sunk: #f3f5f8; --ink: #15202b; --muted: #5a6877; --line: #d2d9e1;
+  --accent: #b86e0b; --accent-soft: #f6e6cf; --on-accent: #ffffff;
+  --good: #23784a; --good-soft: #dcefe3; --bad: #b3302a; --bad-soft: #f7dedc;
+  --em: #3d7fd6; --thermal: #d4483b; --kinetic: #7d8894; --explosive: #d99a1f;
+  --display: "Rajdhani", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e141a; --panel: #151e27; --sunk: #101820; --ink: #e2e8ee; --muted: #8d9cab; --line: #26333f;
+  --accent: #f0a23b; --accent-soft: #3a2a14; --on-accent: #1a1206;
+  --good: #5cc48a; --good-soft: #15301f; --bad: #ef7a72; --bad-soft: #3a1a18;
+  --em: #6aa6f2; --thermal: #f07062; --kinetic: #a3adb8; --explosive: #f0bb4a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e141a; --panel: #151e27; --sunk: #101820; --ink: #e2e8ee; --muted: #8d9cab; --line: #26333f;
+  --accent: #f0a23b; --accent-soft: #3a2a14; --on-accent: #1a1206;
+  --good: #5cc48a; --good-soft: #15301f; --bad: #ef7a72; --bad-soft: #3a1a18;
+  --em: #6aa6f2; --thermal: #f07062; --kinetic: #a3adb8; --explosive: #f0bb4a; color-scheme: dark }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; justify-content: space-between; }
+h1 { font: 700 30px/1 var(--display); letter-spacing: 0.02em; margin: 0; text-wrap: balance; }
+h1 small { font: 500 13px var(--body); color: var(--muted); letter-spacing: 0; margin-left: 8px; }
+h2 { font: 700 15px/1.2 var(--display); letter-spacing: 0.1em; text-transform: uppercase; margin: 0; color: var(--muted); }
+.status { font: 500 12px var(--mono); padding: 4px 10px; border-radius: 99px; background: var(--sunk); border: 1px solid var(--line); color: var(--muted); }
+.status.ready { color: var(--good); background: var(--good-soft); border-color: transparent; }
+.status.error { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { font: 600 16px var(--display); letter-spacing: 0.06em; text-transform: uppercase; background: none; border: 0;
+  color: var(--muted); padding: 8px 14px; border-bottom: 3px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.bay { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .bay { grid-template-columns: minmax(0, 1fr); } }
+.rack { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.readout { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field > label, .lbl { font: 600 11px var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+input, select, textarea { font: 14px var(--body); color: var(--ink); background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; width: 100%; min-width: 0; }
+textarea { font: 12.5px/1.45 var(--mono); min-height: 300px; resize: vertical; white-space: pre; overflow-x: auto; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.checks label { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.checks input { width: auto; }
+.go { font: 700 15px var(--display); letter-spacing: 0.08em; text-transform: uppercase; background: var(--accent); color: var(--on-accent);
+  border: 0; border-radius: 4px; padding: 10px 14px; cursor: pointer; }
+.go:disabled { opacity: 0.55; cursor: wait; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+legend { font: 600 11px var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 4px; }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.banner { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; justify-content: space-between; }
+.ship { font: 700 24px/1.1 var(--display); letter-spacing: 0.02em; }
+.sub { color: var(--muted); font-size: 13px; }
+.pill { display: inline-block; font: 600 11px var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; }
+.pill.ok { background: var(--good-soft); color: var(--good); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.ex { background: var(--accent-soft); color: var(--accent); }
+.problems { margin: 0; padding: 8px 12px; list-style: none; background: var(--bad-soft); color: var(--bad); border-radius: 4px; font-size: 13px; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.tile .v { font: 700 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.tile .v small { font: 500 12px var(--body); color: var(--muted); margin-left: 3px; }
+.tile .k { font: 600 11px var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.tile .n { font-size: 12px; color: var(--muted); }
+.tile.key { border-color: var(--accent); }
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.meter { display: grid; grid-template-columns: 90px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; }
+.bar { height: 8px; background: var(--sunk); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.over { background: var(--bad); }
+.num { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th { text-align: left; font: 600 11px var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.res td.cell { position: relative; text-align: right; font-family: var(--mono); font-size: 12.5px; }
+.res td.cell span { position: relative; }
+.res td.cell b { position: absolute; left: 0; top: 0; bottom: 0; opacity: 0.18; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 14px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; overflow-x: auto; }
+.copy { align-self: flex-start; font: 600 12px var(--body); background: var(--sunk); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+.log { font: 12px/1.5 var(--mono); color: var(--muted); background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; max-height: 160px; overflow: auto; white-space: pre-wrap; margin: 0; }
+.cons { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.cons div { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.err { color: var(--bad); background: var(--bad-soft); padding: 8px 12px; border-radius: 4px; margin: 0; font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .bar i { transition: width 0.4s ease; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>evesim Fit Lab <small>dogma engine running in your browser</small></h1>
+    <span class="status" id="status">Loading Python…</span>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-sim" aria-selected="true" aria-controls="panel-sim">Simulate a fit</button>
+    <button role="tab" id="tab-opt" aria-selected="false" aria-controls="panel-opt">Optimize</button>
+  </div>
+
+  <section class="bay" id="panel-sim" role="tabpanel" aria-labelledby="tab-sim">
+    <form class="rack" id="sim-form">
+      <div class="field">
+        <label for="sample">Sample fit</label>
+        <select id="sample"></select>
+      </div>
+      <div class="field">
+        <label for="eft">Fit (EFT text, as copied from the game or Pyfa)</label>
+        <textarea id="eft" spellcheck="false"></textarea>
+      </div>
+      <div class="row">
+        <div class="field"><label for="sim-skills">Skills</label><select id="sim-skills" class="skills"></select></div>
+        <div class="field"><label for="sim-profile">Incoming damage</label><select id="sim-profile" class="profiles"></select></div>
+      </div>
+      <div class="field skills-file" hidden>
+        <label for="sim-skills-file">Skills JSON (ESI export or {"skills": {"Gunnery": 5}})</label>
+        <input type="file" id="sim-skills-file" accept=".json,application/json">
+      </div>
+      <div class="row">
+        <div class="field"><label for="sim-target">Target</label><select id="sim-target" class="targets"></select></div>
+        <div class="field"><label for="sim-distance">Distance (m)</label><input id="sim-distance" type="number" min="0" step="500" value="20000"></div>
+      </div>
+      <button class="go" id="sim-go" type="submit" disabled>Simulate</button>
+      <p class="hint">Stats are computed by evesim's engine, validated against Pyfa. Cargo lines are ignored; drones fly up to 5 within bandwidth.</p>
+    </form>
+    <div class="readout" id="sim-out"></div>
+  </section>
+
+  <section class="bay" id="panel-opt" role="tabpanel" aria-labelledby="tab-opt" hidden>
+    <form class="rack" id="opt-form">
+      <div class="row">
+        <div class="field"><label for="opt-ship">Ship</label><input id="opt-ship" list="ship-list" value="Caracal" autocomplete="off"></div>
+        <div class="field"><label for="opt-skills">Skills</label><select id="opt-skills" class="skills"></select></div>
+      </div>
+      <div class="field skills-file" hidden>
+        <label for="opt-skills-file">Skills JSON</label>
+        <input type="file" id="opt-skills-file" accept=".json,application/json">
+      </div>
+      <datalist id="ship-list"></datalist>
+      <fieldset>
+        <legend>Objective</legend>
+        <div class="row">
+          <div class="field"><label for="opt-obj">Maximize</label><select id="opt-obj"></select></div>
+          <div class="field"><label for="opt-obj2">Also value</label><select id="opt-obj2"></select></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="opt-w2">Weight of second metric</label><input id="opt-w2" type="number" min="0" step="0.1" value="0.5"></div>
+          <div class="field"><label for="opt-effort">Search effort</label>
+            <select id="opt-effort"><option value="quick">Quick (seconds)</option><option value="normal">Normal (a minute or two here)</option></select></div>
+        </div>
+        <p class="hint">Weights compare 100 DPS, 10,000 EHP, 100 EHP/s of tank and 1,000 m/s of speed as one point each.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Engagement</legend>
+        <div class="row">
+          <div class="field"><label for="opt-target">Target</label><select id="opt-target" class="targets"></select></div>
+          <div class="field"><label for="opt-distance">Distance (m)</label><input id="opt-distance" type="number" min="0" step="500" value="30000"></div>
+        </div>
+        <div class="field"><label for="opt-profile">Incoming damage</label><select id="opt-profile" class="profiles"></select></div>
+      </fieldset>
+      <fieldset>
+        <legend>Constraints (leave blank for none)</legend>
+        <div class="row">
+          <div class="field"><label for="c-ehp">Min EHP</label><input id="c-ehp" type="number" min="0" step="1000" value="12000"></div>
+          <div class="field"><label for="c-tank">Min sustained tank (EHP/s)</label><input id="c-tank" type="number" min="0" step="10"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="c-speed">Min speed (m/s)</label><input id="c-speed" type="number" min="0" step="100"></div>
+          <div class="field"><label for="c-range">Min weapon range (m)</label><input id="c-range" type="number" min="0" step="1000"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="c-align">Max align time (s)</label><input id="c-align" type="number" min="0" step="0.5"></div>
+          <div class="field"><label class="lbl" for="c-cap">Capacitor</label>
+            <div class="checks"><label><input type="checkbox" id="c-cap" checked> Cap stable</label></div></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Fitting choices</legend>
+        <div class="row">
+          <div class="field"><label for="f-tank">Tank</label>
+            <select id="f-tank"><option>any</option><option selected>shield</option><option>armor</option><option>hull</option></select></div>
+          <div class="field"><label for="f-prop">Propulsion</label>
+            <select id="f-prop"><option>any</option><option>mwd</option><option selected>ab</option><option>none</option></select></div>
+        </div>
+        <div class="field"><span class="lbl">Module meta groups</span>
+          <div class="checks" id="f-meta">
+            <label><input type="checkbox" value="tech1" checked> Tech I</label>
+            <label><input type="checkbox" value="tech2" checked> Tech II</label>
+            <label><input type="checkbox" value="storyline" checked> Storyline</label>
+            <label><input type="checkbox" value="faction"> Faction</label>
+          </div></div>
+        <div class="checks"><label><input type="checkbox" id="f-nopol"> Exclude Polarized weapons (they zero your resists)</label></div>
+        <div class="field"><label for="f-require">Must fit (comma-separated)</label><input id="f-require" placeholder="Warp Scrambler II, Stasis Webifier II"></div>
+        <div class="field"><label for="f-exclude">Never fit (comma-separated)</label><input id="f-exclude"></div>
+      </fieldset>
+      <button class="go" id="opt-go" type="submit" disabled>Find best fit</button>
+      <p class="hint">The page stays usable while the search runs in a background thread.</p>
+    </form>
+    <div class="readout" id="opt-out"></div>
+  </section>
+</div>
+
+<script>
+const SAMPLES = {"Caracal: heavy missiles": "[Caracal, HML]\nBallistic Control System II\nBallistic Control System II\nDamage Control II\nNanofiber Internal Structure II\n\n50MN Microwarpdrive II\nLarge Shield Extender II\nLarge Shield Extender II\nMultispectrum Shield Hardener II\nMultispectrum Shield Hardener II\n\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\n\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\n"};
+const INITIAL = null;
+const INITIAL_OPT = null;
+const PROFILES = ["uniform", "guristas", "serpentis", "blood", "sansha", "angel", "drones", "mordus", "triglavian", "edencom", "em", "thermal", "kinetic", "explosive"];
+const TARGETS = ["frigate", "destroyer", "cruiser", "battlecruiser", "battleship", "structure"];
+const DT = ["em", "thermal", "kinetic", "explosive"];
+const DT_LABEL = { em: "EM", thermal: "Thermal", kinetic: "Kinetic", explosive: "Explosive" };
+const METRIC_LABEL = { dps: "Raw DPS", applied_dps: "Applied DPS", weapon_dps: "Weapon DPS", drone_dps: "Drone DPS", volley: "Volley",
+  ehp: "EHP", sustained_tank: "Sustained tank", peak_tank: "Peak tank", speed: "Speed", align_time: "Align time", signature: "Signature",
+  lock_range: "Lock range", weapon_range: "Weapon range", price: "Price", cap_seconds: "Cap duration", scan_resolution: "Scan resolution" };
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (v, d = 0) => v === "inf" ? "∞" : (v == null || isNaN(v)) ? "–" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+// ---- worker plumbing -------------------------------------------------------------------
+let worker, nextId = 1; const pending = new Map(); let logSink = null;
+function call(op, payload) {
+  return new Promise((resolve, reject) => { const id = nextId++; pending.set(id, { resolve, reject }); worker.postMessage({ id, op, payload }); });
+}
+function setStatus(msg, cls = "") { const s = $("#status"); s.textContent = msg; s.className = "status " + cls; }
+function startWorker() {
+  try { worker = new Worker("worker.js"); } catch (e) { setStatus("Could not start the Python worker: " + e.message, "error"); return; }
+  worker.onmessage = (e) => {
+    const m = e.data;
+    if (m.type === "status") { setStatus(m.msg); return; }
+    if (m.type === "log") { if (logSink) logSink(m.msg); return; }
+    const p = pending.get(m.id); if (!p) return; pending.delete(m.id);
+    m.ok ? p.resolve(m.result) : p.reject(new Error(m.error));
+  };
+  worker.onerror = (e) => setStatus("Python worker failed: " + (e.message || "unknown error"), "error");
+  call("init").then((r) => {
+    const info = JSON.parse(r);
+    setStatus(`Ready · game build ${info.build}`, "ready");
+    $("#ship-list").innerHTML = info.ships.map((s) => `<option value="${esc(s)}">`).join("");
+    for (const sel of document.querySelectorAll("select.skills")) {
+      const cur = sel.value;
+      sel.innerHTML = skillOptions(info.grades);
+      sel.value = cur || "all5";
+    }
+    $("#sim-go").disabled = false; $("#opt-go").disabled = false;
+  }).catch((e) => setStatus("Python failed to load: " + e.message, "error"));
+}
+
+function skillOptions(grades) {
+  let h = '<option value="all5">All skills V</option><option value="all4">All skills IV</option><option value="all3">All skills III</option><option value="all1">All skills I</option>';
+  for (const g of grades) h += `<option value="${esc(g)}">${esc(g)} clone (max levels)</option>`;
+  return h + '<option value="file">Upload skills JSON…</option>';
+}
+
+// ---- rendering ---------------------------------------------------------------------------
+function meter(label, used, total) {
+  const pct = total > 0 ? Math.min(100, used / total * 100) : (used > 0 ? 100 : 0);
+  return `<div class="meter"><span>${label}</span><span class="bar"><i class="${used > total + 1e-6 ? "over" : ""}" style="width:${pct}%"></i></span><span class="num">${fmt(used, 1)} / ${fmt(total, 1)}</span></div>`;
+}
+function tile(k, v, unit, note, key) {
+  return `<div class="tile${key ? " key" : ""}"><span class="k">${k}</span><span class="v">${v}${unit ? `<small>${unit}</small>` : ""}</span>${note ? `<span class="n">${note}</span>` : ""}</div>`;
+}
+function capText(c) { return c.stable ? `stable at ${fmt(c.stable_fraction * 100, 1)}%` : `lasts ${fmt(c.lasts_s)} s`; }
+
+function renderStats(d, opts = {}) {
+  const o = d.offense, df = d.defense, c = d.capacitor, n = d.navigation, t = d.targeting, tg = d.target;
+  let h = `<div class="card"><div class="banner"><div><div class="ship">${esc(d.ship)}</div>
+    <div class="sub">${esc(opts.subtitle || "")}</div></div>
+    <div>${opts.badge || ""} ${d.valid ? '<span class="pill ok">Fit is legal</span>' : '<span class="pill bad">Fitting problems</span>'}</div></div>`;
+  if (d.problems.length) h += `<ul class="problems">${d.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>`;
+  h += `</div><div class="tiles">
+    ${tile("Applied DPS", fmt(o.applied_dps, 0), "", `vs ${esc(tg.name)}, ${fmt(tg.distance / 1000, 1)} km`, opts.key === "applied_dps")}
+    ${tile("Raw DPS", fmt(o.dps, 0), "", `weapons ${fmt(o.weapon_dps)} · drones ${fmt(o.drone_dps)}`, opts.key === "dps")}
+    ${tile("EHP", fmt(df.ehp_total, 0), "", `vs ${esc(opts.profile || "incoming")} damage`, opts.key === "ehp")}
+    ${tile("Sustained tank", fmt(df.sustained_ehps_with_reload, 1), "EHP/s", `peak ${fmt(df.peak_ehps, 1)}`, opts.key === "sustained_tank")}
+    ${tile("Capacitor", c.stable ? fmt(c.stable_fraction * 100, 0) + "%" : fmt(c.lasts_s) + " s", "", c.stable ? "stable" : "until empty", false)}
+    ${tile("Speed", fmt(n.max_velocity, 0), "m/s", `align ${fmt(n.align_time, 2)} s`, opts.key === "speed")}
+  </div>`;
+  // fitting + weapons
+  h += `<div class="grid2"><div class="card"><h2>Fitting</h2>
+    ${meter("CPU", d.fitting.cpu.used, d.fitting.cpu.total)}
+    ${meter("Powergrid", d.fitting.power.used, d.fitting.power.total)}
+    ${meter("Calibration", d.fitting.calibration.used, d.fitting.calibration.total)}
+    <div class="sub">Slots ${["high", "med", "low", "rig"].map((s) => `${s} ${d.slots[s].used}/${d.slots[s].total}`).join(" · ")}
+    · turrets ${d.hardpoints.turret.used}/${d.hardpoints.turret.total} · launchers ${d.hardpoints.launcher.used}/${d.hardpoints.launcher.total}</div></div>
+    <div class="card"><h2>Weapons</h2>`;
+  if (o.weapons.length) {
+    h += `<div class="scroll"><table><thead><tr><th>Weapon</th><th class="r">DPS</th><th class="r">Range</th></tr></thead><tbody>`;
+    for (const w of o.weapons) {
+      const range = w.kind === "missile" ? `${fmt(w.optimal / 1000, 1)} km` : w.kind === "drone" ? "drone" : `${fmt(w.optimal / 1000, 1)} + ${fmt(w.falloff / 1000, 1)} km`;
+      h += `<tr><td>${w.count}× ${esc(w.name)}${w.charge ? `<div class="sub">${esc(w.charge)}</div>` : ""}</td><td class="r num">${fmt(w.dps, 1)}</td><td class="r num">${range}</td></tr>`;
+    }
+    h += `</tbody></table></div><div class="sub">Volley ${fmt(o.volley)} HP · with reloads ${fmt(o.dps_with_reload, 1)} DPS</div>`;
+  } else h += `<div class="sub">No weapons fitted.</div>`;
+  h += `</div></div>`;
+  // defense
+  h += `<div class="card"><h2>Defense</h2><div class="scroll"><table class="res"><thead><tr><th>Layer</th><th class="r">HP</th>
+    ${DT.map((k) => `<th class="r"><span class="dot" style="background:var(--${k})"></span>${DT_LABEL[k]}</th>`).join("")}<th class="r">EHP</th></tr></thead><tbody>`;
+  for (const layer of ["shield", "armor", "hull"]) {
+    h += `<tr><td>${layer[0].toUpperCase() + layer.slice(1)}</td><td class="r num">${fmt(df.hp[layer])}</td>`;
+    for (const k of DT) {
+      const r = (1 - df.resonance[layer][k]) * 100;
+      h += `<td class="cell"><b style="width:${Math.max(0, r)}%;background:var(--${k})"></b><span>${fmt(r, 1)}%</span></td>`;
+    }
+    h += `<td class="r num">${fmt(df.ehp[layer])}</td></tr>`;
+  }
+  h += `</tbody></table></div><div class="sub">Damage profile ${DT.map((k) => `${DT_LABEL[k]} ${fmt(df.profile[k] * 100)}%`).join(" · ")}</div></div>`;
+  // cap / nav / targeting
+  h += `<div class="grid2"><div class="card"><h2>Capacitor</h2><dl class="kv">
+      <dt>Capacity</dt><dd>${fmt(c.capacity)} GJ, ${fmt(c.recharge_s)} s recharge</dd>
+      <dt>State</dt><dd>${capText(c)}</dd>
+      <dt>Use</dt><dd>${fmt(c.use_per_s, 1)} GJ/s</dd>
+      <dt>Peak recharge</dt><dd>${fmt(c.peak_recharge, 1)} GJ/s${c.inject_per_s ? ` + boosters ${fmt(c.inject_per_s, 1)}` : ""}</dd></dl></div>
+    <div class="card"><h2>Navigation and targeting</h2><dl class="kv">
+      <dt>Max velocity</dt><dd>${fmt(n.max_velocity, 1)} m/s</dd>
+      <dt>Align time</dt><dd>${fmt(n.align_time, 2)} s</dd>
+      <dt>Signature</dt><dd>${fmt(n.signature_radius, 1)} m</dd>
+      <dt>Lock range</dt><dd>${fmt(t.lock_range / 1000, 1)} km · ${fmt(t.scan_resolution)} mm · ${t.max_targets} targets</dd>
+      ${d.drones.bandwidth ? `<dt>Drones</dt><dd>bandwidth ${fmt(d.drones.bandwidth_used)}/${fmt(d.drones.bandwidth)} · bay ${fmt(d.drones.bay_used)}/${fmt(d.drones.bay)}</dd>` : ""}
+    </dl></div></div>`;
+  if (opts.showEft) {
+    h += `<div class="card"><h2>Fit to import in game</h2><pre class="eft" id="${opts.showEft}">${esc(d.eft)}</pre>
+      <button type="button" class="copy" data-copy="${opts.showEft}">Copy EFT</button></div>`;
+  }
+  return h;
+}
+
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  const el = document.getElementById(b.dataset.copy);
+  try { await navigator.clipboard.writeText(el.textContent); b.textContent = "Copied"; }
+  catch { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press Ctrl+C"; }
+  setTimeout(() => (b.textContent = "Copy EFT"), 2000);
+});
+
+function renderOpt(res, example) {
+  const w = res.weights; const keys = Object.keys(w);
+  let h = "";
+  if (example) h += `<p class="hint"><span class="pill ex">Example</span> Precomputed result for the default request. Press <b>Find best fit</b> to run it yourself.</p>`;
+  for (const r of res.results) {
+    for (const note of r.notes) h += `<p class="err">${esc(note)}</p>`;
+    if (!r.best) continue;
+    const b = r.best;
+    h += `<div class="card"><div class="banner"><div><div class="ship">${esc(r.ship)}</div>
+      <div class="sub">${fmt(r.evaluations)} fits scored in ${fmt(r.seconds, 1)} s · skills: ${esc(res.skills)}</div></div>
+      <span class="pill ${b.feasible ? "ok" : "bad"}">${b.feasible ? "All constraints met" : "Best compromise: constraints not met"}</span></div>
+      <div class="cons">${keys.map((k) => `<div><span class="lbl">Objective</span> ${METRIC_LABEL[k] || k} ${w[k] !== 1 ? `×${w[k]}` : ""} <span class="num">${fmt(b.metrics[k], 1)}</span></div>`).join("")}
+      ${b.constraints.map((c) => `<div><span class="pill ${c.ok ? "ok" : "bad"}">${c.ok ? "met" : "missed"}</span> ${METRIC_LABEL[c.metric] || c.metric}
+        <span class="num">${fmt(c.value, 1)}</span> <span class="sub">${c.bound === "inf" ? "must be stable" : (c.kind === "min" ? "≥ " : "≤ ") + fmt(c.bound, 1)}</span></div>`).join("")}</div></div>`;
+    h += renderStats(b.stats, { subtitle: "Optimized fit", key: keys[0], showEft: "eft-" + r.ship.replace(/\W/g, ""), profile: $("#opt-profile").value });
+    if (r.alternatives.length) {
+      h += `<div class="card"><h2>Other weapon setups tried</h2><div class="scroll"><table><thead><tr><th>Weapons</th><th class="r">Score</th>${keys.map((k) => `<th class="r">${METRIC_LABEL[k] || k}</th>`).join("")}</tr></thead><tbody>`;
+      h += `<tr><td><b>Chosen</b></td><td class="r num">${fmt(b.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(b.metrics[k], 1)}</td>`).join("")}</tr>`;
+      for (const a of r.alternatives) h += `<tr><td>${esc(a.label)}${a.feasible ? "" : ' <span class="pill bad">infeasible</span>'}</td><td class="r num">${fmt(a.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(a.metrics[k], 1)}</td>`).join("")}</tr>`;
+      h += `</tbody></table></div></div>`;
+    }
+  }
+  return h;
+}
+
+// ---- forms ---------------------------------------------------------------------------------
+function fill() {
+  $("#sample").innerHTML = Object.keys(SAMPLES).map((k) => `<option>${esc(k)}</option>`).join("");
+  $("#eft").value = Object.values(SAMPLES)[0];
+  for (const s of document.querySelectorAll("select.skills")) { s.innerHTML = skillOptions([]); s.value = "all5"; }
+  for (const s of document.querySelectorAll("select.profiles")) s.innerHTML = PROFILES.map((p) => `<option>${p}</option>`).join("");
+  $("#opt-profile").value = "guristas";
+  for (const s of document.querySelectorAll("select.targets")) { s.innerHTML = TARGETS.map((p) => `<option>${p}</option>`).join(""); s.value = "cruiser"; }
+  const obj = ["applied_dps", "dps", "ehp", "sustained_tank", "speed", "volley", "weapon_range"];
+  $("#opt-obj").innerHTML = obj.map((m) => `<option value="${m}">${METRIC_LABEL[m]}</option>`).join("");
+  $("#opt-obj2").innerHTML = '<option value="">Nothing else</option>' + obj.map((m) => `<option value="${m}">${METRIC_LABEL[m]}</option>`).join("");
+}
+fill();
+$("#sample").addEventListener("change", (e) => ($("#eft").value = SAMPLES[e.target.value]));
+for (const sel of document.querySelectorAll("select.skills")) {
+  sel.addEventListener("change", () => { sel.closest("form").querySelector(".skills-file").hidden = sel.value !== "file"; });
+}
+
+async function skillsReq(form) {
+  const sel = form.querySelector("select.skills");
+  const req = { skills: sel.value };
+  if (sel.value === "file") {
+    const f = form.querySelector(".skills-file input").files[0];
+    if (!f) throw new Error("Choose a skills JSON file first.");
+    req.skills_json = await f.text();
+  }
+  return req;
+}
+
+$("#sim-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#sim-go"); btn.disabled = true; btn.textContent = "Simulating…";
+  try {
+    const req = Object.assign(await skillsReq(e.target), { eft: $("#eft").value, profile: $("#sim-profile").value,
+      target: { preset: $("#sim-target").value, distance: $("#sim-distance").value } });
+    const d = JSON.parse(await call("simulate", JSON.stringify(req)));
+    $("#sim-out").innerHTML = renderStats(d, { subtitle: `${d.eft.split("\n")[0].replace(/^\[[^,]+,\s*|\]$/g, "")} · skills: ${d.skills}`, key: "applied_dps", profile: req.profile });
+  } catch (err) { $("#sim-out").innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+  btn.disabled = false; btn.textContent = "Simulate";
+});
+
+const num = (id) => { const v = $(id).value.trim(); return v === "" ? null : Number(v); };
+const list = (id) => $(id).value.split(",").map((s) => s.trim()).filter(Boolean);
+
+$("#opt-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#opt-go"); btn.disabled = true; btn.textContent = "Searching…";
+  const out = $("#opt-out");
+  out.innerHTML = `<div class="card"><h2>Search progress</h2><pre class="log" id="opt-log"></pre></div>`;
+  const log = $("#opt-log"); const t0 = performance.now();
+  logSink = (m) => { log.textContent += `[${((performance.now() - t0) / 1000).toFixed(1)} s] ${m}\n`; log.scrollTop = log.scrollHeight; };
+  logSink("Starting search");
+  try {
+    const weights = { [$("#opt-obj").value]: 1 };
+    const o2 = $("#opt-obj2").value, w2 = num("#opt-w2");
+    if (o2 && w2) weights[o2] = (weights[o2] || 0) + w2;
+    const constraints = {};
+    const put = (k, id) => { const v = num(id); if (v != null) constraints[k] = v; };
+    put("min_ehp", "#c-ehp"); put("min_sustained_tank", "#c-tank"); put("min_speed", "#c-speed");
+    put("min_weapon_range", "#c-range"); put("max_align_time", "#c-align");
+    if ($("#c-cap").checked) constraints.cap_stable = true;
+    const meta = [...document.querySelectorAll("#f-meta input:checked")].map((i) => i.value);
+    if (!meta.length) throw new Error("Allow at least one module meta group.");
+    const exclude = list("#f-exclude");
+    const spec = {
+      ship: $("#opt-ship").value.trim(), objective: { weights },
+      target: { preset: $("#opt-target").value, ...(num("#opt-distance") != null ? { distance: num("#opt-distance") } : {}) },
+      incoming: { preset: $("#opt-profile").value }, constraints,
+      fitting: { tank: $("#f-tank").value, propulsion: $("#f-prop").value, meta, require: list("#f-require"), exclude },
+      search: { effort: $("#opt-effort").value },
+    };
+    const req = Object.assign(await skillsReq(e.target), { spec, no_polarized: $("#f-nopol").checked });
+    const res = JSON.parse(await call("optimize", JSON.stringify(req)));
+    logSink("Done");
+    out.insertAdjacentHTML("beforeend", renderOpt(res, false));
+  } catch (err) { out.insertAdjacentHTML("beforeend", `<p class="err">${esc(err.message)}</p>`); }
+  logSink = null; btn.disabled = false; btn.textContent = "Find best fit";
+});
+
+// tabs
+for (const t of document.querySelectorAll('[role="tab"]')) {
+  t.addEventListener("click", () => {
+    for (const o of document.querySelectorAll('[role="tab"]')) { o.setAttribute("aria-selected", String(o === t)); document.getElementById(o.getAttribute("aria-controls")).hidden = o !== t; }
+    try { localStorage.setItem("fitlab-tab", t.id); } catch {}
+  });
+}
+try { const saved = localStorage.getItem("fitlab-tab"); if (saved && saved !== "tab-sim") document.getElementById(saved)?.click(); } catch {}
+if (location.hash === "#optimize") $("#tab-opt").click();
+
+// example readouts so the page shows something real while Python boots
+if (INITIAL) $("#sim-out").innerHTML = renderStats(INITIAL, { subtitle: "Example readout: Caracal sample with all skills V", badge: '<span class="pill ex">Example</span>', key: "applied_dps", profile: "uniform" });
+if (INITIAL_OPT) $("#opt-out").innerHTML = renderOpt(INITIAL_OPT, true);
+startWorker();
+</script>

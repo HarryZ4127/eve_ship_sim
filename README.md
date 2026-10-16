@@ -120,3 +120,17 @@ validated, and open decisions.
 Static data comes from Pyfa's copy of CCP's FSD export because it is reachable,
 refreshed every patch, and already includes `modifierInfo`. EVE Online and all related
 data are property of CCP hf.
+
+## Browser demo
+
+`web/` holds a self-contained page that runs evesim under [Pyodide](https://pyodide.org)
+in a background worker: paste a fit to simulate it, or run the optimizer from a form.
+Build it with
+
+```bash
+npm install pyodide@0.27.7
+python web/build.py dist/ --pyodide node_modules/pyodide
+python -m http.server -d dist 8000   # then open http://localhost:8000
+```
+
+Skill presets and uploaded skill JSON work there. ESI login needs the command line.
