@@ -1,0 +1,20 @@
+name = "Caracal PvE"
+ship = "Caracal"
+
+[objective]
+maximize = "applied_dps"
+
+[target]
+preset = "cruiser"
+distance = 30000
+
+[incoming]
+preset = "guristas"
+
+[constraints]
+min_ehp = 12000
+cap_stable = true
+
+[fitting]
+tank = "shield"
+propulsion = "ab"

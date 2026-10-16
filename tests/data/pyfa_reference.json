@@ -1,0 +1,463 @@
+{
+ "client_build": 3579973,
+ "generator": "tools/pyfa_reference.py (Pyfa eos, All-V character)",
+ "fits": {
+  "rifter": "[Rifter, Rifter test]\nGyrostabilizer II\nGyrostabilizer II\nDamage Control II\nSmall Ancillary Armor Repairer\n\n5MN Microwarpdrive II\nWarp Scrambler II\nStasis Webifier II\n\n200mm AutoCannon II, Republic Fleet EMP S\n200mm AutoCannon II, Republic Fleet EMP S\n200mm AutoCannon II, Republic Fleet EMP S\n\nSmall Projectile Burst Aerator I\nSmall Projectile Collision Accelerator I\nSmall Explosive Armor Reinforcer I\n",
+  "caracal": "[Caracal, HML]\nBallistic Control System II\nBallistic Control System II\nDamage Control II\nNanofiber Internal Structure II\n\n50MN Microwarpdrive II\nLarge Shield Extender II\nLarge Shield Extender II\nMultispectrum Shield Hardener II\nMultispectrum Shield Hardener II\n\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\n\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\n",
+  "vexor": "[Vexor, drones]\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\nMultispectrum Energized Membrane II\nDamage Control II\n\n10MN Afterburner II\nCap Recharger II\nDrone Navigation Computer II\nOmnidirectional Tracking Link II\n\nHeavy Electron Blaster II, Antimatter Charge M\nHeavy Electron Blaster II, Antimatter Charge M\nHeavy Electron Blaster II, Antimatter Charge M\nHeavy Electron Blaster II, Antimatter Charge M\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Capacitor Control Circuit I\n\n\nHammerhead II x5\nHobgoblin II x5\n",
+  "punisher": "[Punisher, lasers]\nHeat Sink II\nHeat Sink II\nSmall Armor Repairer II\nMultispectrum Coating II\n200mm Steel Plates II\n\nSmall Capacitor Booster II, Navy Cap Booster 200\nStasis Webifier II\n\nSmall Focused Pulse Laser II, Multifrequency S\nSmall Focused Pulse Laser II, Multifrequency S\nSmall Focused Pulse Laser II, Multifrequency S\n\nSmall Energy Burst Aerator I\nSmall Energy Collision Accelerator I\nSmall Energy Locus Coordinator I\n",
+  "myrmidon_aar": "[Myrmidon, AAR]\nMedium Ancillary Armor Repairer, Nanite Repair Paste\nMedium Armor Repairer II\nMultispectrum Energized Membrane II\nMultispectrum Energized Membrane II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\n\n10MN Afterburner II\nMedium Capacitor Booster II, Navy Cap Booster 400\nCap Recharger II\nDrone Navigation Computer II\n\nMedium Energy Nosferatu II\nDrone Link Augmentor II\nHeavy Ion Blaster II, Void M\nHeavy Ion Blaster II, Void M\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Nanobot Accelerator I\n\n\nOgre II x2\nHammerhead II x2\nHobgoblin II x5\n",
+  "loki": "[Loki, t3c]\nGyrostabilizer II\nGyrostabilizer II\nDamage Control II\n\n10MN Afterburner II\nLarge Shield Extender II\nLarge Shield Extender II\n\n425mm AutoCannon II, Barrage M\n425mm AutoCannon II, Barrage M\n425mm AutoCannon II, Barrage M\n425mm AutoCannon II, Barrage M\n425mm AutoCannon II, Barrage M\n\nMedium Core Defense Field Extender II\nMedium Core Defense Field Extender II\n\nLoki Core - Augmented Nuclear Reactor\nLoki Defensive - Covert Reconfiguration\nLoki Offensive - Projectile Scoping Array\nLoki Propulsion - Intercalated Nanofibers\n",
+  "raven_cruise": "[Raven, cruise]\nBallistic Control System II\nBallistic Control System II\nBallistic Control System II\nDamage Control II\n\nLarge Shield Booster II\nShield Boost Amplifier II\nMultispectrum Shield Hardener II\nMultispectrum Shield Hardener II\nMissile Guidance Computer II, Missile Range Script\n100MN Afterburner II\n\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\n\nLarge Warhead Calefaction Catalyst I\nLarge Bay Loading Accelerator I\nLarge Capacitor Control Circuit I\n"
+ },
+ "expected": {
+  "rifter": {
+   "dps": 221.5122191941707,
+   "drone_dps": 0,
+   "volley": 286.67520589755867,
+   "ehp": {
+    "shield": 886.6995073891625,
+    "armor": 1089.3246187363834,
+    "hull": 1088.3084577114428
+   },
+   "hp": {
+    "shield": 562.5,
+    "armor": 562.5,
+    "hull": 437.5
+   },
+   "resonance": {
+    "shield_em": 0.875,
+    "shield_thermal": 0.7000000000000001,
+    "shield_kinetic": 0.525,
+    "shield_explosive": 0.4375,
+    "armor_em": 0.34,
+    "armor_thermal": 0.5525,
+    "armor_kinetic": 0.6375,
+    "armor_explosive": 0.5355,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 206.25,
+   "cpu_out": 162.5,
+   "pg_used": 38.91,
+   "pg_out": 51.25,
+   "calibration_used": 450.0,
+   "max_velocity": 3240.481413529036,
+   "align_time": 4.926829162468202,
+   "sig_radius": 201.25,
+   "mass": 1567000.0,
+   "lock_range": 28125.0,
+   "scan_res": 825.0,
+   "cap_capacity": 250.0,
+   "cap_recharge_ms": 93750.0,
+   "cap": {
+    "stable": false,
+    "state": 22.5,
+    "used_per_s": 13.68888888888889,
+    "recharge_peak": 6.666666666666667
+   },
+   "tank_sustained": {
+    "passiveShield": 3.0,
+    "shieldRepair": 0,
+    "armorRepair": 2.426666666666666,
+    "armorRepairPreSpool": 2.426666666666666,
+    "armorRepairFullSpool": 2.426666666666666,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 3.0,
+    "shieldRepair": 0,
+    "armorRepair": 11.555555555555555,
+    "armorRepairPreSpool": 11.555555555555555,
+    "armorRepairFullSpool": 11.555555555555555,
+    "hullRepair": 0
+   }
+  },
+  "caracal": {
+   "dps": 243.01649723881238,
+   "drone_dps": 0,
+   "volley": 1224.746025836565,
+   "ehp": {
+    "shield": 42693.237895862316,
+    "armor": 2614.3790849673205,
+    "hull": 3482.5870646766166
+   },
+   "hp": {
+    "shield": 13117.546874999998,
+    "armor": 1500.0,
+    "hull": 1400.0
+   },
+   "resonance": {
+    "shield_em": 0.4237947036854237,
+    "shield_thermal": 0.33903576294833904,
+    "shield_kinetic": 0.25427682221125425,
+    "shield_explosive": 0.21189735184271186,
+    "armor_em": 0.425,
+    "armor_thermal": 0.4675,
+    "armor_kinetic": 0.6375,
+    "armor_explosive": 0.765,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 544.25,
+   "cpu_out": 537.5,
+   "pg_used": 882.5,
+   "pg_out": 787.5,
+   "calibration_used": 150.0,
+   "max_velocity": 2095.0576397102304,
+   "align_time": 6.265714535159148,
+   "sig_radius": 1095.2111993921633,
+   "mass": 16910000.0,
+   "lock_range": 71875.0,
+   "scan_res": 337.5,
+   "cap_capacity": 1250.0,
+   "cap_recharge_ms": 333750.0,
+   "cap": {
+    "stable": false,
+    "state": 100.0,
+    "used_per_s": 18.4,
+    "recharge_peak": 9.363295880149813
+   },
+   "tank_sustained": {
+    "passiveShield": 34.980124999999994,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 34.980124999999994,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   }
+  },
+  "vexor": {
+   "dps": 531.0225057099151,
+   "drone_dps": 337.3193807099151,
+   "volley": 1767.6762728396604,
+   "ehp": {
+    "shield": 2167.487684729064,
+    "armor": 5809.731299927378,
+    "hull": 6218.905472636816
+   },
+   "hp": {
+    "shield": 1375.0,
+    "armor": 2500.0,
+    "hull": 2500.0
+   },
+   "resonance": {
+    "shield_em": 0.875,
+    "shield_thermal": 0.7000000000000001,
+    "shield_kinetic": 0.525,
+    "shield_explosive": 0.4375,
+    "armor_em": 0.31875,
+    "armor_thermal": 0.41437500000000005,
+    "armor_kinetic": 0.41437500000000005,
+    "armor_explosive": 0.57375,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 342.25,
+   "cpu_out": 375.0,
+   "pg_used": 545.35,
+   "pg_out": 875.0,
+   "calibration_used": 300.0,
+   "max_velocity": 626.9749611801242,
+   "align_time": 8.43671022290343,
+   "sig_radius": 145.0,
+   "mass": 16100000.0,
+   "lock_range": 65625.0,
+   "scan_res": 350.0,
+   "cap_capacity": 1812.5,
+   "cap_recharge_ms": 246075.0,
+   "cap": {
+    "stable": false,
+    "state": 189.0,
+    "used_per_s": 23.63333333333334,
+    "recharge_peak": 18.41410139185208
+   },
+   "tank_sustained": {
+    "passiveShield": 3.6666666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 37.547833613326056,
+    "armorRepairPreSpool": 37.547833613326056,
+    "armorRepairFullSpool": 37.547833613326056,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 3.6666666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 53.152415153467686,
+    "armorRepairPreSpool": 53.152415153467686,
+    "armorRepairFullSpool": 53.152415153467686,
+    "hullRepair": 0
+   }
+  },
+  "punisher": {
+   "dps": 134.0115869933274,
+   "drone_dps": 0,
+   "volley": 258.99510414234544,
+   "ehp": {
+    "shield": 603.448275862069,
+    "armor": 3151.356802346901,
+    "hull": 839.5522388059701
+   },
+   "hp": {
+    "shield": 437.5,
+    "armor": 1375.0,
+    "hull": 562.5
+   },
+   "resonance": {
+    "shield_em": 1.0,
+    "shield_thermal": 0.8,
+    "shield_kinetic": 0.6,
+    "shield_explosive": 0.5,
+    "armor_em": 0.32320000000000004,
+    "armor_thermal": 0.42016000000000003,
+    "armor_kinetic": 0.4848000000000001,
+    "armor_explosive": 0.5171200000000001,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 163.0,
+   "cpu_out": 175.0,
+   "pg_used": 61.38,
+   "pg_out": 83.75,
+   "calibration_used": 500.0,
+   "max_velocity": 443.75,
+   "align_time": 3.5040279523557847,
+   "sig_radius": 37.0,
+   "mass": 1291250.0,
+   "lock_range": 31250.0,
+   "scan_res": 800.0,
+   "cap_capacity": 500.0,
+   "cap_recharge_ms": 120000.0,
+   "cap": {
+    "stable": true,
+    "state": 57.26319493614521,
+    "used_per_s": 12.373446922324806,
+    "recharge_peak": 22.181372549019606
+   },
+   "tank_sustained": {
+    "passiveShield": 2.333333333333333,
+    "shieldRepair": 0,
+    "armorRepair": 20.444444444444443,
+    "armorRepairPreSpool": 20.444444444444443,
+    "armorRepairFullSpool": 20.444444444444443,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 2.333333333333333,
+    "shieldRepair": 0,
+    "armorRepair": 20.444444444444443,
+    "armorRepairPreSpool": 20.444444444444443,
+    "armorRepairFullSpool": 20.444444444444443,
+    "hullRepair": 0
+   }
+  },
+  "myrmidon_aar": {
+   "dps": 569.3962263156375,
+   "drone_dps": 446.94817944063755,
+   "volley": 2184.52438963755,
+   "ehp": {
+    "shield": 6034.48275862069,
+    "armor": 14195.511859891232,
+    "hull": 8861.940298507463
+   },
+   "hp": {
+    "shield": 4375.0,
+    "armor": 5625.0,
+    "hull": 5937.5
+   },
+   "resonance": {
+    "shield_em": 1.0,
+    "shield_thermal": 0.8,
+    "shield_kinetic": 0.6,
+    "shield_explosive": 0.5,
+    "armor_em": 0.29352000179996274,
+    "armor_thermal": 0.38157600233995154,
+    "armor_kinetic": 0.38157600233995154,
+    "armor_explosive": 0.5283360032399329,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 407.75,
+   "cpu_out": 500.0,
+   "pg_used": 975.87,
+   "pg_out": 1312.5,
+   "calibration_used": 300.0,
+   "max_velocity": 440.45286016949154,
+   "align_time": 11.593926315635926,
+   "sig_radius": 305.0,
+   "mass": 17700000.0,
+   "lock_range": 68750.0,
+   "scan_res": 250.0,
+   "cap_capacity": 3625.0,
+   "cap_recharge_ms": 435000.00000000006,
+   "cap": {
+    "stable": true,
+    "state": 53.01585973954593,
+    "used_per_s": 46.72144267429194,
+    "recharge_peak": 54.12028985507246
+   },
+   "tank_sustained": {
+    "passiveShield": 10.416666666666668,
+    "shieldRepair": 0,
+    "armorRepair": 231.07621661388063,
+    "armorRepairPreSpool": 231.07621661388063,
+    "armorRepairFullSpool": 231.07621661388063,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 10.416666666666668,
+    "shieldRepair": 0,
+    "armorRepair": 231.07621661388063,
+    "armorRepairPreSpool": 231.07621661388063,
+    "armorRepairFullSpool": 231.07621661388063,
+    "hullRepair": 0
+   }
+  },
+  "loki": {
+   "dps": 422.877050362126,
+   "drone_dps": 0,
+   "volley": 1351.0916272896334,
+   "ehp": {
+    "shield": 28799.999999999996,
+    "armor": 6291.286568103177,
+    "hull": 6218.905472636816
+   },
+   "hp": {
+    "shield": 13859.999999999998,
+    "armor": 3125.0,
+    "hull": 2500.0
+   },
+   "resonance": {
+    "shield_em": 0.4375,
+    "shield_thermal": 0.525,
+    "shield_kinetic": 0.525,
+    "shield_explosive": 0.4375,
+    "armor_em": 0.17,
+    "armor_thermal": 0.414375,
+    "armor_kinetic": 0.6375,
+    "armor_explosive": 0.765,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 275.3,
+   "cpu_out": 412.5,
+   "pg_used": 817.75,
+   "pg_out": 1275.0,
+   "calibration_used": 150.0,
+   "max_velocity": 678.2590176196809,
+   "align_time": 7.124790554257624,
+   "sig_radius": 235.56019178328447,
+   "mass": 18800000.0,
+   "lock_range": 81250.0,
+   "scan_res": 300.0,
+   "cap_capacity": 1937.5,
+   "cap_recharge_ms": 182812.5,
+   "cap": {
+    "stable": true,
+    "state": 94.24388631310926,
+    "used_per_s": 3.0,
+    "recharge_peak": 26.495726495726494
+   },
+   "tank_sustained": {
+    "passiveShield": 33.0,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 33.0,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   }
+  },
+  "raven_cruise": {
+   "dps": 633.6093238415247,
+   "drone_dps": 0,
+   "volley": 4020.584301037624,
+   "ehp": {
+    "shield": 31326.163242521277,
+    "armor": 13899.782135076253,
+    "hull": 21890.54726368159
+   },
+   "hp": {
+    "shield": 9625.0,
+    "armor": 7975.0,
+    "hull": 8800.0
+   },
+   "resonance": {
+    "shield_em": 0.4237947036854237,
+    "shield_thermal": 0.33903576294833904,
+    "shield_kinetic": 0.25427682221125425,
+    "shield_explosive": 0.21189735184271186,
+    "armor_em": 0.425,
+    "armor_thermal": 0.4675,
+    "armor_kinetic": 0.6375,
+    "armor_explosive": 0.765,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 820.42,
+   "cpu_out": 937.5,
+   "pg_used": 9031.2,
+   "pg_out": 13750.0,
+   "calibration_used": 500.0,
+   "max_velocity": 380.72693402545207,
+   "align_time": 16.764873597331174,
+   "sig_radius": 410.0,
+   "mass": 149300000.0,
+   "lock_range": 112500.0,
+   "scan_res": 138.75,
+   "cap_capacity": 6875.0,
+   "cap_recharge_ms": 733125.0,
+   "cap": {
+    "stable": false,
+    "state": 180.0,
+    "used_per_s": 54.76666666666667,
+    "recharge_peak": 23.444160272804773
+   },
+   "tank_sustained": {
+    "passiveShield": 12.833333333333332,
+    "shieldRepair": 12.192666666666653,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 12.833333333333332,
+    "shieldRepair": 93.83999999999999,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   }
+  }
+ }
+}

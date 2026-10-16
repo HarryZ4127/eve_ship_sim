@@ -1,0 +1,22 @@
+# Compare a few missile frigates for a kiting role: fast, out of web/scram range.
+name = "Kiting frigate"
+ships = ["Kestrel", "Condor", "Merlin"]
+
+[objective]
+weights = { applied_dps = 1.0, speed = 0.5 }
+
+[target]
+preset = "frigate"
+distance = 22000
+
+[constraints]
+min_speed = 2500
+min_weapon_range = 25000
+min_ehp = 2500
+
+[fitting]
+propulsion = "mwd"
+tank = "shield"
+
+[search]
+effort = "quick"

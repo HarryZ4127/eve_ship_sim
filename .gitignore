@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+# built static data and tokens live in the user cache dir, but guard local copies too
+*.json.gz
+.evesim/

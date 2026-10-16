@@ -1,0 +1,23 @@
+# Cheap, cap-stable active-tank fit for belt/anomaly ratting against Serpentis.
+name = "Budget ratting"
+ship = "Vexor"
+
+[objective]
+weights = { applied_dps = 1.0, sustained_tank = 1.0 }
+
+[target]
+preset = "cruiser"
+distance = 8000
+
+[incoming]
+preset = "serpentis"
+
+[constraints]
+cap_stable = true
+min_sustained_tank = 80
+max_price = 25_000_000
+
+[fitting]
+meta = ["tech1", "storyline"]
+tank = "armor"
+propulsion = "ab"

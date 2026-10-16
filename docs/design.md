@@ -1,0 +1,152 @@
+# Design notes
+
+## Layout
+
+```
+src/evesim/
+  data/build.py      static data builder (Pyfa FSD dump -> compact gzip JSON)
+  data/store.py      StaticData: types, dogma attributes/effects, lookups
+  dogma/engine.py    generic dogma engine (Character, FitCalc)
+  fit.py             Fit model, EFT import/export, fitting-rule checks
+  stats.py           derived stats (DPS, EHP, tank, cap, navigation, targeting)
+  capacitor.py       time-domain capacitor simulation
+  application.py     applied DPS against a target (turret/missile formulas)
+  skills/            skill profiles: presets, JSON, ESI (SSO + PKCE)
+  market.py          ESI average prices with a daily cache
+  optimize/spec.py   requirements spec, metric registry
+  optimize/search.py optimizer
+  report.py, cli.py  output and command line
+```
+
+## Data
+
+CCP's static data includes `modifierInfo` for 94% of dogma effects. Each entry says
+which attribute, on which items (the ship, the character, items requiring a skill,
+items in a group ...), is changed by which attribute of the source, using which
+operation. The engine executes these entries directly, so it needs no hand-written
+table of 3,000+ effects. That keeps it small and lets it follow balance patches
+automatically.
+
+The data is taken from Pyfa's repository copy of the FSD export
+(`staticdata/fsd_built`), which tracks every patch. `evesim data update` keeps only
+fitting-relevant categories and English names, about 0.4 MB gzipped.
+
+## Engine rules
+
+* Operation order: preAssign, preMul, preDiv, modAdd, modSub, postMul, postDiv,
+  postPercent, postAssign; then min/max capping attributes (for example resonance ≤ 1).
+* Stacking penalty `exp(-(i/2.67)^2)` on non-stackable attributes for multiplicative
+  operations, applied per operation. Bonuses and maluses are penalized separately,
+  strongest first. Ships, charges, skills, implants and subsystems are exempt as sources.
+* Effect activity follows module state: passive always, online effects when online,
+  active effects when active, overload effects when overheated.
+* Targets: `LocationModifier`, `LocationGroupModifier` and `LocationRequiredSkillModifier`
+  on the ship hit fitted modules and loaded charges. `OwnerRequiredSkillModifier` hits
+  modules, charges and drones. `skillTypeID = -1` means the source skill itself.
+* Skill and implant values are computed once per character and shared by every fit,
+  which keeps a full evaluation at about 1.5 ms (3.5 ms with the cap simulation).
+
+Effects CCP ships without `modifierInfo` that matter for fitting are implemented by
+hand. There are three groups:
+
+1. Propulsion: mass addition, a speed boost computed from the post-addition mass, and
+   MWD signature bloom.
+2. Subsystem slots and hardpoints.
+3. Reactive Armor Hardener at its starting split, plus the "items requiring this skill
+   get +x% per level" skill effects (missile and drone damage, specialization rate of
+   fire).
+
+Missile damage is the charge's damage times the character's `missileDamageMultiplier`
+(Ballistic Controls modify the character), as in the game.
+
+## Validation
+
+`tests/test_against_pyfa.py` compares evesim with Pyfa's `eos` engine, run headless
+via `tools/pyfa_reference.py`, on seven fits: projectile, missile, drone, laser,
+hybrid, an ancillary repairer with cap booster, a T3C with subsystems, and a cruise
+missile battleship. Every compared value matches to 0.1% (capacitor time-to-empty is
+checked to 5% and currently matches exactly): DPS, volley, drone DPS,
+HP/EHP per layer, all 12 resists, CPU/PG/calibration, speed, align time, signature,
+mass, lock range, scan resolution, capacitor capacity/recharge/usage, stability and
+time-to-empty, and peak/sustained repair rates. The reference carries the game build
+it was made from, and the test skips on a different build until regenerated.
+
+Known small differences:
+
+* The "stable at X%" figure on fits with capacitor boosters can differ from Pyfa by a
+  few points, because booster timing is modelled slightly differently. Stability itself
+  agrees.
+* Nosferatu are not counted as capacitor gain unless `--assume-nos` is given. Pyfa
+  counts them by default; an optimizer should not rely on a target having capacitor.
+* The optimizer's `sustained_tank` counts ancillary repairer reloads (Pyfa's default
+  sustained tank does not). Otherwise the search treats an AAR as infinitely
+  sustainable.
+
+## Optimizer
+
+The problem: choose modules for each slot, weapons, ammo and drones, subject to slot
+counts, hardpoints, CPU/PG/calibration, group limits, skills and user constraints,
+maximizing a non-linear objective (stacking penalties, multiplicative bonuses,
+capacitor dynamics). This is a combinatorial problem with an expensive black-box
+objective. Linear or constraint solvers would need the dogma rules linearized, which
+is exactly where they would stop being correct. evesim instead keeps the evaluation
+exact and makes the search smart.
+
+1. **Candidates.** All modules usable with the character's skills, allowed by the spec,
+   fittable on the hull, and plausibly powerable (no capital modules on cruisers;
+   propulsion sized to the hull's mass class). Each is evaluated alone on two probes:
+   the armed hull, and the armed hull with enablers (a booster, repairer, cap booster,
+   prop mod). Modules that improve no relevant metric on either probe are dropped,
+   which keeps boost amplifiers and similar synergy modules. Within a module family
+   (T1/T2/named variants of the same item), variants dominated on benefit vs.
+   CPU/PG/calibration/price are dropped. Different modules are never compared with
+   each other, because their value depends on the rest of the fit.
+2. **Weapons.** Every turret/launcher type is ranked on the bare hull with two probe
+   charges (most damage, most range). The best few per family then try every allowed
+   charge, and the top configurations go forward. One extra config is the cheapest to
+   fit among decent options, since grid freed from weapons can go to tank. Mixed
+   turret/launcher hulls get the other weapon kind in leftover high slots.
+3. **Search** per weapon configuration: greedy fill, then coordinate descent (for each
+   fitted module or empty slot, try every alternative and keep the best, until a pass
+   changes nothing), then iterated local search with random perturbations. Moves that
+   would obviously overflow CPU/PG/calibration are skipped before evaluation, using the
+   costs measured in step 1.
+4. **Finish.** Fill slots the objective did not need (EHP/DPS without hurting the
+   objective or constraints), re-pick drones (a small knapsack over bandwidth, bay and
+   max active) and ammo, then verify with the full capacitor simulation. If averages
+   were too optimistic, the local search continues with the simulation on.
+
+Score = `sum(weight * metric / scale)` − 1000 × (relative constraint violation), plus a
+tiny tie-breaker that prefers spare CPU/PG and lower price. Feasible fits always win,
+infeasible ones are graded by how close they get, and plateaus (an oversized module
+that can be swapped for a smaller one with no immediate gain) can be walked off.
+
+Typical run times on one core: quick 2–10 s, normal 20–40 s per hull.
+
+## Not modelled (yet)
+
+Fighters and carriers, command bursts and fleet boosts, projected effects (your webs
+and paints on the target; enemy EWAR on you), T3 destroyer modes, mutated (abyssal)
+modules, drugs, heat damage, Reactive Armor Hardener adaptation, entropic
+disintegrator spool-up in the optimizer (the stats report base damage and the
+`spool_max` bonus), breacher pods, and drone application beyond "outrun or not". The
+optimizer does not choose implants (ESI implants are applied when fitting stats), does
+not choose T3C subsystems (you list them), and leaves utility high slots empty unless
+you `require` something.
+
+## Open decisions
+
+These choices shape what the optimizer recommends and are worth settling:
+
+1. **Which roles to ship presets for.** Example specs exist for PvE, brawling, kiting
+   and budget ratting. Abyssals, wormholes, faction warfare or fleet doctrines would
+   each want their own target/incoming presets.
+2. **Default module pool.** It is currently T1 + T2 + storyline. Faction and deadspace
+   are opt-in. Polarized weapons (zero resists) are allowed, and win whenever EHP is
+   only a lower bound.
+3. **Capacitor stability semantics.** Everything active is assumed running, including
+   the prop mod. Some players judge stability with prop off.
+4. **Price source.** ESI average prices are free but loose. Jita sell prices would need
+   a market API (e.g. Fuzzwork or Janice).
+5. **Skill-plan advice.** The engine can cheaply answer "which skill raises this fit's
+   DPS/EHP the most per training day". That would be a natural next feature.

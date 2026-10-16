@@ -1,0 +1,21 @@
+name = "Alpha Vexor brawler"
+ship = "Vexor"
+
+[objective]
+weights = { applied_dps = 1.0, ehp = 0.5 }
+
+[target]
+preset = "cruiser"
+distance = 3000
+
+[constraints]
+cap_stable = true
+max_price = 30_000_000
+
+[fitting]
+tank = "armor"
+propulsion = "mwd"
+require = ["Warp Scrambler I", "Stasis Webifier I"]
+
+[search]
+effort = "normal"
