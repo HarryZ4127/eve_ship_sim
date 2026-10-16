@@ -15,6 +15,7 @@ _SLOT_EFFECTS = {C.E_LO_POWER: "low", C.E_MED_POWER: "med", C.E_HI_POWER: "high"
 _SLOT_COUNT_ATTR = {"low": C.A_LOW_SLOTS, "med": C.A_MED_SLOTS, "high": C.A_HI_SLOTS, "rig": C.A_RIG_SLOTS}
 CHARGE_GROUP_ATTRS = (604, 605, 606, 609, 610)
 A_CHARGE_SIZE = 128
+A_TECH_LEVEL = 422
 A_MAX_GROUP_FITTED, A_MAX_GROUP_ACTIVE, A_MAX_TYPE_FITTED = 1544, 763, 2431
 A_FITS_TO_SHIP_TYPE = 1380
 A_MAX_SUBSYSTEMS = 1367
@@ -202,6 +203,10 @@ def module_fits_ship(t: Type, ship: Type, data: StaticData) -> bool:
 def charge_fits(module: Type, charge: Type) -> bool:
     groups = {int(module.attrs[a]) for a in CHARGE_GROUP_ATTRS if module.attrs.get(a)}
     if charge.group_id not in groups:
+        return False
+    # Tech II charges need a Tech II module. The charge-group lists do not encode this:
+    # many faction, officer and storyline weapons list the advanced ammo groups too.
+    if charge.attrs.get(A_TECH_LEVEL, 1) >= 2 and module.attrs.get(A_TECH_LEVEL, 1) < 2:
         return False
     size = module.attrs.get(A_CHARGE_SIZE)
     if size is not None and charge.attrs.get(A_CHARGE_SIZE) not in (None, size):

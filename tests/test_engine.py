@@ -107,3 +107,21 @@ Heavy Missile Launcher II, Scourge Heavy Missile
     st = compute(fit, all5, calc=calc)
     w = next(w for w in st.weapons if w.kind == "missile")
     assert w.volley["kinetic"] > data.type_by_name("Scourge Heavy Missile").attr(C.DAMAGE_ATTRS[2]) * 1.3
+
+
+@pytest.mark.parametrize("weapon, charge, ok", [
+    ("Heavy Electron Blaster II", "Void M", True),
+    ("Heavy Electron Blaster II", "Antimatter Charge M", True),
+    ("'Slither' Heavy Electron Blaster I", "Void M", False),   # storyline gun, T2 ammo
+    ("Heavy Electron Blaster I", "Void M", False),
+    ("Domination Rocket Launcher", "Mjolnir Javelin Rocket", False),  # faction launcher
+    ("Rocket Launcher II", "Mjolnir Javelin Rocket", True),
+    ("Polarized Rocket Launcher", "Mjolnir Javelin Rocket", True),     # polarized is T2
+])
+def test_tech2_charges_need_tech2_weapons(data, all5, weapon, charge, ok):
+    from evesim.fit import charge_fits
+    assert charge_fits(data.type_by_name(weapon), data.type_by_name(charge)) is ok
+    fit = Fit.from_eft(f"[Vexor, x]\n{weapon}, {charge}\n", data) if "Rocket" not in weapon else \
+        Fit.from_eft(f"[Kestrel, x]\n{weapon}, {charge}\n", data)
+    loaded = [p for p in check(fit, all5) if "cannot be loaded" in p]
+    assert bool(loaded) is not ok

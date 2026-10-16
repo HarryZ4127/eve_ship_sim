@@ -64,3 +64,16 @@ def test_unflyable_ship_is_reported(data):
     res, _ = _run(data, weak, {"ship": "Raven", "objective": {"maximize": "dps"}, "search": {"effort": "quick"}})
     assert res.best is None and "cannot fly" in res.notes[0]
     assert math.isfinite(len(res.notes))
+
+
+def test_optimizer_never_loads_tech2_charges_in_lower_tech_weapons(data, all5):
+    from evesim.fit import A_TECH_LEVEL
+    res, _ = _run(data, all5, {
+        "ship": "Vexor", "objective": {"maximize": "dps"},
+        "fitting": {"meta": ["tech1", "storyline"]},  # no T2 guns allowed, so no T2 ammo either
+        "search": {"effort": "quick"},
+    })
+    for m in res.best.fit.modules:
+        if m.charge is not None:
+            assert m.charge.attrs.get(A_TECH_LEVEL, 1) < 2, (m.type.name, m.charge.name)
+    assert not check(res.best.fit, all5)
