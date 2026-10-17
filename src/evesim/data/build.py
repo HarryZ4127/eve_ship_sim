@@ -110,6 +110,10 @@ def build(source: str | Path | None = None, ref: str = "master",
     except Exception:
         meta = {}
     try:
+        marketgroups = load(fsd + "marketgroups.0.json")
+    except Exception:
+        marketgroups = {}
+    try:
         clonegrades = load("fsd_lite/clonegrades.0.json")
     except Exception:
         clonegrades = {}
@@ -140,7 +144,8 @@ def build(source: str | Path | None = None, ref: str = "master",
         if default_eff is not None:
             rec["de"] = default_eff
         for src, dst in (("marketGroupID", "mg"), ("metaGroupID", "mt"), ("variationParentTypeID", "vp"),
-                         ("basePrice", "p"), ("raceID", "race"), ("factionID", "fac")):
+                         ("basePrice", "p"), ("raceID", "race"), ("factionID", "fac"),
+                         ("iconID", "ic"), ("graphicID", "gr")):
             if t.get(src) is not None:
                 rec[dst] = t[src]
         out_types[tid] = rec
@@ -203,7 +208,20 @@ def build(source: str | Path | None = None, ref: str = "master",
         "categories": out_cats,
         "types": out_types,
         "clone_grades": grades,
+        "market_groups": _market_tree(marketgroups, out_types),
     }
+
+
+def _market_tree(marketgroups: dict, types: dict) -> dict:
+    """Market groups holding kept types, with their ancestors: id -> [name, parent, iconID]."""
+    keep: set[str] = set()
+    for t in types.values():
+        g = t.get("mg")
+        while g is not None and str(g) not in keep and str(g) in marketgroups:
+            keep.add(str(g))
+            g = marketgroups[str(g)].get("parentGroupID")
+    return {g: [_en(marketgroups[g].get("name")), marketgroups[g].get("parentGroupID"),
+                marketgroups[g].get("iconID")] for g in keep}
 
 
 def write(data: dict, path: Path) -> Path:

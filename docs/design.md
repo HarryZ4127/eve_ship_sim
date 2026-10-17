@@ -31,7 +31,9 @@ automatically.
 
 The data is taken from Pyfa's repository copy of the FSD export
 (`staticdata/fsd_built`), which tracks every patch. `evesim data update` keeps only
-fitting-relevant categories and English names, about 0.4 MB gzipped.
+fitting-relevant categories and English names, about 0.45 MB gzipped. Each type also
+keeps its icon and graphic IDs, and the market group tree is kept, so a user interface
+can show pictures and browse items the way the game does.
 
 ## Engine rules
 

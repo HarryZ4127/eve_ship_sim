@@ -1,5 +1,6 @@
 // Runs evesim under Pyodide off the main thread. Messages:
-//   in:  {id, op: "init" | "simulate" | "optimize", payload}
+//   in:  {id, op: "init" | "simulate" | "simulate_fit" | "ship_info" | "charges" | "parse_eft" |
+//              "optimize" | "train", payload}
 //   out: {id, ok, result | error} and {type: "log", msg} / {type: "status", msg}
 const base = new URL("./", self.location.href).href;
 importScripts(base + "pyodide/pyodide.js");
@@ -50,9 +51,10 @@ self.onmessage = async (e) => {
     const info = await ready;
     let result;
     if (op === "init") result = info;
-    else if (op === "simulate") {
+    else if (op === "catalog") result = py.runPython("webapi.catalog()");
+    else if (["simulate", "simulate_fit", "ship_info", "charges", "parse_eft"].includes(op)) {
       py.globals.set("REQ", payload);
-      result = py.runPython("webapi.simulate(REQ)");
+      result = py.runPython(`webapi.${op}(REQ)`);
     } else if (op === "optimize" || op === "train") {
       py.globals.set("REQ", payload);
       py.globals.set("LOG", (m) => postMessage({ type: "log", msg: m }));

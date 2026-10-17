@@ -68,6 +68,8 @@ def stats(fit):
         'tank_sustained': fit.sustainableTank, 'tank_peak': fit.tank,
         'drone_bw': s.getModifiedItemAttr('droneBandwidth'),
         'cargo': s.getModifiedItemAttr('capacity'),
+        'slots': {k: int(s.getModifiedItemAttr(a) or 0) for k, a in (('high', 'hiSlots'), ('med', 'medSlots'),
+                  ('low', 'lowSlots'), ('rig', 'rigSlots'), ('turret', 'turretSlotsLeft'), ('launcher', 'launcherSlotsLeft'))},
         'mining_yield': fit.minerYield + fit.droneYield,
         'remote_reps': {k: getattr(fit.getRemoteReps(), k) for k in ('shield', 'armor', 'hull')},
         'modules': [],

@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>evesim Fit Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,7 +120,97 @@ tr.pick { cursor: pointer; }
 tr.pick:hover td, tr.pick.on td { background: var(--accent-soft); }
 .timeline { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .timeline div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
-@media (prefers-reduced-motion: no-preference) { .bar i { transition: width 0.4s ease; } }
+@media (prefers-reduced-motion: no-preference) { .bar i { transition: width 0.4s ease; } .ring .fill { transition: d 0.3s ease; } }
+/* Fitting window: item browser | slot ring | summary. Tiles sit on a ring like the in-game fitting window. */
+:root { --ring-band: rgba(21, 32, 43, 0.06); --hull-glow: rgba(21, 32, 43, 0.18); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ring-band: rgba(226, 232, 238, 0.05); --hull-glow: rgba(0, 0, 0, 0.6); } }
+:root[data-theme="dark"] { --ring-band: rgba(226, 232, 238, 0.05); --hull-glow: rgba(0, 0, 0, 0.6); }
+.fitbay { display: grid; grid-template-columns: 300px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .fitbay { grid-template-columns: 280px minmax(0, 1fr); } .fitbay .fsum { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .fitbay { grid-template-columns: minmax(0, 1fr); } .fitbay .browser { order: 3; } .fitbay .fsum { order: 2; } }
+.browser { position: sticky; top: 12px; max-height: calc(100vh - 24px); }
+@media (max-width: 760px) { .browser { position: static; max-height: 80vh; } .ringcard { padding-inline: 8px; } }
+.browser .seg label { padding: 6px 4px; font-size: 12.5px; }
+.blist { overflow: auto; min-height: 160px; flex: 1; margin: 0 -6px; padding: 0 6px; }
+.brfilter { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.brfilter button { font: 600 12px var(--body); background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; }
+details.mg > summary { list-style: none; cursor: pointer; display: flex; gap: 6px; align-items: center; padding: 3px 4px; border-radius: 4px; font-size: 13px; }
+details.mg > summary::-webkit-details-marker { display: none; }
+details.mg > summary::before { content: "▸"; color: var(--muted); width: 10px; flex: none; }
+details.mg[open] > summary::before { content: "▾"; }
+details.mg > summary:hover { background: var(--sunk); }
+details.mg > summary .ic { width: 22px; height: 22px; flex: none; }
+details.mg > summary .cnt { margin-left: auto; font: 500 11px var(--mono); color: var(--muted); }
+.kids { padding-left: 8px; margin-left: 8px; border-left: 1px solid var(--line); }
+.item { display: flex; gap: 8px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 3px 4px; border-radius: 4px; cursor: pointer; color: var(--ink); font: 13px/1.25 var(--body); }
+.item:hover, .item:focus-visible { background: var(--accent-soft); }
+.item .ic { width: 32px; height: 32px; flex: none; border-radius: 4px; }
+.item .nm { min-width: 0; overflow-wrap: anywhere; }
+.item .tag { margin-left: auto; flex: none; font: 600 10px var(--body); letter-spacing: 0.05em; color: var(--muted); text-transform: uppercase; }
+.item.locked { opacity: 0.5; }
+.shipgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 6px; padding: 4px 0; }
+.shipcard { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 6px 4px; cursor: pointer; font: 12px/1.2 var(--body); text-align: center; color: var(--ink); }
+.shipcard:hover, .shipcard.on { border-color: var(--accent); }
+.shipcard .ic { width: 64px; height: 64px; border-radius: 4px; }
+.ic { display: inline-block; background-repeat: no-repeat; }
+.ic.noimg { display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 700 11px var(--display); text-transform: uppercase; }
+
+.ringcard .tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; }
+.ring { position: relative; width: 100%; max-width: 580px; margin: 4px auto 0; aspect-ratio: 1; container-type: inline-size; }
+.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ring .band { fill: none; stroke: var(--ring-band); stroke-width: 13; }
+.ring .track { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
+.ring .fill { fill: none; stroke-width: 1.6; stroke-linecap: round; }
+.ring .fill.cpu { stroke: var(--em); } .ring .fill.pg { stroke: var(--explosive); } .ring .fill.over { stroke: var(--bad); }
+.hull { position: absolute; left: 50%; top: 50%; width: 38%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: 0 0 40px var(--hull-glow);
+  -webkit-mask-image: radial-gradient(circle, #000 58%, transparent 71%); mask-image: radial-gradient(circle, #000 58%, transparent 71%); }
+.hull.ic.noimg { font-size: 8cqw; }
+.hull-name { position: absolute; left: 50%; top: 19.5%; transform: translateX(-50%); text-align: center; white-space: nowrap; pointer-events: none; }
+.hull-name b { display: block; font: 700 clamp(15px, 4.6cqw, 26px)/1 var(--display); letter-spacing: 0.02em; }
+.hull-name span { font: 500 clamp(10px, 2.4cqw, 13px) var(--body); color: var(--muted); }
+.res-read { position: absolute; left: 50%; top: 70.5%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 1px; font: 500 clamp(10px, 2.4cqw, 13px)/1.3 var(--mono); white-space: nowrap; pointer-events: none; }
+.res-read .over { color: var(--bad); font-weight: 600; }
+.res-read i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.slot { position: absolute; transform: translate(-50%, -50%); aspect-ratio: 1; padding: 0; border: 1.5px solid var(--line); background: var(--panel); border-radius: 22%; cursor: pointer; display: grid; place-items: center; color: var(--muted); }
+.slot:hover { border-color: var(--accent); }
+.slot.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.slot.over { border-color: var(--bad); background: var(--bad-soft); }
+.slot.drop { border-style: dashed; border-color: var(--accent); }
+.slot > .ic { width: 84%; height: 84%; border-radius: 14%; pointer-events: none; }
+.slot .glyph { font: 700 clamp(10px, 2.6cqw, 15px) var(--display); opacity: 0.55; pointer-events: none; }
+.slot .chg { position: absolute; right: -10%; bottom: -10%; width: 44%; height: 44%; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--panel); background-color: var(--sunk); }
+.slot .led { position: absolute; left: 7%; top: 7%; width: 15%; height: 15%; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 1.5px var(--panel); pointer-events: none; }
+.slot.st0 > .ic { opacity: 0.35; filter: grayscale(1); }
+.slot.st1 .led { background: var(--good); opacity: 0.5; }
+.slot.st2 .led { background: var(--good); }
+.slot.st3 .led { background: var(--bad); }
+.slot-subsystem.full, .slot-mode.full { border-color: var(--accent); }
+
+.baysec { display: flex; flex-direction: column; gap: 6px; }
+.baytiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.baytile { position: relative; width: 52px; height: 52px; padding: 0; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.baytile.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.baytile.idle > .ic { opacity: 0.4; }
+.baytile > .ic { width: 40px; height: 40px; border-radius: 6px; pointer-events: none; }
+.baytile .n { position: absolute; right: -4px; bottom: -6px; font: 600 11px var(--mono); background: var(--panel); border: 1px solid var(--line); padding: 0 4px; border-radius: 99px; }
+.baytile .role { position: absolute; left: -4px; top: -6px; font: 700 9px var(--body); text-transform: uppercase; background: var(--accent-soft); color: var(--accent); padding: 0 4px; border-radius: 99px; }
+.insp { display: flex; gap: 12px; align-items: flex-start; background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.insp > .ic { width: 48px; height: 48px; border-radius: 6px; flex: none; }
+.insp .body { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.insp .nm { font-weight: 600; }
+.insp .acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.insp .acts .seg label { padding: 4px 10px; }
+.insp .chrow { display: flex; gap: 8px; align-items: center; font-size: 13px; flex-wrap: wrap; }
+.insp .chrow .ic { width: 28px; height: 28px; border-radius: 4px; }
+.danger { font: 600 12px var(--body); background: none; color: var(--bad); border: 1px solid var(--bad); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+.fsum { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.fsum .tiles { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+.fsum .tile .v { font-size: 22px; }
+dialog { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; width: min(640px, calc(100vw - 32px)); padding: 16px; }
+.copy.on { border-color: var(--accent); color: var(--accent); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+dialog .dlg { display: flex; flex-direction: column; gap: 12px; }
+dialog textarea { min-height: 260px; }
 </style>
 
 <div class="wrap">
@@ -129,38 +220,71 @@ tr.pick:hover td, tr.pick.on td { background: var(--accent-soft); }
   </header>
 
   <div class="tabs" role="tablist">
-    <button role="tab" id="tab-sim" aria-selected="true" aria-controls="panel-sim">Simulate a fit</button>
+    <button role="tab" id="tab-fit" aria-selected="true" aria-controls="panel-fit">Fitting</button>
     <button role="tab" id="tab-opt" aria-selected="false" aria-controls="panel-opt">Optimize</button>
     <button role="tab" id="tab-train" aria-selected="false" aria-controls="panel-train">Train skills</button>
   </div>
 
-  <section class="bay" id="panel-sim" role="tabpanel" aria-labelledby="tab-sim">
-    <form class="rack" id="sim-form">
-      <div class="field">
-        <label for="sample">Sample fit</label>
-        <select id="sample"></select>
+  <section class="fitbay" id="panel-fit" role="tabpanel" aria-labelledby="tab-fit">
+    <aside class="card browser" id="browser" aria-label="Item browser">
+      <div class="seg" role="radiogroup" aria-label="Browse">
+        <label><input type="radio" name="btab" value="ships"> Ships</label>
+        <label><input type="radio" name="btab" value="modules" checked> Modules</label>
+        <label><input type="radio" name="btab" value="charges"> Charges</label>
+        <label><input type="radio" name="btab" value="drones"> <span id="btab-drones">Drones</span></label>
       </div>
-      <div class="field">
-        <label for="eft">Fit (EFT text, as copied from the game or Pyfa)</label>
-        <textarea id="eft" spellcheck="false"></textarea>
+      <input id="br-q" type="search" placeholder="Search by name" aria-label="Search the browser" autocomplete="off">
+      <div class="brfilter" id="br-filter"></div>
+      <div class="checks"><label><input type="checkbox" id="br-usable"> Hide what my skills can't use</label></div>
+      <div class="blist" id="br-list"><p class="hint">Loading the item list…</p></div>
+    </aside>
+    <div class="readout">
+      <div class="card ringcard">
+        <div class="banner">
+          <div class="field" style="flex:1 1 180px"><label for="fit-name">Fit name</label><input id="fit-name" value="Fit Lab" autocomplete="off"></div>
+          <div class="tools">
+            <button type="button" class="copy" id="fit-import">Import EFT</button>
+            <button type="button" class="copy" id="fit-copy">Copy EFT</button>
+            <button type="button" class="copy" id="fit-strip">Strip fit</button>
+          </div>
+        </div>
+        <div class="ring" id="ring"></div>
+        <p class="hint" id="fit-msg" aria-live="polite">Select a slot, then pick a module in the browser (or drag one onto a slot). Double-click a slot to empty it.</p>
+        <div id="fit-insp"></div>
+        <div id="fit-bay"></div>
       </div>
-      <div class="row">
-        <div class="field"><label for="sim-skills">Skills</label><select id="sim-skills" class="skills"></select></div>
-        <div class="field"><label for="sim-profile">Incoming damage</label><select id="sim-profile" class="profiles"></select></div>
-      </div>
-      <div class="field skills-file" hidden>
-        <label for="sim-skills-file">Skills JSON (ESI export or {"skills": {"Gunnery": 5}})</label>
-        <input type="file" id="sim-skills-file" accept=".json,application/json">
-      </div>
-      <div class="row">
-        <div class="field"><label for="sim-target">Target</label><select id="sim-target" class="targets"></select></div>
-        <div class="field"><label for="sim-distance">Distance (m)</label><input id="sim-distance" type="number" min="0" step="500" value="20000"></div>
-      </div>
-      <button class="go" id="sim-go" type="submit" disabled>Simulate</button>
-      <p class="hint">Stats are computed by evesim's engine, validated against Pyfa. Cargo lines are ignored; drones fly up to 5 within bandwidth.</p>
-    </form>
-    <div class="readout" id="sim-out"></div>
+      <div class="readout" id="fit-details"></div>
+    </div>
+    <aside class="fsum">
+      <form class="card" id="fit-form">
+        <h2>Pilot and engagement</h2>
+        <div class="field"><label for="fit-skills">Skills</label><select id="fit-skills" class="skills"></select></div>
+        <div class="field skills-file" hidden>
+          <label for="fit-skills-file">Skills JSON (ESI export or {"skills": {"Gunnery": 5}})</label>
+          <input type="file" id="fit-skills-file" accept=".json,application/json">
+        </div>
+        <div class="field"><label for="fit-profile">Incoming damage</label><select id="fit-profile" class="profiles"></select></div>
+        <div class="row">
+          <div class="field"><label for="fit-target">Target</label><select id="fit-target" class="targets"></select></div>
+          <div class="field"><label for="fit-distance">Distance (m)</label><input id="fit-distance" type="number" min="0" step="500" value="20000"></div>
+        </div>
+      </form>
+      <div class="readout" id="fit-summary"></div>
+    </aside>
   </section>
+
+  <dialog id="eft-dialog" aria-labelledby="eft-title">
+    <form method="dialog" class="dlg">
+      <h2 id="eft-title">Import a fit</h2>
+      <div class="field"><label for="sample">Sample fit</label><select id="sample"></select></div>
+      <div class="field"><label for="eft">Fit (EFT text, as copied from the game or Pyfa)</label><textarea id="eft" spellcheck="false"></textarea></div>
+      <p class="err" id="eft-err" hidden></p>
+      <div class="tools" style="display:flex;gap:8px">
+        <button class="go" id="eft-load" value="load">Load into the fitting window</button>
+        <button class="copy" value="cancel" formnovalidate>Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <section class="bay" id="panel-opt" role="tabpanel" aria-labelledby="tab-opt" hidden>
     <form class="rack" id="opt-form">
@@ -286,6 +410,8 @@ tr.pick:hover td, tr.pick.on td { background: var(--accent-soft); }
 const SAMPLES = {"Caracal: heavy missiles": "[Caracal, HML]\nBallistic Control System II\nBallistic Control System II\nDamage Control II\nNanofiber Internal Structure II\n\n50MN Microwarpdrive II\nLarge Shield Extender II\nLarge Shield Extender II\nMultispectrum Shield Hardener II\nMultispectrum Shield Hardener II\n\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\nHeavy Missile Launcher II, Scourge Heavy Missile\n\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\nMedium Core Defense Field Extender I\n"};
 const INITIAL = null;
 const INITIAL_OPT = null;
+const INITIAL_FIT = null;
+const INITIAL_SHIP = null;
 const PROFILES = ["uniform", "guristas", "serpentis", "blood", "sansha", "angel", "drones", "mordus", "triglavian", "edencom", "em", "thermal", "kinetic", "explosive"];
 const TARGETS = ["frigate", "destroyer", "cruiser", "battlecruiser", "battleship", "structure"];
 const DT = ["em", "thermal", "kinetic", "explosive"];
@@ -334,7 +460,7 @@ function startWorker() {
       sel.innerHTML = skillOptions(info.grades);
       sel.value = cur || "all5";
     }
-    $("#sim-go").disabled = false; $("#opt-go").disabled = false; $("#train-go").disabled = false;
+    $("#opt-go").disabled = false; $("#train-go").disabled = false;
   }).catch((e) => setStatus("Python failed to load: " + e.message, "error"));
 }
 
@@ -356,11 +482,15 @@ function capText(c) { return c.stable ? `stable at ${fmt(c.stable_fraction * 100
 
 function renderStats(d, opts = {}) {
   const o = d.offense, df = d.defense, c = d.capacitor, n = d.navigation, t = d.targeting, tg = d.target;
-  let h = `<div class="card"><div class="banner"><div><div class="ship">${esc(d.ship)}</div>
+  let h = "";
+  if (!opts.noHead) {
+    h += `<div class="card"><div class="banner"><div><div class="ship">${esc(d.ship)}</div>
     <div class="sub">${esc(opts.subtitle || "")}</div></div>
     <div>${opts.badge || ""} ${d.valid ? '<span class="pill ok">Fit is legal</span>' : '<span class="pill bad">Fitting problems</span>'}</div></div>`;
-  if (d.problems.length) h += `<ul class="problems">${d.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>`;
-  h += `</div><div class="tiles">
+    if (d.problems.length) h += `<ul class="problems">${d.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>`;
+    h += `</div>`;
+  }
+  if (!opts.noTiles) h += `<div class="tiles">
     ${tile("Applied DPS", fmt(o.applied_dps, 0), "", `vs ${esc(tg.name)}, ${fmt(tg.distance / 1000, 1)} km`, opts.key === "applied_dps")}
     ${tile("Raw DPS", fmt(o.dps, 0), "", `weapons ${fmt(o.weapon_dps)} · drones ${fmt(o.drone_dps)}`, opts.key === "dps")}
     ${tile("EHP", fmt(df.ehp_total, 0), "", `vs ${esc(opts.profile || "incoming")} damage`, opts.key === "ehp")}
@@ -423,7 +553,7 @@ function renderStats(d, opts = {}) {
   }
   if (opts.showEft) {
     h += `<div class="card"><h2>Fit to import in game</h2><pre class="eft" id="${opts.showEft}">${esc(d.eft)}</pre>
-      <button type="button" class="copy" data-copy="${opts.showEft}">Copy EFT</button></div>`;
+      <div class="tools" style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="copy" data-copy="${opts.showEft}">Copy EFT</button>${opts.noOpen ? "" : `<button type="button" class="copy" data-open="${opts.showEft}">Open in the fitting window</button>`}</div></div>`;
   }
   return h;
 }
@@ -556,18 +686,6 @@ async function skillsReq(form) {
   return req;
 }
 
-$("#sim-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const btn = $("#sim-go"); btn.disabled = true; btn.textContent = "Simulating…";
-  try {
-    const req = Object.assign(await skillsReq(e.target), { eft: $("#eft").value, profile: $("#sim-profile").value,
-      target: { preset: $("#sim-target").value, distance: $("#sim-distance").value } });
-    const d = JSON.parse(await call("simulate", JSON.stringify(req)));
-    $("#sim-out").innerHTML = renderStats(d, { subtitle: `${d.eft.split("\n")[0].replace(/^\[[^,]+,\s*|\]$/g, "")} · skills: ${d.skills}`, key: "applied_dps", profile: req.profile });
-  } catch (err) { $("#sim-out").innerHTML = `<p class="err">${esc(err.message)}</p>`; }
-  btn.disabled = false; btn.textContent = "Simulate";
-});
-
 const num = (id) => { const v = $(id).value.trim(); return v === "" ? null : Number(v); };
 const list = (id) => $(id).value.split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -656,6 +774,538 @@ $("#train-form").addEventListener("submit", async (e) => {
   logSink = null; btn.disabled = false; btn.textContent = "Advise training";
 });
 
+// ---- fitting window ------------------------------------------------------------------------
+// The catalog (every ship and fittable item with icon ids and market groups) comes as a static
+// file, so the window can draw before Python is up. Ship layouts, charges and stats come from
+// the worker.
+const CAT = { items: new Map(), ships: new Map(), market: {}, ready: false };
+let IMG = null;
+const SLOT_ORDER = ["high", "med", "low", "rig", "subsystem", "mode"];
+const SLOT_LABEL = { high: "High", med: "Mid", low: "Low", rig: "Rig", subsystem: "Subsystem", mode: "Tactical mode" };
+const MODULE_SLOTS = new Set(["high", "med", "low", "rig", "subsystem"]);
+const STATE_NAMES = ["Offline", "Online", "Active", "Overheated"];
+const META_TAG = { t1: "T1", t2: "T2", t3: "T3", storyline: "Story", faction: "Faction", officer: "Officer", deadspace: "Deadspace", abyssal: "Abyssal" };
+const META_ORDER = ["t1", "t2", "storyline", "faction", "deadspace", "officer", "t3", "abyssal", ""];
+let FIT = null, SHIP = null, SEL = null, STATS = null;
+const BR = { tab: "modules", q: "", slot: null, chargeFor: null };
+const shipCache = new Map(), chargeCache = new Map();
+const narrow = () => matchMedia("(max-width: 760px)").matches;
+
+async function loadCatalog() {
+  const [cat, img] = await Promise.all([
+    fetch("catalog.json").then((r) => r.json()),
+    fetch("images.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
+  for (const [id, n, k, ic, mg, meta, f, x] of cat.items) CAT.items.set(id, { id, n, k, ic, mg, meta, f, x, slot: k.split(":")[0] });
+  for (const [id, n, g, gr, mg] of cat.ships) CAT.ships.set(id, { id, n, g, gr, mg, k: "ship", slot: "ship" });
+  CAT.market = cat.market; IMG = img; CAT.ready = true;
+}
+
+// Sprites: one atlas per kind; percentage positions keep them crisp at any tile size.
+function sprite(kind, id) {
+  const a = IMG && IMG[kind]; if (!a || id == null) return "";
+  const i = a.ids[id]; if (i == null) return "";
+  const x = i % a.cols, y = Math.floor(i / a.cols);
+  const px = a.cols > 1 ? (x / (a.cols - 1)) * 100 : 0, py = a.rows > 1 ? (y / (a.rows - 1)) * 100 : 0;
+  return `background-image:url(${kind === "icon" ? "icons.png" : "renders.jpg"});background-size:${a.cols * 100}% ${a.rows * 100}%;background-position:${px}% ${py}%`;
+}
+function iconStyle(it) {
+  if (!it) return "";
+  if (it.k === "ship") return sprite("render", it.gr);
+  let s = sprite("icon", it.ic), g = it.mg;
+  while (!s && g != null && CAT.market[g]) { s = sprite("icon", CAT.market[g][2]); g = CAT.market[g][1]; }
+  return s;
+}
+function pic(it, cls = "ic") {
+  const s = iconStyle(it);
+  return `<span class="${cls}${s ? "" : " noimg"}" style="${s}" aria-hidden="true">${s ? "" : esc((it && it.n || "?").replace(/[^A-Za-z0-9]/g, "").slice(0, 2))}</span>`;
+}
+const item = (id) => CAT.items.get(id) || (SHIP && SHIP.modeMap.get(id)) || { id, n: `#${id}`, k: "?", slot: "?" };
+
+// ---- fit state -------------------------------------------------------------------------------
+function prepShip(info) {
+  info.fitsSet = new Set(info.fits); info.unusableSet = new Set(info.unusable);
+  info.modeMap = new Map(info.modes.map(([id, n]) => [id, { id, n, k: "mode", slot: "mode" }]));
+  return info;
+}
+async function shipInfo(id) {
+  const key = `${id}|${$("#fit-skills").value}`;
+  if (!shipCache.has(key)) {
+    const req = Object.assign(await skillsReq($("#fit-form")).catch(() => ({ skills: "all5" })), { ship: id });
+    shipCache.set(key, call("ship_info", JSON.stringify(req)).then((r) => prepShip(JSON.parse(r))));
+  }
+  return shipCache.get(key);
+}
+function emptyFit(info, name) {
+  const slots = {};
+  for (const s of SLOT_ORDER) slots[s] = Array(s === "mode" ? (info.modes.length ? 1 : 0) : info.slots[s] || 0).fill(null);
+  return { ship: info.id, name: name || "Fit Lab", slots, drones: [], fighters: [] };
+}
+function fitFromParsed(p, info) {
+  const f = emptyFit(info, p.name);
+  for (const m of p.modules) {
+    const arr = f.slots[m.slot] || (f.slots[m.slot] = []);
+    const k = arr.indexOf(null), mod = { id: m.id, state: m.state, charge: m.charge };
+    if (k >= 0) arr[k] = mod; else arr.push(mod);
+  }
+  f.drones = p.drones.map((d) => ({ ...d })); f.fighters = p.fighters.map((x) => ({ ...x }));
+  return f;
+}
+function slotTotals() {
+  const t = {};
+  for (const s of SLOT_ORDER) {
+    if (s === "mode") t[s] = SHIP.modes.length ? 1 : 0;
+    else if (s === "subsystem") t[s] = SHIP.slots.subsystem || 0;
+    else t[s] = STATS && STATS.slots[s] ? STATS.slots[s].total : SHIP.slots[s] || 0;
+  }
+  return t;
+}
+function ensureSlots(tot) {
+  for (const s of SLOT_ORDER) {
+    const arr = FIT.slots[s] || (FIT.slots[s] = []);
+    while (arr.length < tot[s]) arr.push(null);
+    while (arr.length > tot[s] && arr[arr.length - 1] === null) arr.pop();
+  }
+}
+function flatModules() {
+  const out = [];
+  for (const s of SLOT_ORDER) for (const m of FIT.slots[s] || []) if (m) out.push(m);
+  return out;
+}
+
+// ---- simulation ------------------------------------------------------------------------------
+let simSeq = 0, simTimer = null;
+function changed(now = false) {
+  renderFit();
+  clearTimeout(simTimer);
+  simTimer = setTimeout(resimulate, now ? 0 : 120);
+}
+async function resimulate() {
+  const seq = ++simSeq;
+  const mods = flatModules();
+  try {
+    const req = Object.assign(await skillsReq($("#fit-form")), {
+      ship: FIT.ship, name: FIT.name, modules: mods.map((m) => ({ id: m.id, state: m.state, charge: m.charge })),
+      drones: FIT.drones, fighters: FIT.fighters, profile: $("#fit-profile").value,
+      target: { preset: $("#fit-target").value, distance: $("#fit-distance").value },
+    });
+    if (!CAT.ready) return;
+    $("#fit-summary").setAttribute("aria-busy", "true");
+    const d = JSON.parse(await call("simulate_fit", JSON.stringify(req)));
+    if (seq !== simSeq) return;
+    mods.forEach((m, k) => { const r = d.modules[k]; if (r) { m.state = r.state; m.cpu = r.cpu; m.pg = r.power; m.qty = r.charge_qty; } });
+    STATS = d; renderFit(); renderFitStats();
+  } catch (err) {
+    if (seq === simSeq) $("#fit-summary").innerHTML = `<p class="err">${esc(err.message)}</p>`;
+  }
+  $("#fit-summary").removeAttribute("aria-busy");
+}
+function say(msg) { $("#fit-msg").textContent = msg; }
+
+// ---- ring ------------------------------------------------------------------------------------
+function arc(r, a0, a1) {
+  const p = (a) => [50 + r * Math.cos((a * Math.PI) / 180), 50 + r * Math.sin((a * Math.PI) / 180)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${a1 > a0 ? 1 : 0} ${x1.toFixed(2)},${y1.toFixed(2)}`;
+}
+function gauge(cls, r, from, span, used, total) {
+  const f = total > 0 ? Math.min(1, used / total) : used > 0 ? 1 : 0;
+  const over = used > total + 1e-6 ? " over" : "";
+  return `<path class="track" d="${arc(r, from, from + span)}"/>` + (f > 0.002 ? `<path class="fill ${cls}${over}" d="${arc(r, from, from + span * f)}"/>` : "");
+}
+function renderRing() {
+  const tot = slotTotals(); ensureSlots(tot);
+  const groups = SLOT_ORDER.map((s) => [s, FIT.slots[s].length]).filter(([, n]) => n > 0);
+  const total = groups.reduce((a, [, n]) => a + n, 0), gap = 7;
+  const step = Math.min(15, (360 - gap * groups.length) / Math.max(total, 1));
+  const R = 42, size = Math.min(10.8, 2 * R * Math.sin((step * Math.PI) / 360) * 0.94);
+  let ang = -90 - ((groups.length ? groups[0][1] : 1) - 1) * step / 2, tiles = "";
+  for (const [s, n] of groups) {
+    for (let i = 0; i < n; i++) {
+      const a = (ang * Math.PI) / 180;
+      tiles += slotTile(s, i, 50 + R * Math.cos(a), 50 + R * Math.sin(a), size, i >= tot[s]);
+      ang += step;
+    }
+    ang += gap;
+  }
+  const ship = CAT.ships.get(FIT.ship) || { n: SHIP.name, k: "ship", gr: SHIP.graphic };
+  const r = STATS ? STATS.fitting : null;
+  const use = (k) => (r ? r[k] : { used: 0, total: 0 });
+  const cpu = use("cpu"), pg = use("power"), cal = use("calibration");
+  const read = (cls, label, u) => `<span class="${u.used > u.total + 1e-6 ? "over" : ""}"><i style="background:var(--${cls})"></i>${label} ${fmt(u.used, 1)} / ${fmt(u.total, 1)}</span>`;
+  $("#ring").innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="band" cx="50" cy="50" r="${R}"/>
+      ${gauge("cpu", 27, 128, 104, cpu.used, cpu.total)}${gauge("pg", 27, 52, -104, pg.used, pg.total)}</svg>
+    ${pic(ship, "hull ic")}
+    <div class="hull-name"><b>${esc(ship.n)}</b><span>${esc(SHIP.group)}</span></div>
+    <div class="res-read">${read("em", "CPU", cpu)}${read("explosive", "PG", pg)}${cal.total ? read("muted", "Cal", cal) : ""}</div>
+    ${tiles}`;
+}
+function slotTile(s, i, x, y, size, overflow) {
+  const m = FIT.slots[s][i], it = m ? item(m.id) : null, ch = m && m.charge ? item(m.charge) : null;
+  const sel = SEL && SEL.slot === s && SEL.i === i, st = m && m.state != null ? m.state : 1;
+  const desc = it ? `${it.n}${ch ? ", " + ch.n : ""}${MODULE_SLOTS.has(s) && s !== "rig" && s !== "subsystem" ? ` (${STATE_NAMES[st].toLowerCase()})` : ""}` : "empty";
+  const led = m && it.f && (it.f.includes("a") || st === 0) ? '<i class="led"></i>' : "";
+  return `<button type="button" class="slot slot-${s}${m ? " full" : ""}${sel ? " sel" : ""}${overflow ? " over" : ""} st${st}" data-slot="${s}" data-i="${i}"
+    style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${size.toFixed(2)}%" aria-pressed="${sel}"
+    aria-label="${esc(`${SLOT_LABEL[s]} slot ${i + 1}: ${desc}${overflow ? ", no slot for it" : ""}`)}" title="${esc(it ? it.n + (ch ? "\n" + ch.n : "") : SLOT_LABEL[s] + " slot")}">${it ? pic(it) : `<span class="glyph">${s === "mode" ? "M" : SLOT_LABEL[s][0]}</span>`}${ch ? pic(ch, "ic chg") : ""}${led}</button>`;
+}
+
+// ---- drone bay, fighter tubes, inspector ------------------------------------------------------
+function renderBay() {
+  let h = "";
+  const d = STATS ? STATS.drones : null;
+  if (SHIP.drones) {
+    const active = (STATS && STATS.drones_active) || [];
+    h += `<div class="baysec"><div class="banner"><span class="lbl">Drone bay</span>${d ? `<span class="sub num">bandwidth ${fmt(d.bandwidth_used)}/${fmt(d.bandwidth)} · bay ${fmt(d.bay_used)}/${fmt(d.bay)} m³</span>` : ""}</div><div class="baytiles">`;
+    FIT.drones.forEach((x, i) => {
+      const it = item(x.id), sel = SEL && SEL.bay === "drone" && SEL.i === i;
+      h += `<button type="button" class="baytile${sel ? " sel" : ""}${active[i] === 0 ? " idle" : ""}" data-bay="drone" data-i="${i}" aria-label="${esc(`${x.count}× ${it.n}${active[i] != null ? `, ${active[i]} in space` : ""}`)}" title="${esc(it.n)}">${pic(it)}<span class="n">×${x.count}</span></button>`;
+    });
+    h += FIT.drones.length ? "" : `<span class="hint">Empty. Add drones from the browser's Drones tab.</span>`;
+    h += `</div></div>`;
+  }
+  if (SHIP.fighters) {
+    h += `<div class="baysec"><div class="banner"><span class="lbl">Fighter tubes</span>${d && d.fighter_tubes ? `<span class="sub num">tubes ${d.fighter_tubes_used}/${d.fighter_tubes} · bay ${fmt(d.fighter_bay_used)}/${fmt(d.fighter_bay)} m³</span>` : ""}</div><div class="baytiles">`;
+    FIT.fighters.forEach((x, i) => {
+      const it = item(x.id), sel = SEL && SEL.bay === "fighter" && SEL.i === i, role = it.k.split(":")[1] || "";
+      h += `<button type="button" class="baytile${sel ? " sel" : ""}${x.active === false ? " idle" : ""}" data-bay="fighter" data-i="${i}" aria-label="${esc(`${it.n} squadron of ${x.amount}, ${role}`)}" title="${esc(it.n)}">${pic(it)}<span class="role">${esc(role)}</span><span class="n">×${x.amount}</span></button>`;
+    });
+    h += FIT.fighters.length ? "" : `<span class="hint">Empty. Add squadrons from the browser's Fighters tab.</span>`;
+    h += `</div></div>`;
+  }
+  $("#fit-bay").innerHTML = h;
+}
+function stateSeg(m, it) {
+  const can = [true, true, it.f.includes("a"), it.f.includes("h")];
+  return `<div class="seg" role="radiogroup" aria-label="Module state">${STATE_NAMES.map((n, k) => can[k] ? `<label><input type="radio" name="mstate" value="${k}"${m.state === k ? " checked" : ""}> ${n}</label>` : "").join("")}</div>`;
+}
+function renderInspector() {
+  const el = $("#fit-insp");
+  if (!SEL) { el.innerHTML = ""; return; }
+  if (SEL.bay) {
+    const list = SEL.bay === "drone" ? FIT.drones : FIT.fighters, x = list[SEL.i];
+    if (!x) { el.innerHTML = ""; return; }
+    const it = item(x.id), n = SEL.bay === "drone" ? x.count : x.amount;
+    el.innerHTML = `<div class="insp">${pic(it)}<div class="body"><span class="nm">${esc(it.n)}</span>
+      <div class="acts"><button type="button" class="mini" style="width:32px" data-act="minus" aria-label="One fewer">−</button><span class="num">${n}</span>
+      <button type="button" class="mini" style="width:32px" data-act="plus" aria-label="One more">+</button>
+      ${SEL.bay === "fighter" ? `<label class="checks"><input type="checkbox" data-act="factive"${x.active === false ? "" : " checked"}> Launched</label>` : ""}
+      <button type="button" class="danger" data-act="remove">Remove</button></div>
+      ${SEL.bay === "drone" && STATS ? `<span class="sub">${(STATS.drones_active || [])[SEL.i] ?? 0} of these in space (at most 5 drones within bandwidth).</span>` : ""}</div></div>`;
+    return;
+  }
+  const m = FIT.slots[SEL.slot] && FIT.slots[SEL.slot][SEL.i];
+  if (SEL.slot === "mode") {
+    el.innerHTML = `<div class="insp"><div class="body"><span class="nm">Tactical mode</span><div class="acts">${SHIP.modes.map(([id, n]) => `<button type="button" class="copy${m && m.id === id ? " on" : ""}" data-act="mode" data-id="${id}" aria-pressed="${!!(m && m.id === id)}">${esc(n)}</button>`).join("")}</div></div></div>`;
+    return;
+  }
+  if (!m) { el.innerHTML = `<div class="insp"><div class="body"><span class="nm">Empty ${SLOT_LABEL[SEL.slot].toLowerCase()} slot</span><span class="sub">Pick a module in the browser to fit it here.</span></div></div>`; return; }
+  const it = item(m.id), ch = m.charge ? item(m.charge) : null;
+  const cost = m.cpu != null ? `CPU ${fmt(m.cpu, 1)} · PG ${fmt(m.pg, 1)}` : "";
+  el.innerHTML = `<div class="insp">${pic(it)}<div class="body"><span class="nm">${esc(it.n)}</span>
+    <span class="sub">${esc(SLOT_LABEL[SEL.slot])} slot ${SEL.i + 1}${META_TAG[it.meta] ? " · " + META_TAG[it.meta] : ""}${cost ? " · " + cost : ""}${SHIP.unusableSet.has(m.id) ? ' · <span style="color:var(--bad)">skills missing</span>' : ""}</span>
+    ${SEL.slot !== "rig" && SEL.slot !== "subsystem" ? `<div class="acts">${stateSeg(m, it)}</div>` : ""}
+    ${it.f.includes("c") ? `<div class="chrow">${ch ? `${pic(ch)}<span>${esc(ch.n)}${m.qty ? ` <span class="sub">(${m.qty} per load)</span>` : ""}</span>` : `<span class="sub">No charge loaded.</span>`}
+      <button type="button" class="copy" data-act="charges">${ch ? "Change charge" : "Load a charge"}</button>${ch ? '<button type="button" class="copy" data-act="unload">Unload</button>' : ""}</div>` : ""}
+    <div class="acts"><button type="button" class="danger" data-act="remove">Remove module</button></div></div></div>`;
+}
+function markSelection() {
+  for (const el of document.querySelectorAll("#ring .slot, #fit-bay .baytile")) {
+    const on = !!SEL && (el.dataset.slot ? !SEL.bay && el.dataset.slot === SEL.slot && Number(el.dataset.i) === SEL.i
+      : SEL.bay === el.dataset.bay && Number(el.dataset.i) === SEL.i);
+    el.classList.toggle("sel", on);
+    if (el.dataset.slot) el.setAttribute("aria-pressed", String(on));
+  }
+  renderInspector();
+}
+function renderFit() {
+  if (!FIT || !SHIP || !CAT.ready) return;
+  $("#fit-name").value = FIT.name;
+  $("#btab-drones").textContent = SHIP.fighters ? "Fighters" : "Drones";
+  renderRing(); renderBay(); renderInspector();
+}
+function renderFitStats() {
+  const d = STATS; if (!d) return;
+  const o = d.offense, df = d.defense, c = d.capacitor, n = d.navigation, t = d.targeting, tg = d.target;
+  const parts = [`weapons ${fmt(o.weapon_dps)}`];
+  if (o.drone_dps) parts.push(`drones ${fmt(o.drone_dps)}`);
+  if (o.fighter_dps) parts.push(`fighters ${fmt(o.fighter_dps)}`);
+  let h = `<div class="card"><div class="banner"><h2>Live stats</h2>${d.valid ? '<span class="pill ok">Fit is legal</span>' : '<span class="pill bad">Fitting problems</span>'}</div>
+    ${d.problems.length ? `<ul class="problems">${d.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>` : ""}
+    <span class="sub">Skills: ${esc(d.skills)}</span></div>
+    <div class="tiles">
+    ${tile("Applied DPS", fmt(o.applied_dps), "", `vs ${esc(tg.name)} at ${fmt(tg.distance / 1000, 1)} km`, true)}
+    ${tile("Raw DPS", fmt(o.dps), "", parts.join(" · "))}
+    ${tile("Volley", fmt(o.volley), "HP", "")}
+    ${tile("EHP", fmt(df.ehp_total), "", `vs ${esc($("#fit-profile").value)} damage`)}
+    ${tile("Tank", fmt(df.sustained_ehps_with_reload, 1), "EHP/s", `peak ${fmt(df.peak_ehps, 1)}`)}
+    ${tile("Capacitor", c.stable ? fmt(c.stable_fraction * 100) + "%" : dur(c.lasts_s), "", c.stable ? "stable" : "until empty")}
+    ${tile("Speed", fmt(n.max_velocity), "m/s", `align ${fmt(n.align_time, 2)} s`)}
+    ${tile("Signature", fmt(n.signature_radius), "m", `warp ${fmt(n.warp_speed, 1)} AU/s`)}
+    ${tile("Lock range", fmt(t.lock_range / 1000, 1), "km", `${fmt(t.scan_resolution)} mm · ${t.max_targets} targets`)}
+    </div>`;
+  $("#fit-summary").innerHTML = h;
+  $("#fit-details").innerHTML = renderStats(d, { noHead: true, noTiles: true, showEft: "eft-fit", noOpen: true, profile: $("#fit-profile").value });
+}
+
+// ---- browser ---------------------------------------------------------------------------------
+function candidates() {
+  const hide = $("#br-usable").checked && SHIP;
+  if (BR.tab === "ships") return [...CAT.ships.values()];
+  if (BR.tab === "modules") {
+    return [...CAT.items.values()].filter((it) => MODULE_SLOTS.has(it.slot) && (!SHIP || SHIP.fitsSet.has(it.id))
+      && (!BR.slot || it.slot === BR.slot) && !(hide && SHIP.unusableSet.has(it.id)));
+  }
+  if (BR.tab === "charges") return (BR.chargeIds || []).map((id) => CAT.items.get(id)).filter(Boolean);
+  const want = SHIP && SHIP.fighters ? "fighter" : "drone";
+  return [...CAT.items.values()].filter((it) => it.slot === want);
+}
+function itemRow(it) {
+  const locked = SHIP && SHIP.unusableSet.has(it.id);
+  if (it.k === "ship") {
+    return `<button type="button" class="shipcard${FIT && FIT.ship === it.id ? " on" : ""}" data-id="${it.id}" data-kind="ship" draggable="false">${pic(it)}<span>${esc(it.n)}</span></button>`;
+  }
+  const tag = it.k === "high:turret" ? "turret" : it.k === "high:launcher" ? "launcher" : it.slot === "fighter" ? it.k.split(":")[1] : META_TAG[it.meta] || "";
+  return `<button type="button" class="item${locked ? " locked" : ""}" data-id="${it.id}" draggable="true" title="${esc(it.n)}${locked ? " (skills missing)" : ""}">${pic(it)}<span class="nm">${esc(it.n)}</span><span class="tag">${esc(tag)}</span></button>`;
+}
+const byMeta = (a, b) => META_ORDER.indexOf(a.meta) - META_ORDER.indexOf(b.meta) || a.n.localeCompare(b.n);
+let TREE = null;
+function buildTree(items) {
+  const nodes = new Map(), node = (g) => { let n = nodes.get(g); if (!n) nodes.set(g, (n = { groups: new Set(), items: [], count: 0 })); return n; };
+  for (const it of items) {
+    let g = CAT.market[it.mg] ? it.mg : "root";
+    node(g).items.push(it);
+    for (let guard = 0; g !== "root" && guard < 12; guard++) {
+      node(g).count++;
+      const p = CAT.market[g][1], parent = p != null && CAT.market[p] ? p : "root";
+      node(parent).groups.add(g); g = parent;
+    }
+    node("root").count++;
+  }
+  return nodes;
+}
+function groupHtml(g) {
+  const m = CAT.market[g], n = TREE.get(g);
+  return `<details class="mg" data-mg="${g}"><summary>${m[2] != null && sprite("icon", m[2]) ? pic({ ic: m[2], n: m[0] }) : ""}<span>${esc(m[0])}</span><span class="cnt">${n.count}</span></summary><div class="kids"></div></details>`;
+}
+function childrenHtml(g) {
+  const n = TREE.get(g);
+  const groups = [...n.groups].sort((a, b) => CAT.market[a][0].localeCompare(CAT.market[b][0]));
+  let h = groups.map(groupHtml).join("");
+  const items = n.items.slice().sort(BR.tab === "ships" ? (a, b) => a.n.localeCompare(b.n) : byMeta);
+  if (items.length) h += BR.tab === "ships" ? `<div class="shipgrid">${items.map(itemRow).join("")}</div>` : items.map(itemRow).join("");
+  return h;
+}
+async function renderBrowser() {
+  const list = $("#br-list");
+  if (!CAT.ready) return;
+  let filter = "";
+  if (BR.tab === "modules" && BR.slot) filter = `<span>${esc(SLOT_LABEL[BR.slot])} slot modules that fit ${esc(SHIP ? SHIP.name : "")}</span><button type="button" data-clear="slot">Show all slots</button>`;
+  else if (BR.tab === "modules" && SHIP) filter = `<span>Modules that fit ${esc(SHIP.name)}</span>`;
+  if (BR.tab === "charges") {
+    const mods = chargeTargets();
+    const names = [...new Set(mods.map((m) => item(m.id).n))];
+    filter = names.length ? `<span>Charges for ${esc(names.slice(0, 2).join(", "))}${names.length > 2 ? ` and ${names.length - 2} more` : ""}</span>` : "<span>Fit a weapon or other charge-using module first.</span>";
+    const ids = new Set();
+    for (const id of new Set(mods.map((m) => m.id))) {
+      if (!chargeCache.has(id)) chargeCache.set(id, call("charges", JSON.stringify({ module: id })).then(JSON.parse));
+      list.innerHTML = '<p class="hint">Looking up compatible charges…</p>';
+      for (const c of await chargeCache.get(id)) ids.add(c);
+    }
+    if (BR.tab !== "charges") return;
+    BR.chargeIds = [...ids];
+  }
+  $("#br-filter").innerHTML = filter;
+  const items = candidates();
+  if (BR.q) {
+    const q = BR.q.toLowerCase();
+    const hits = items.filter((it) => it.n.toLowerCase().includes(q))
+      .sort((a, b) => (b.n.toLowerCase().startsWith(q) - a.n.toLowerCase().startsWith(q)) || a.n.length - b.n.length).slice(0, 150);
+    list.innerHTML = hits.length ? (BR.tab === "ships" ? `<div class="shipgrid">${hits.map(itemRow).join("")}</div>` : hits.map(itemRow).join("")) : '<p class="hint">Nothing matches.</p>';
+    return;
+  }
+  if (!items.length) { list.innerHTML = `<p class="hint">${BR.tab === "drones" ? "This hull has no drone bay or fighter tubes." : "Nothing to show."}</p>`; return; }
+  TREE = buildTree(items);
+  list.innerHTML = childrenHtml("root");
+  // Open single-child chains so the first click lands on something useful.
+  let only = list.querySelectorAll(":scope > details.mg");
+  for (let guard = 0; only.length === 1 && guard < 4; guard++) { only[0].open = true; fillGroup(only[0]); only = only[0].querySelectorAll(":scope > .kids > details.mg"); }
+}
+function fillGroup(det) { const k = det.querySelector(":scope > .kids"); if (det.open && !k.childElementCount) k.innerHTML = childrenHtml(Number(det.dataset.mg)); }
+function chargeTargets() {
+  const sel = SEL && !SEL.bay && FIT.slots[SEL.slot] ? FIT.slots[SEL.slot][SEL.i] : null;
+  if (sel && item(sel.id).f.includes("c")) return [sel];
+  return flatModules().filter((m) => (item(m.id).f || "").includes("c"));
+}
+function setTab(tab) {
+  BR.tab = tab;
+  for (const r of document.querySelectorAll('input[name="btab"]')) r.checked = r.value === tab;
+  renderBrowser();
+}
+
+// ---- actions ---------------------------------------------------------------------------------
+async function selectShip(id, parsed) {
+  say("Loading the hull…");
+  try {
+    SHIP = await shipInfo(id);
+    FIT = parsed ? fitFromParsed(parsed, SHIP) : emptyFit(SHIP, `${SHIP.name} fit`);
+    STATS = null; SEL = null; BR.slot = null;
+    say(parsed ? `Loaded ${SHIP.name}.` : `New ${SHIP.name} fit. Select a slot, then pick a module.`);
+    changed(true); if (BR.tab !== "ships") renderBrowser();
+  } catch (err) { say("Could not load the hull: " + err.message); }
+}
+function place(it, slot = it.slot, index = null) {
+  if (!FIT.slots[slot] || it.slot !== slot) { say(`${it.n} goes in a ${SLOT_LABEL[it.slot] ? SLOT_LABEL[it.slot].toLowerCase() : it.slot} slot.`); return; }
+  const tot = slotTotals();
+  let i = index != null ? index : SEL && SEL.slot === slot ? SEL.i : FIT.slots[slot].findIndex((m, j) => !m && j < tot[slot]);
+  if (i < 0 || i >= FIT.slots[slot].length) { say(`No free ${SLOT_LABEL[slot].toLowerCase()} slot. Select one to replace its module.`); return; }
+  const old = FIT.slots[slot][i];
+  const twin = flatModules().find((m) => m.id === it.id && m.charge);
+  FIT.slots[slot][i] = { id: it.id, state: null, charge: old && old.id === it.id ? old.charge : twin ? twin.charge : null };
+  SEL = { slot, i };
+  if (it.f.includes("c") && !FIT.slots[slot][i].charge) { say(`Fitted ${it.n}. Pick a charge for it.`); changed(); setTab("charges"); return; }
+  say(`Fitted ${it.n}.`);
+  if (slot === "subsystem") shipCache.clear();
+  changed();
+  if (narrow()) $("#ring").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+async function loadCharge(it) {
+  const sel = SEL && !SEL.bay && FIT.slots[SEL.slot] ? FIT.slots[SEL.slot][SEL.i] : null;
+  // A selected module loads it together with its identical twins, as grouped weapons do in game.
+  const pool = sel && item(sel.id).f.includes("c") ? flatModules().filter((m) => m.id === sel.id) : chargeTargets();
+  let n = 0;
+  for (const m of pool) {
+    if (!chargeCache.has(m.id)) chargeCache.set(m.id, call("charges", JSON.stringify({ module: m.id })).then(JSON.parse));
+    if ((await chargeCache.get(m.id)).includes(it.id)) { m.charge = it.id; n++; }
+  }
+  say(n ? `Loaded ${it.n} into ${n} module${n > 1 ? "s" : ""}.` : `${it.n} fits none of the selected modules.`);
+  changed();
+}
+function addBay(it) {
+  if (it.slot === "drone") {
+    if (!SHIP.drones) { say("This hull has no drone bay."); return; }
+    const x = FIT.drones.find((d) => d.id === it.id);
+    if (x) x.count++; else FIT.drones.push({ id: it.id, count: 1 });
+    SEL = { bay: "drone", i: FIT.drones.findIndex((d) => d.id === it.id) };
+    say(`Added ${it.n}.`);
+  } else {
+    if (!SHIP.fighters) { say("This hull has no fighter tubes."); return; }
+    FIT.fighters.push({ id: it.id, amount: it.x || 1, active: true });
+    SEL = { bay: "fighter", i: FIT.fighters.length - 1 };
+    say(`Added a squadron of ${it.x || 1} ${it.n}.`);
+  }
+  changed();
+}
+function pickItem(id, kind) {
+  if (kind === "ship") { selectShip(id); return; }
+  const it = CAT.items.get(id); if (!it || !FIT) return;
+  if (MODULE_SLOTS.has(it.slot)) place(it);
+  else if (it.slot === "charge") loadCharge(it);
+  else addBay(it);
+}
+
+function initFitting() {
+  $("#br-list").addEventListener("toggle", (e) => { if (e.target.matches("details.mg")) fillGroup(e.target); }, true);
+  $("#br-list").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) pickItem(Number(b.dataset.id), b.dataset.kind); });
+  $("#br-list").addEventListener("dragstart", (e) => { const b = e.target.closest("[data-id]"); if (b) e.dataTransfer.setData("text/plain", b.dataset.id); });
+  $("#br-filter").addEventListener("click", (e) => { if (e.target.closest("[data-clear]")) { BR.slot = null; renderBrowser(); } });
+  for (const r of document.querySelectorAll('input[name="btab"]')) r.addEventListener("change", () => setTab(r.value));
+  let qt; $("#br-q").addEventListener("input", (e) => { clearTimeout(qt); qt = setTimeout(() => { BR.q = e.target.value.trim(); renderBrowser(); }, 120); });
+  $("#br-usable").addEventListener("change", renderBrowser);
+  const ring = $("#ring");
+  ring.addEventListener("click", (e) => {
+    const b = e.target.closest(".slot"); if (!b) return;
+    const s = b.dataset.slot, i = Number(b.dataset.i);
+    SEL = { slot: s, i };
+    markSelection();  // not a full redraw: a double-click needs the same element twice
+    if (s === "mode") return;
+    BR.slot = s; BR.q = ""; $("#br-q").value = "";
+    setTab(FIT.slots[s][i] && item(FIT.slots[s][i].id).f.includes("c") && BR.tab === "charges" ? "charges" : "modules");
+    if (narrow()) $("#browser").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  ring.addEventListener("dblclick", (e) => {
+    const b = e.target.closest(".slot"); if (!b) return;
+    const s = b.dataset.slot, i = Number(b.dataset.i);
+    if (FIT.slots[s][i]) { say(`Removed ${item(FIT.slots[s][i].id).n}.`); FIT.slots[s][i] = null; changed(); }
+  });
+  ring.addEventListener("dragover", (e) => { const b = e.target.closest(".slot"); if (b) { e.preventDefault(); b.classList.add("drop"); } });
+  ring.addEventListener("dragleave", (e) => { const b = e.target.closest(".slot"); if (b) b.classList.remove("drop"); });
+  ring.addEventListener("drop", (e) => {
+    const b = e.target.closest(".slot"); if (!b) return; e.preventDefault();
+    const it = CAT.items.get(Number(e.dataTransfer.getData("text/plain"))); if (!it) return;
+    if (it.slot === "charge") { SEL = { slot: b.dataset.slot, i: Number(b.dataset.i) }; loadCharge(it); }
+    else if (MODULE_SLOTS.has(it.slot)) place(it, b.dataset.slot, Number(b.dataset.i));
+  });
+  $("#fit-bay").addEventListener("click", (e) => { const b = e.target.closest("[data-bay]"); if (b) { SEL = { bay: b.dataset.bay, i: Number(b.dataset.i) }; markSelection(); } });
+  $("#fit-insp").addEventListener("change", (e) => {
+    if (e.target.name === "mstate") { const m = FIT.slots[SEL.slot][SEL.i]; m.state = Number(e.target.value); changed(); }
+    if (e.target.dataset.act === "factive") { FIT.fighters[SEL.i].active = e.target.checked; changed(); }
+  });
+  $("#fit-insp").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b || !SEL) return;
+    const act = b.dataset.act;
+    if (SEL.bay) {
+      const list = SEL.bay === "drone" ? FIT.drones : FIT.fighters, x = list[SEL.i], key = SEL.bay === "drone" ? "count" : "amount";
+      const max = SEL.bay === "drone" ? 50 : item(x.id).x || 12;
+      if (act === "plus") x[key] = Math.min(max, x[key] + 1);
+      if (act === "minus") x[key] = Math.max(1, x[key] - 1);
+      if (act === "remove") { list.splice(SEL.i, 1); SEL = null; }
+      changed(); return;
+    }
+    const arr = FIT.slots[SEL.slot], m = arr[SEL.i];
+    if (act === "mode") { arr[SEL.i] = { id: Number(b.dataset.id), state: 1, charge: null }; changed(); return; }
+    if (!m) return;
+    if (act === "remove") { say(`Removed ${item(m.id).n}.`); arr[SEL.i] = null; changed(); }
+    if (act === "unload") { m.charge = null; changed(); }
+    if (act === "charges") { setTab("charges"); if (narrow()) $("#browser").scrollIntoView({ behavior: "smooth", block: "start" }); }
+  });
+  $("#fit-name").addEventListener("change", (e) => { if (FIT) { FIT.name = e.target.value.trim() || "Fit Lab"; changed(); } });
+  $("#fit-strip").addEventListener("click", () => { if (SHIP) { FIT = emptyFit(SHIP, FIT.name); SEL = null; say("Stripped the fit."); changed(true); } });
+  $("#fit-copy").addEventListener("click", async (e) => {
+    if (!STATS) return;
+    try { await navigator.clipboard.writeText(STATS.eft); e.target.textContent = "Copied"; } catch { e.target.textContent = "See the EFT box below"; }
+    setTimeout(() => (e.target.textContent = "Copy EFT"), 2000);
+  });
+  for (const id of ["#fit-profile", "#fit-target", "#fit-distance"]) $(id).addEventListener("change", () => changed(true));
+  $("#fit-skills").addEventListener("change", async () => { if ($("#fit-skills").value === "file") return; await refreshSkills(); });
+  $("#fit-skills-file").addEventListener("change", refreshSkills);
+  $("#fit-import").addEventListener("click", () => { $("#eft-err").hidden = true; $("#eft-dialog").showModal(); });
+  $("#eft-load").addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      const p = JSON.parse(await call("parse_eft", JSON.stringify({ eft: $("#eft").value })));
+      $("#eft-dialog").close(); await selectShip(p.ship, p);
+    } catch (err) { $("#eft-err").textContent = err.message; $("#eft-err").hidden = false; }
+  });
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-open]"); if (!b) return;
+    try {
+      const p = JSON.parse(await call("parse_eft", JSON.stringify({ eft: document.getElementById(b.dataset.open).textContent })));
+      $("#tab-fit").click(); window.scrollTo({ top: 0, behavior: "smooth" }); await selectShip(p.ship, p);
+    } catch (err) { b.textContent = err.message; }
+  });
+}
+async function refreshSkills() {
+  if (!SHIP) return;
+  try { SHIP = await shipInfo(SHIP.id); } catch (err) { say(err.message); }
+  changed(true); renderBrowser();
+}
+async function startFitting() {
+  initFitting();
+  try { await loadCatalog(); } catch (err) { $("#br-list").innerHTML = `<p class="err">Could not load the item list: ${esc(err.message)}</p>`; return; }
+  if (INITIAL_SHIP && INITIAL_FIT) {
+    SHIP = prepShip(INITIAL_SHIP);
+    shipCache.set(`${SHIP.id}|all5`, Promise.resolve(SHIP));
+    FIT = fitFromParsed(INITIAL_FIT, SHIP);
+    if (INITIAL) {
+      STATS = INITIAL;
+      flatModules().forEach((m, k) => { const r = INITIAL.modules[k]; if (r) { m.cpu = r.cpu; m.pg = r.power; m.qty = r.charge_qty; } });
+    }
+    renderFit(); renderFitStats();
+  }
+  renderBrowser();
+}
+
 // tabs
 for (const t of document.querySelectorAll('[role="tab"]')) {
   t.addEventListener("click", () => {
@@ -663,12 +1313,12 @@ for (const t of document.querySelectorAll('[role="tab"]')) {
     try { localStorage.setItem("fitlab-tab", t.id); } catch {}
   });
 }
-try { const saved = localStorage.getItem("fitlab-tab"); if (saved && saved !== "tab-sim") document.getElementById(saved)?.click(); } catch {}
+try { const saved = localStorage.getItem("fitlab-tab"); if (saved && saved !== "tab-fit") document.getElementById(saved)?.click(); } catch {}
 if (location.hash === "#optimize") $("#tab-opt").click();
 if (location.hash === "#train") $("#tab-train").click();
 
 // example readouts so the page shows something real while Python boots
-if (INITIAL) $("#sim-out").innerHTML = renderStats(INITIAL, { subtitle: "Example readout: Caracal sample with all skills V", badge: '<span class="pill ex">Example</span>', key: "applied_dps", profile: "uniform" });
+startFitting();
 if (INITIAL_OPT) $("#opt-out").innerHTML = renderOpt(INITIAL_OPT, true);
 startWorker();
 </script>

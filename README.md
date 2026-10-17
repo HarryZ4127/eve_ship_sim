@@ -146,14 +146,29 @@ data are property of CCP hf.
 ## Browser demo
 
 `web/` holds a self-contained page that runs evesim under [Pyodide](https://pyodide.org)
-in a background worker: simulate a pasted fit, run the optimizer (weighted objectives,
-trade-off frontier, or a whole ship class), or get training advice.
+in a background worker. It has three tabs:
+
+* **Fitting:** a fitting window in the style of the game's. Ship renders and module icons
+  sit on a slot ring with CPU/powergrid gauges, a market-tree browser lists every ship,
+  module, charge, drone and fighter (filtered to what fits the selected slot and hull), and
+  stats update live as you fit, change module states, load charges or fill the drone bay
+  and fighter tubes. EFT import and export are built in.
+* **Optimize:** weighted objectives, a trade-off frontier, or the best hull of a class.
+  Results open in the fitting window.
+* **Train skills:** the training advisor.
+
 Build it with
 
 ```bash
 npm install pyodide@0.27.7
-python web/build.py dist/ --pyodide node_modules/pyodide
+pip install pillow                   # only for the pictures
+python web/build.py dist/ --pyodide node_modules/pyodide --images PYFA_CHECKOUT/imgs
 python -m http.server -d dist 8000   # then open http://localhost:8000
 ```
+
+Pictures come from a [Pyfa](https://github.com/pyfa-org/Pyfa) checkout's `imgs` folder
+(icons by icon ID, ship renders by graphic ID) and are packed into two atlas images. They
+are CCP's artwork and are not stored in this repository. Without `--images` the page uses
+lettered tiles.
 
 Skill presets and uploaded skill JSON work there. ESI login needs the command line.

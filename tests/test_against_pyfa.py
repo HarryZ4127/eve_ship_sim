@@ -67,6 +67,11 @@ def test_fit_matches_pyfa(name, data, all5, same_build):
     chk("passive_shield", st.tank_peak["passive_shield"], exp["tank_peak"]["passiveShield"])
     chk("sustained_armor", st.tank_sustained["armor"], exp["tank_sustained"]["armorRepair"])
     chk("sustained_shield", st.tank_sustained["shield"], exp["tank_sustained"]["shieldRepair"])
+    if "slots" in exp:
+        for k in ("high", "med", "low", "rig"):
+            assert st.slots[k][1] == exp["slots"][k], f"{k} slots"
+        for k in ("turret", "launcher"):
+            assert st.hardpoints[k][1] == exp["slots"][k], f"{k} hardpoints"
     if "cargo" in exp:  # utility stats were added to the reference later
         chk("cargo", st.utility["cargo"], exp["cargo"])
         chk("mining_yield", st.utility["mining_yield"], exp["mining_yield"])

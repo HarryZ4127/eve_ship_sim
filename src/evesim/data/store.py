@@ -59,7 +59,7 @@ class Effect:
 class Type:
     __slots__ = ("id", "name", "group_id", "category_id", "attrs", "effect_ids", "default_effect",
                  "market_group", "meta_group", "variation_parent", "base_price", "race", "faction",
-                 "required_skills", "_data")
+                 "icon_id", "graphic_id", "required_skills", "_data")
 
     def __init__(self, tid, rec, data: "StaticData"):
         self.id = tid
@@ -76,6 +76,8 @@ class Type:
         self.base_price = rec.get("p") or 0.0
         self.race = rec.get("race")
         self.faction = rec.get("fac")
+        self.icon_id = rec.get("ic")      # image ids, for user interfaces
+        self.graphic_id = rec.get("gr")
         req = {}
         for sa, la in REQUIRED_SKILL_ATTRS:
             s = self.attrs.get(sa)
@@ -122,6 +124,7 @@ class StaticData:
         self.categories = {int(k): v for k, v in raw["categories"].items()}
         self.types = {int(k): Type(int(k), v, self) for k, v in raw["types"].items()}
         self.clone_grades = raw.get("clone_grades", {})
+        self.market_groups = {int(k): tuple(v) for k, v in raw.get("market_groups", {}).items()}
         self._by_name = {}
         for t in self.types.values():
             self._by_name.setdefault(t.name.lower(), t)
