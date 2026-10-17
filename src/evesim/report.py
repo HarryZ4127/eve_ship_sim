@@ -69,8 +69,19 @@ def stats_text(st: Stats, target: Target | None = None) -> str:
         L.append(f"EWAR      {e['count']}x {e['name']}: {what}, {rng}")
     if st.utility.get("remote_repair") and any(st.utility["remote_repair"].values()):
         L.append("Remote    " + ", ".join(f"{k} {_n(v, 1)} HP/s" for k, v in st.utility["remote_repair"].items() if v))
-    if st.utility.get("mining_yield"):
-        L.append(f"Mining    {_n(st.utility['mining_yield'], 2)} m3/s")
+    u = st.utility
+    mined = [f"{k} {_n(u[k + '_yield'] if k != 'ore' else u['mining_yield'], 2)} m3/s"
+             for k in ("ore", "ice", "gas") if u.get("mining_yield" if k == "ore" else k + "_yield")]
+    if mined:
+        L.append("Mining    " + ", ".join(mined) + (f" (residue {_n(u['mining_waste'], 2)} m3/s)" if u.get("mining_waste") else ""))
+    for p in u.get("probes", []):
+        L.append(f"Probes    {p['name']}: strength {_n(p['strength'], 1)}, deviation {p['deviation']:.3f} AU"
+                 + (" (finds ships)" if p["ships"] else ""))
+    for kind, h in u.get("hacking", {}).items():
+        L.append(f"Hacking   {kind} ({h['name']}): coherence {_n(h['coherence'])}, strength {_n(h['strength'])},"
+                 f" {h['slots']} utility slots")
+    if u.get("salvage_chance"):
+        L.append(f"Salvage   +{_n(u['salvage_chance'])}% salvage chance")
     if st.price is not None:
         L.append(f"Price     {_n(st.price)} ISK")
     return "\n".join(L)

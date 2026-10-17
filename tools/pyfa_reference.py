@@ -77,14 +77,20 @@ def stats(fit):
     for m in fit.modules:
         if m.item is None: continue
         d = {'name': m.item.name, 'state': int(m.state)}
-        for a in ('damageMultiplier','speed','maxRange','falloff','trackingSpeed','cpu','power','capacitorNeed','duration','shieldBonus','armorDamageAmount'):
+        for a in ('damageMultiplier','speed','maxRange','falloff','trackingSpeed','cpu','power','capacitorNeed','duration','shieldBonus','armorDamageAmount',
+                  'virusCoherence','virusStrength','virusElementSlots','accessDifficultyBonus','miningAmount',
+                  'miningWasteProbability','miningWastedVolumeMultiplier','miningCritChance','miningCritBonusYield'):
             v = m.getModifiedItemAttr(a)
             if v: d[a] = v
         if m.charge:
             d['charge'] = m.charge.name
-            for a in ('emDamage','thermalDamage','kineticDamage','explosiveDamage','maxVelocity','explosionDelay','aoeCloudSize','aoeVelocity'):
+            for a in ('emDamage','thermalDamage','kineticDamage','explosiveDamage','maxVelocity','explosionDelay','aoeCloudSize','aoeVelocity',
+                      'baseSensorStrength','baseMaxScanDeviation'):
                 v = m.getModifiedChargeAttr(a)
                 if v: d['charge_'+a] = v
+        if m.getMiningYPS():
+            d['mining_yps'] = m.getMiningYPS()
+            d['mining_drain'] = m.getMiningDPS()
         out['modules'].append(d)
     out['fighters'] = [{'name': f.item.name, 'amount': f.amount, 'dps': f.getDps().total, 'volley': f.getVolley().total}
                        for f in fit.fighters]

@@ -64,15 +64,20 @@ def simulate(capacity: float, recharge_ms: float, users: list[CapUser], max_time
         stable = peak + inject >= use
         return CapResult(stable, None, 1.0 if stable else 0.0, peak, use, inject)
 
-    # Identical modules are staggered like Pyfa does: without reloads they act as one module
+    # Modules with identical cap use and timing (even different items, like a data and a
+    # relic analyzer) are staggered like Pyfa does: without reloads they act as one module
     # cycling N times as often; with reloads their first activations are spread out.
     # Turrets fire together, and cap boosters are used as needed.
     groups: dict[tuple, int] = {}
+    names: dict[tuple, str] = {}
     for u in users:
-        key = (u.name, u.amount, u.cycle_s, u.charges, u.reload_s, u.stagger)
+        key = (u.amount, u.cycle_s, u.charges, u.reload_s, u.stagger)
         groups[key] = groups.get(key, 0) + 1
+        names.setdefault(key, u.name)
     sim_users, starts = [], []
-    for (name, amount, cycle, charges, reload, stagger), n in groups.items():
+    for key, n in groups.items():
+        amount, cycle, charges, reload, stagger = key
+        name = names[key]
         if amount < 0 or not stagger or n == 1:
             for _ in range(n):
                 sim_users.append(CapUser(name, amount, cycle, charges, reload, stagger))

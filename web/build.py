@@ -26,7 +26,8 @@ PYODIDE_FILES = ["pyodide.js", "pyodide.asm.js", "pyodide.asm.wasm", "pyodide-lo
 SAMPLE_NAMES = {
     "caracal": "Caracal: heavy missiles", "rifter": "Rifter: autocannons", "vexor": "Vexor: drones and blasters",
     "punisher": "Punisher: pulse lasers", "myrmidon_aar": "Myrmidon: ancillary armor repairer",
-    "loki": "Loki: T3 cruiser", "raven_cruise": "Raven: cruise missiles",
+    "loki": "Loki: T3 cruiser", "raven_cruise": "Raven: cruise missiles", "astero_explo": "Astero: exploration",
+    "skiff_ice": "Skiff: ice mining", "venture_gas": "Venture: gas huffing", "thanatos_fighters": "Thanatos: fighters",
 }
 DEFAULT_OPT = {
     "skills": "all5",

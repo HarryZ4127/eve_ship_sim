@@ -77,6 +77,10 @@ def _ewar_sum(s: Stats, kinds) -> float:
     return sum(e["per_second"] for e in s.utility.get("ewar", []) if e["kind"] in kinds)
 
 
+def _hack(s: Stats, kind: str, field: str) -> float:
+    return s.utility.get("hacking", {}).get(kind, {}).get(field, 0.0)
+
+
 def _ewar_max(s: Stats, kinds, field) -> float:
     return max((e[field] for e in s.utility.get("ewar", []) if e["kind"] in kinds), default=0.0)
 
@@ -139,7 +143,21 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
     Metric("cap_capacity", True, lambda s, sp: s.cap_capacity, "GJ"),
     Metric("cap_recharge", True, lambda s, sp: s.cap.peak_recharge, "GJ/s", "peak capacitor regeneration"),
     Metric("mining_yield", True, lambda s, sp: s.utility.get("mining_yield", 0.0), "m3/s",
-           "ore/ice per second (crystal bonuses assume the matching ore)"),
+           "ore per second (crystal bonuses assume the matching ore)"),
+    Metric("ice_yield", True, lambda s, sp: s.utility.get("ice_yield", 0.0), "m3/s", "ice per second"),
+    Metric("gas_yield", True, lambda s, sp: s.utility.get("gas_yield", 0.0), "m3/s", "gas per second"),
+    Metric("probe_strength", True, lambda s, sp: max((p["strength"] for p in s.utility.get("probes", [])), default=0.0),
+           "", "scan strength of the strongest scanner probe you can launch"),
+    Metric("data_coherence", True, lambda s, sp: _hack(s, "data", "coherence"), "",
+           "virus coherence of your data analyzer (hit points in the hacking game)"),
+    Metric("data_strength", True, lambda s, sp: _hack(s, "data", "strength"), "",
+           "virus strength of your data analyzer (damage per hit)"),
+    Metric("relic_coherence", True, lambda s, sp: _hack(s, "relic", "coherence"), "",
+           "virus coherence of your relic analyzer"),
+    Metric("relic_strength", True, lambda s, sp: _hack(s, "relic", "strength"), "",
+           "virus strength of your relic analyzer"),
+    Metric("salvage_chance", True, lambda s, sp: s.utility.get("salvage_chance", 0.0), "%",
+           "salvager access bonus added to each wreck's salvage chance"),
     Metric("remote_repair", True, lambda s, sp: sum(s.utility.get("remote_repair", {}).values()), "HP/s",
            "repair given to other ships by remote repairers and logistics drones"),
     Metric("neut_rate", True, lambda s, sp: _ewar_sum(s, ("neut", "nos")), "GJ/s",
@@ -193,6 +211,9 @@ METRIC_ATTRS: dict[str, set[str]] = {
                 "scanGravimetricStrength"},
     "drone_range": {"droneControlDistance"},
     "mining": {"miningAmount", "duration", "miningCritChance", "miningCritBonusYield", "maxActiveDrones"},
+    "scan": {"baseSensorStrength"},
+    "hacking": {"virusCoherence", "virusStrength"},
+    "salvage": {"accessDifficultyBonus"},
     "remote": {"shieldBonus", "armorDamageAmount", "structureDamageAmount", "duration", "maxRange"},
     "neut": {"energyNeutralizerAmount", "powerTransferAmount", "duration", "maxRange", "falloffEffectiveness"},
     "tackle": {"warpScrambleStrength", "maxRange"},
@@ -216,7 +237,10 @@ METRIC_GROUPS = {
     "hull_ehp": ["ehp"], "survival_time": ["ehp", "tank", "cap"], "dps_per_misk": ["dps"], "ehp_per_misk": ["ehp"],
     "cargo": ["cargo"], "warp_speed": ["warp"], "mass": ["nav"], "max_targets": ["sensors"],
     "sensor_strength": ["sensors"], "lock_time": ["targeting"], "drone_control_range": ["drone_range"],
-    "cap_capacity": ["cap"], "cap_recharge": ["cap"], "mining_yield": ["mining"], "remote_repair": ["remote", "cap"],
+    "cap_capacity": ["cap"], "cap_recharge": ["cap"], "mining_yield": ["mining"],
+    "ice_yield": ["mining"], "gas_yield": ["mining"], "probe_strength": ["scan"], "data_coherence": ["hacking"],
+    "data_strength": ["hacking"], "relic_coherence": ["hacking"], "relic_strength": ["hacking"],
+    "salvage_chance": ["salvage"], "remote_repair": ["remote", "cap"],
     "neut_rate": ["neut"], "tackle_range": ["tackle"], "web_range": ["web"], "web_strength": ["web"],
     "paint_strength": ["paint"], "ecm_strength": ["ecm"], "damp_strength": ["damp"],
     "disruption_strength": ["disrupt"],

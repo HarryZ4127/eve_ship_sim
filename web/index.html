@@ -422,7 +422,9 @@ const METRIC_LABEL = { dps: "Raw DPS", applied_dps: "Applied DPS", weapon_dps: "
   lock_range: "Lock range", lock_time: "Lock time", scan_resolution: "Scan resolution", max_targets: "Max targets", sensor_strength: "Sensor strength",
   weapon_range: "Weapon range", price: "Price", dps_per_misk: "DPS per M ISK", ehp_per_misk: "EHP per M ISK",
   cap_seconds: "Cap duration", cap_stable_fraction: "Cap stable %", cap_delta: "Cap surplus", cap_capacity: "Cap capacity", cap_recharge: "Cap recharge",
-  cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Mining yield", remote_repair: "Remote repair",
+  cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Ore yield", remote_repair: "Remote repair",
+  ice_yield: "Ice yield", gas_yield: "Gas yield", probe_strength: "Probe strength", data_coherence: "Data coherence", data_strength: "Data strength",
+  relic_coherence: "Relic coherence", relic_strength: "Relic strength", salvage_chance: "Salvage chance",
   drone_control_range: "Drone range", neut_rate: "Neut drain", tackle_range: "Tackle range", web_range: "Web range", web_strength: "Web strength",
   paint_strength: "Painter strength", ecm_strength: "ECM strength", damp_strength: "Damp strength", disruption_strength: "Disruption strength" };
 const METRICS_INFO = null;
@@ -540,7 +542,11 @@ function renderStats(d, opts = {}) {
       <dt>Lock range</dt><dd>${fmt(t.lock_range / 1000, 1)} km · ${fmt(t.scan_resolution)} mm · ${t.max_targets} targets</dd>
       ${d.drones.bandwidth ? `<dt>Drones</dt><dd>bandwidth ${fmt(d.drones.bandwidth_used)}/${fmt(d.drones.bandwidth)} · bay ${fmt(d.drones.bay_used)}/${fmt(d.drones.bay)}</dd>` : ""}
       <dt>Cargo</dt><dd>${fmt(d.utility.cargo)} m³</dd>
-      ${d.utility.mining_yield ? `<dt>Mining</dt><dd>${fmt(d.utility.mining_yield, 2)} m³/s</dd>` : ""}
+      ${["mining", "ice", "gas"].filter((k) => d.utility[k + "_yield"]).map((k) => `<dt>${k === "mining" ? "Ore" : k[0].toUpperCase() + k.slice(1)} yield</dt><dd>${fmt(d.utility[k + "_yield"], 2)} m³/s</dd>`).join("")}
+      ${d.utility.mining_waste ? `<dt>Residue</dt><dd>${fmt(d.utility.mining_waste, 2)} m³/s</dd>` : ""}
+      ${(d.utility.probes || []).map((p) => `<dt>Probes</dt><dd>${esc(p.name)}: strength ${fmt(p.strength, 1)} · deviation ${fmt(p.deviation, 3)} AU${p.ships ? " · finds ships" : ""}</dd>`).join("")}
+      ${Object.entries(d.utility.hacking || {}).map(([k, h]) => `<dt>${k === "data" ? "Data" : "Relic"} hacking</dt><dd>coherence ${fmt(h.coherence)} · strength ${fmt(h.strength)} · ${h.slots} utility slots</dd>`).join("")}
+      ${d.utility.salvage_chance ? `<dt>Salvage</dt><dd>+${fmt(d.utility.salvage_chance)}% chance</dd>` : ""}
       ${Object.values(d.utility.remote_repair || {}).some((v) => v) ? `<dt>Remote repair</dt><dd>${Object.entries(d.utility.remote_repair).filter(([, v]) => v).map(([k, v]) => `${k} ${fmt(v, 1)} HP/s`).join(" · ")}</dd>` : ""}
     </dl></div></div>`;
   if ((d.utility.ewar || []).length) {
@@ -1024,6 +1030,18 @@ function renderFit() {
   $("#btab-drones").textContent = SHIP.fighters ? "Fighters" : "Drones";
   renderRing(); renderBay(); renderInspector();
 }
+// Exploration and industry readouts appear only when the fit does that job.
+function roleTiles(u) {
+  let h = "";
+  const p = (u.probes || [])[0];
+  if (p) h += tile("Probe strength", fmt(p.strength, 1), "", esc(p.name));
+  for (const [k, x] of Object.entries(u.hacking || {})) h += tile(k === "data" ? "Data hacking" : "Relic hacking", fmt(x.coherence), "coh", `strength ${fmt(x.strength)}`);
+  if (u.mining_yield) h += tile("Ore yield", fmt(u.mining_yield, 2), "m³/s", `${fmt(u.mining_yield * 3600)} m³/h`);
+  if (u.ice_yield) h += tile("Ice yield", fmt(u.ice_yield, 2), "m³/s", `${fmt(u.ice_yield * 3.6, 1)} blocks/h`);
+  if (u.gas_yield) h += tile("Gas yield", fmt(u.gas_yield, 2), "m³/s", `${fmt(u.gas_yield * 3600)} m³/h`);
+  if (u.salvage_chance) h += tile("Salvage", "+" + fmt(u.salvage_chance), "%", "salvage chance");
+  return h;
+}
 function renderFitStats() {
   const d = STATS; if (!d) return;
   const o = d.offense, df = d.defense, c = d.capacitor, n = d.navigation, t = d.targeting, tg = d.target;
@@ -1043,6 +1061,7 @@ function renderFitStats() {
     ${tile("Speed", fmt(n.max_velocity), "m/s", `align ${fmt(n.align_time, 2)} s`)}
     ${tile("Signature", fmt(n.signature_radius), "m", `warp ${fmt(n.warp_speed, 1)} AU/s`)}
     ${tile("Lock range", fmt(t.lock_range / 1000, 1), "km", `${fmt(t.scan_resolution)} mm · ${t.max_targets} targets`)}
+    ${roleTiles(d.utility)}
     </div>`;
   $("#fit-summary").innerHTML = h;
   $("#fit-details").innerHTML = renderStats(d, { noHead: true, noTiles: true, showEft: "eft-fit", noOpen: true, profile: $("#fit-profile").value });

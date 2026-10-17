@@ -74,7 +74,24 @@ def test_fit_matches_pyfa(name, data, all5, same_build):
             assert st.hardpoints[k][1] == exp["slots"][k], f"{k} hardpoints"
     if "cargo" in exp:  # utility stats were added to the reference later
         chk("cargo", st.utility["cargo"], exp["cargo"])
-        chk("mining_yield", st.utility["mining_yield"], exp["mining_yield"])
+        u = st.utility
+        chk("mining_yield", u["mining_yield"] + u["ice_yield"] + u["gas_yield"], exp["mining_yield"])
+        mods = exp.get("modules", [])
+        if any("mining_drain" in m for m in mods):
+            waste = sum(m["mining_drain"] - m["mining_yps"] / (1 + m.get("miningCritChance", 0) * m.get("miningCritBonusYield", 0))
+                        for m in mods if "mining_drain" in m)
+            chk("mining_waste", u["mining_waste"], waste)
+        strengths = [m["charge_baseSensorStrength"] for m in mods if "charge_baseSensorStrength" in m]
+        if strengths:
+            chk("probe_strength", u["probes"][0]["strength"], max(strengths))
+        for kind, skill in (("data", "Data"), ("relic", "Relic")):
+            ms = [m for m in mods if m["name"].startswith(skill + " Analyzer")]
+            if ms:
+                chk(f"{kind}_coherence", u["hacking"][kind]["coherence"], max(m["virusCoherence"] for m in ms))
+                chk(f"{kind}_strength", u["hacking"][kind]["strength"], max(m["virusStrength"] for m in ms))
+        salvagers = [m["accessDifficultyBonus"] for m in mods if m["name"].startswith("Salvager")]
+        if salvagers:
+            chk("salvage_chance", u["salvage_chance"], max(salvagers))
         for layer in ("shield", "armor", "hull"):
             chk(f"remote_{layer}", st.utility["remote_repair"][layer], exp["remote_reps"][layer])
     assert not bad, "\n".join(bad)

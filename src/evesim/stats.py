@@ -509,7 +509,11 @@ def compute(fit: Fit, char: Character, profile: dict[str, float] | None = None,
     }
     utility = {
         "cargo": g(ship, C.A_CAPACITY),
-        "mining_yield": _mining_yield(calc),
+        **_mining(calc),
+        "probes": _probes(calc),
+        "hacking": _hacking(calc),
+        "salvage_chance": max((calc.get(m, "accessDifficultyBonus") for m in calc.modules
+                               if m.state >= C.STATE_ONLINE and m.type.default_effect == E_SALVAGING), default=0.0),
         "remote_repair": _remote_reps(calc),
         "ewar": _ewar(calc),
     }
@@ -525,7 +529,9 @@ _REMOTE_REPAIR = {
     6185: ("hull", "structureDamageAmount"),
     6688: ("shield", "shieldBonus"), 6687: ("armor", "armorDamageAmount"), 6689: ("hull", "structureDamageAmount"),
 }
-_MINING_EFFECTS = {67, 17}  # miningLaser (modules), mining (drones)
+_MINING_EFFECTS = {67, 17, 2726}  # miningLaser (modules), mining (drones), miningClouds (gas)
+E_GAS_HARVESTING, E_HACKING, E_SALVAGING = 2726, 1738, 2757
+GROUP_SCANNER_PROBE = 479
 
 # Electronic warfare on a target: default effect -> (kind, strength attribute, unit).
 # Strength is per module as your skills and hull make it; stacking on the target is not modelled.
@@ -543,9 +549,27 @@ _ECM_ATTRS = ("scanGravimetricStrengthBonus", "scanLadarStrengthBonus", "scanMag
               "scanRadarStrengthBonus")
 
 
-def _mining_yield(calc: FitCalc) -> float:
-    """Ore/ice mined per second (m3/s), including critical-success bonus yield, like Pyfa."""
-    total = 0.0
+_resource_skills: dict[int, tuple[set[int], set[int]]] = {}
+
+
+def _resource_of(calc: FitCalc, it: Item) -> str:
+    """ore, ice or gas, from the effect and the skills the harvester needs."""
+    key = id(calc.data)
+    if key not in _resource_skills:
+        ids = lambda names: {t.id for t in calc.data.skills if t.name in names}
+        _resource_skills[key] = (ids({"Ice Harvesting", "Ice Harvesting Drone Operation"}),
+                                 ids({"Gas Cloud Harvesting"}))
+    ice, gas = _resource_skills[key]
+    req = it.type.required_skills
+    if it.type.default_effect == E_GAS_HARVESTING or req.keys() & gas:
+        return "gas"
+    return "ice" if req.keys() & ice else "ore"
+
+
+def _mining(calc: FitCalc) -> dict[str, float]:
+    """m3/s harvested per resource, including critical-success bonus yield, like Pyfa, and the
+    residue volume destroyed alongside it (``mining_waste``)."""
+    out = {"mining_yield": 0.0, "ice_yield": 0.0, "gas_yield": 0.0, "mining_waste": 0.0}
     for it in [m for m in calc.modules if m.state >= C.STATE_ACTIVE] + calc.drones:
         if it.type.default_effect not in _MINING_EFFECTS:
             continue
@@ -553,9 +577,47 @@ def _mining_yield(calc: FitCalc) -> float:
         amount = calc.get(it, "miningAmount")
         if cyc <= 0 or not amount:
             continue
+        yps = amount / cyc * it.amount
+        waste = max(0.0, min(1.0, calc.get(it, "miningWasteProbability") / 100.0))
+        out["mining_waste"] += yps * waste * calc.get(it, "miningWastedVolumeMultiplier")
         crit = calc.get(it, "miningCritChance") * calc.get(it, "miningCritBonusYield")
-        total += amount / cyc * (1 + crit) * it.amount
-    return total
+        kind = _resource_of(calc, it)
+        out["mining_yield" if kind == "ore" else kind + "_yield"] += yps * (1 + crit)
+    return out
+
+
+def _probes(calc: FitCalc) -> list[dict]:
+    """Scanner probes loaded in launchers, with their strength as your skills, launcher,
+    rigs, implants and hull make it. Combat probes can also find ships."""
+    out = {}
+    for m in calc.modules:
+        ch = m.charge
+        if ch is None or ch.type.group_id != GROUP_SCANNER_PROBE or m.state < C.STATE_ONLINE:
+            continue
+        out[ch.type.id] = {"name": ch.type.name, "strength": calc.get(ch, "baseSensorStrength"),
+                           "deviation": calc.get(ch, "baseMaxScanDeviation"),
+                           "range": calc.get(ch, "baseScanRange"),
+                           "ships": bool(ch.type.attrs.get(calc.data.attr_id("probeCanScanShips")))}
+    return sorted(out.values(), key=lambda p: -p["strength"])
+
+
+def _hacking(calc: FitCalc) -> dict[str, dict]:
+    """Best data and relic analyzer: virus coherence (hit points in the hacking game),
+    virus strength (damage per hit) and utility element slots. Integrated analyzers do both."""
+    out: dict[str, dict] = {}
+    skill = {t.name: t.id for t in calc.data.skills if t.name in ("Hacking", "Archaeology")}
+    for m in calc.modules:
+        if m.type.default_effect != E_HACKING or m.state < C.STATE_ONLINE:
+            continue
+        req = m.type.required_skills
+        kinds = [k for k, s in (("data", "Hacking"), ("relic", "Archaeology")) if skill.get(s) in req] or ["data"]
+        v = {"name": m.type.name, "coherence": calc.get(m, "virusCoherence"),
+             "strength": calc.get(m, "virusStrength"), "slots": int(calc.get(m, "virusElementSlots"))}
+        for kind in kinds:
+            best = out.get(kind)
+            if best is None or (v["coherence"], v["strength"]) > (best["coherence"], best["strength"]):
+                out[kind] = v
+    return out
 
 
 def _ewar(calc: FitCalc) -> list[dict]:

@@ -69,12 +69,15 @@ Missile damage is the charge's damage times the character's `missileDamageMultip
 via `tools/pyfa_reference.py`, on sixteen fits: projectile, missile, drone, laser,
 hybrid, an ancillary repairer with cap booster, a T3C with subsystems, a cruise missile
 battleship, two T3 destroyers in different tactical modes, a mining barge, shield and
-armor logistics, and four carriers/supercarriers with fighters. Every compared value matches to 0.1% (capacitor time-to-empty is
+armor logistics, four carriers/supercarriers with fighters, and five exploration and
+harvesting fits (probes, data/relic analyzers, salvagers, ice and gas). Every compared value matches to 0.1% (capacitor time-to-empty is
 checked to 5% and currently matches exactly): DPS, volley, drone DPS,
 HP/EHP per layer, all 12 resists, CPU/PG/calibration, speed, align time, signature,
 mass, lock range, scan resolution, capacitor capacity/recharge/usage, stability and
-time-to-empty, peak/sustained repair rates, cargo, mining yield and remote repair. Like
-Pyfa, the capacitor simulation staggers identical non-turret modules over their cycle. The reference carries the game build
+time-to-empty, peak/sustained repair rates, cargo, mining yield and residue, remote
+repair, slot and hardpoint counts, probe strength, analyzer coherence and strength, and
+salvage chance. Like Pyfa, the capacitor simulation staggers non-turret modules with the
+same cap use and cycle (even different items, such as a data and a relic analyzer). The reference carries the game build
 it was made from, and the test skips on a different build until regenerated.
 
 Known small differences:
@@ -171,6 +174,25 @@ radius and velocity, and assumes the squadron reaches the target.
 The optimizer fills tubes greedily by value per squadron for the objective, using full
 squadrons, and leaves out structure (Standup) fighters. All four reference carrier fits
 match Pyfa per squadron, including the Drone Damage Amplifier bonus.
+
+## Exploration and harvesting
+
+* **Probes:** `probe_strength` is the scan strength of the strongest probe loaded in a
+  launcher, after skills, launcher, rigs, implants and hull bonuses. Core probes only fit
+  core launchers' charge groups, combat probes need an expanded launcher. Deviation and
+  whether a probe can find ships are reported too. The optimizer loads the strongest
+  allowed probe (set `fitting.ammo` to choose combat probes).
+* **Hacking:** data and relic analyzers report virus coherence (your hit points in the
+  hacking game), virus strength (damage per hit) and utility element slots. Integrated
+  analyzers count for both.
+* **Salvage:** `salvage_chance` is the salvager's access bonus added to each wreck's base
+  chance (it does not grow with more salvagers, which only salvage faster).
+* **Harvesting:** ore, ice and gas yields are separate metrics, told apart by the harvester's
+  effect and required skills; residue (`mining_waste`) is the extra volume destroyed, as in
+  Pyfa's "drain" figure.
+
+Cloaks default to online, like other burst modules, so they do not slow the fit; Pyfa
+activates them, which is why the reference fits leave cloaks out.
 
 ## Training advisor
 

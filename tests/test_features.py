@@ -56,7 +56,9 @@ def test_burst_modules_default_off(data, all5):
 
 
 @pytest.mark.parametrize("ship, metric", [("Hulk", "mining_yield"), ("Scimitar", "remote_repair"),
-                                          ("Badger", "cargo")])
+                                          ("Badger", "cargo"), ("Skiff", "ice_yield"), ("Venture", "gas_yield"),
+                                          ("Astero", "probe_strength"), ("Heron", "relic_coherence"),
+                                          ("Noctis", "salvage_chance")])
 def test_role_metrics_drive_the_optimizer(data, all5, ship, metric):
     spec = from_dict({"ship": ship, "objective": {"maximize": metric}, "search": {"effort": "quick"}})
     best = Optimizer(data, all5, spec).run()[0].best
@@ -160,3 +162,19 @@ def test_optimizer_picks_fighters(data, all5):
     assert best.fit.fighters and compute(best.fit, all5).fighter_dps > 0
     assert not any(f.type.group_id in GROUPS_STRUCTURE_FIGHTERS for f in best.fit.fighters)
     assert check(best.fit, all5) == []
+
+
+def test_exploration_stats(data, all5):
+    fit = Fit.from_eft("[Heron, x]\n\n\nZeugma Integrated Analyzer\n\n"
+                       "Expanded Probe Launcher I, Combat Scanner Probe I\n", data)
+    u = compute(fit, all5).utility
+    assert u["hacking"]["data"] == u["hacking"]["relic"]  # integrated analyzers do both
+    assert u["probes"][0]["ships"] and u["probes"][0]["strength"] > 20  # skills and hull add to it
+    core = Fit.from_eft("[Heron, x]\n\n\n\nCore Probe Launcher I, Combat Scanner Probe I\n", data)
+    assert any("cannot be loaded" in p for p in check(core, all5))
+
+
+def test_harvest_kinds(data, all5):
+    fit = Fit.from_eft("[Venture, x]\n\n\nGas Cloud Scoop I\nMiner I\n", data)
+    u = compute(fit, all5).utility
+    assert u["gas_yield"] > 0 and u["mining_yield"] > 0 and u["ice_yield"] == 0

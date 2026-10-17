@@ -9,8 +9,9 @@ tank, cap stability, budget, tank type, required modules ...).
   fighters.
   It reports fitting, DPS/volley, applied DPS against a target, EHP against a damage
   profile, active/passive tank, a time-domain capacitor simulation, navigation and
-  targeting, plus cargo, mining yield, remote repair output and EWAR/tackle strength.
-  Across sixteen reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
+  targeting, plus cargo, ore/ice/gas yield, scan probe strength, data/relic analyzer
+  coherence and strength, salvage chance, remote repair output and EWAR/tackle strength.
+  Across 21 reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
   (see [Validation](docs/design.md#validation)). All 421 hulls compute; T3 cruiser
   subsystems, T3 destroyer modes and carrier/supercarrier fighters are supported.
 * **Skills.** Pull them from ESI with an EVE SSO login, load a JSON file, or use
@@ -46,7 +47,18 @@ evesim train my_fit.eft --skills me.json --objective applied_dps=1,ehp=0.5 --day
 
 ESI returns `active_skill_level`, so alpha clone caps are applied automatically, and
 your attributes, which set training speed for the advisor.
-`evesim skills -s esi:Name -o me.json` saves a snapshot you can reuse offline.
+`evesim skills -s esi:Name -o me.json` saves a snapshot you can reuse offline, and that
+file is what you upload in the browser demo ("Upload skills JSON"). The demo cannot reach
+ESI itself, because the page is not allowed to contact other sites.
+
+Without registering an application, you can also save the JSON response of
+`GET /characters/{character_id}/skills` from ESI's API explorer
+(<https://developers.eveonline.com/api-explorer>), signed in with your character and the
+`esi-skills.read_skills.v1` scope. That file loads as is (`--skills skills.json`). It has no
+attributes, so pass `--attributes` to the training advisor or it assumes 20 each.
+
+A hand-written file works too: `{"skills": {"Gunnery": 5, "Astrometrics": 4}}` (skills
+left out count as untrained).
 
 ## Writing requirements
 
@@ -78,7 +90,7 @@ require = ["Warp Scrambler II"]
 exclude = ["Polarized Heavy Assault Missile Launcher"]
 ```
 
-`evesim metrics` lists the 46 metrics you can maximize or constrain:
+`evesim metrics` lists the 54 metrics you can maximize or constrain:
 
 | area | metrics |
 |---|---|
@@ -88,7 +100,9 @@ exclude = ["Polarized Heavy Assault Missile Launcher"]
 | movement | `speed`, `align_time`, `signature`, `mass`, `warp_speed` |
 | targeting | `lock_range`, `lock_time`, `scan_resolution`, `max_targets`, `sensor_strength`, `drone_control_range` |
 | EWAR and tackle | `neut_rate`, `tackle_range`, `web_range`, `web_strength`, `paint_strength`, `ecm_strength`, `damp_strength`, `disruption_strength` |
-| roles | `remote_repair`, `mining_yield`, `cargo` |
+| roles | `remote_repair`, `cargo` |
+| mining | `mining_yield` (ore), `ice_yield`, `gas_yield` |
+| exploration | `probe_strength`, `data_coherence`, `data_strength`, `relic_coherence`, `relic_strength`, `salvage_chance` |
 | cost and fitting | `price`, `dps_per_misk`, `ehp_per_misk`, `cpu_left`, `pg_left` |
 
 [docs/requirements.md](docs/requirements.md) documents every field and how to choose good requirements.

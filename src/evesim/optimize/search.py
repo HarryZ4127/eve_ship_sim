@@ -36,11 +36,13 @@ from evesim.fit import (FIGHTER_TUBE_ATTRS, DroneSpec, FighterSpec, Fit, ModuleS
                         fighter_class, is_launcher, is_turret, module_fits_ship, ship_modes, slot_of)
 from evesim.market import Prices
 from evesim.optimize.spec import DAMAGE_METRICS, METRIC_ATTRS, METRICS, Spec
-from evesim.stats import _MINING_EFFECTS, _REMOTE_REPAIR, EWAR_EFFECTS, Stats, compute
+from evesim.stats import _MINING_EFFECTS, _REMOTE_REPAIR, E_HACKING, E_SALVAGING, EWAR_EFFECTS, Stats, compute
 
 PENALTY = 1000.0
 CACHE_LIMIT = 20_000  # evaluations kept for re-use; cleared when full and between hulls
 GROUP_PROPULSION = 46
+GROUP_PROBE_LAUNCHER = 481
+E_PROBE_STRENGTH = 4162  # launcher effect boosting loaded probes
 
 # Metric scales: a weight of 1 means "one scale unit of this metric is worth one point".
 DEFAULT_SCALES = {
@@ -52,6 +54,8 @@ DEFAULT_SCALES = {
     "hull_ehp": 10_000.0, "survival_time": 300.0, "dps_per_misk": 10.0, "ehp_per_misk": 1000.0, "cargo": 1000.0,
     "warp_speed": 5.0, "mass": 10_000_000.0, "max_targets": 5.0, "sensor_strength": 20.0, "lock_time": 5.0,
     "drone_control_range": 50_000.0, "cap_capacity": 1000.0, "cap_recharge": 10.0, "mining_yield": 10.0,
+    "ice_yield": 10.0, "gas_yield": 2.0, "probe_strength": 100.0, "data_coherence": 50.0, "data_strength": 20.0,
+    "relic_coherence": 50.0, "relic_strength": 20.0, "salvage_chance": 10.0,
     "remote_repair": 100.0, "neut_rate": 10.0, "tackle_range": 10_000.0, "web_range": 10_000.0,
     "web_strength": 50.0, "paint_strength": 25.0, "ecm_strength": 5.0, "damp_strength": 25.0,
     "disruption_strength": 25.0,
@@ -249,6 +253,10 @@ class Optimizer:
             out.add(a(_REMOTE_REPAIR[t.default_effect][1]))
         if t.default_effect in _MINING_EFFECTS:
             out.add(a("miningAmount"))
+        if t.default_effect == E_HACKING:
+            out |= {a("virusCoherence"), a("virusStrength")}
+        if t.default_effect == E_SALVAGING:
+            out.add(a("accessDifficultyBonus"))
         if t.default_effect in EWAR_EFFECTS or t.attrs.get(a("warpScrambleStrength")):
             out |= {x for x in self._ewar_attr_ids if x in t.attrs}
         self._touch_cache[t.id] = out
@@ -355,7 +363,7 @@ class Optimizer:
         # (boost amplifiers with a booster, prop rigs with a prop mod ...) are not lost.
         enabler_effects = [(C.E_SHIELD_BOOSTING, C.E_FUELED_SHIELD_BOOSTING), (C.E_ARMOR_REPAIR, C.E_FUELED_ARMOR_REPAIR),
                            (C.E_POWER_BOOSTER,), (C.E_MWD,), (C.E_AB,), tuple(_MINING_EFFECTS),
-                           tuple(_REMOTE_REPAIR)]
+                           tuple(_REMOTE_REPAIR), (E_PROBE_STRENGTH,), (E_HACKING,), (E_SALVAGING,)]
         probe2 = base.copy()
         for effs in enabler_effects:
             cands = [t for types in raw.values() for t in types if set(t.effect_ids) & set(effs)]
@@ -386,6 +394,10 @@ class Optimizer:
         return pools
 
     def _default_charge(self, t: Type) -> Type | None:
+        if t.group_id == GROUP_PROBE_LAUNCHER:
+            ch = [c for c in self._charges(t) if c is not None]
+            if ch:  # strongest probe; restrict fitting.ammo to pick combat probes
+                return max(ch, key=lambda c: (c.attr("baseSensorStrength") or 0, -self.prices(c.id)))
         if C.E_POWER_BOOSTER in t.effect_ids or C.E_FUELED_ARMOR_REPAIR in t.effect_ids:
             ch = [c for c in self._charges(t) if c is not None]
             if ch:

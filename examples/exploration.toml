@@ -1,0 +1,17 @@
+# Relic and data sites in low/null: find signatures quickly, win the hacking game,
+# stay cloaked between sites and outrun what shows up.
+name = "Explorer"
+ships = ["Heron", "Magnate", "Imicus", "Probe", "Astero", "Buzzard", "Anathema", "Cheetah", "Helios"]
+
+[objective]
+weights = { probe_strength = 1.0, relic_coherence = 0.5, data_coherence = 0.5 }
+
+[constraints]
+min_speed = 1000
+max_align_time = 5
+
+[fitting]
+require = ["Prototype Cloaking Device I"]   # Covert Ops Cloaking Device II on covert-ops hulls
+
+[search]
+effort = "quick"

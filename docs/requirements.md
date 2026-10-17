@@ -29,6 +29,9 @@ choices**:
 | Kiter | weights `applied_dps` + `speed` | `min_weapon_range`, `min_speed` | `propulsion = "mwd"` |
 | Fleet / alpha | `volley` or `ehp` | `min_lock_range`, `max_align_time` | `meta` limits for doctrine |
 | Travel / hauler | `ehp` | `max_align_time` | `propulsion = "mwd"` |
+| Exploration | weights `probe_strength` + `relic_coherence` + `data_coherence` | `min_speed`, `max_align_time` | `require` a cloak |
+| Ice / gas mining | `ice_yield` or `gas_yield` | `min_ehp` | `tank` |
+| Salvaging | `salvage_chance` | `min_ehp` | `require` tractor beams and salvagers |
 
 ## Fields
 
@@ -70,6 +73,9 @@ With weight 1, one "scale unit" is worth one point:
 | sustained_tank, peak_tank | 100 EHP/s | speed | 1,000 m/s |
 | align_time | 10 s | signature | 100 m |
 | lock_range | 50 km | weapon_range | 10 km |
+| mining_yield, ice_yield | 10 m3/s | gas_yield | 2 m3/s |
+| probe_strength | 100 | salvage_chance | 10 % |
+| data/relic_coherence | 50 | data/relic_strength | 20 |
 | cap_seconds | 300 s | price | 100M ISK |
 
 So `weights = { applied_dps = 1.0, ehp = 0.5 }` trades 100 DPS for 20,000 EHP. Metrics

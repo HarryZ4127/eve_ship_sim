@@ -17,7 +17,12 @@
   "thanatos_fighters": "[Thanatos, fighters]\nFighter Support Unit II\nFighter Support Unit II\nFighter Support Unit II\nDamage Control II\n\n\nTemplar II x6\nTemplar II x6\nTemplar II x6\nSiren II x3\n",
   "nyx_fighters": "[Nyx, fighters]\nFighter Support Unit II\nFighter Support Unit II\nFighter Support Unit II\nDamage Control II\n\n\nMantis II x6\nMantis II x6\nMantis II x6\nMantis II x6\nTemplar II x6\n",
   "hel_fighters": "[Hel, fighters]\nFighter Support Unit II\nFighter Support Unit II\nFighter Support Unit II\nDamage Control II\n\n\nAmetat II x6\nAmetat II x6\nAmetat II x6\nAmetat II x6\nEinherji II x6\n",
-  "chimera_fighters": "[Chimera, fighters]\nFighter Support Unit II\nFighter Support Unit II\nFighter Support Unit II\nDamage Control II\n\n\nDragonfly II x6\nDragonfly II x6\nDragonfly II x6\nCenobite II x3\n"
+  "chimera_fighters": "[Chimera, fighters]\nFighter Support Unit II\nFighter Support Unit II\nFighter Support Unit II\nDamage Control II\n\n\nDragonfly II x6\nDragonfly II x6\nDragonfly II x6\nCenobite II x3\n",
+  "astero_explo": "[Astero, explo]\nNanofiber Internal Structure II\nNanofiber Internal Structure II\n\n5MN Microwarpdrive II\nData Analyzer II\nRelic Analyzer II\nCargo Scanner II\n\nSisters Core Probe Launcher, Sisters Core Scanner Probe\n\nSmall Gravity Capacitor Upgrade I\nSmall Memetic Algorithm Bank I\n",
+  "heron_combat": "[Heron, combat probes]\nNanofiber Internal Structure II\n\n1MN Afterburner II\nData Analyzer I\nRelic Analyzer I\n\nExpanded Probe Launcher I, Combat Scanner Probe I\n\nSmall Gravity Capacitor Upgrade I\n",
+  "venture_gas": "[Venture, gas]\nMining Laser Upgrade II\n\n1MN Afterburner II\n\nGas Cloud Scoop II\nGas Cloud Scoop II\n",
+  "skiff_ice": "[Skiff, ice]\nIce Harvester Upgrade II\nIce Harvester Upgrade II\n\nMedium Shield Extender II\n\nIce Harvester II\n\nMedium Ice Harvester Accelerator I\n",
+  "noctis_salvage": "[Noctis, salvage]\nDamage Control II\n\n10MN Afterburner II\n\nSalvager II\nSalvager II\nSmall Tractor Beam II\n\nMedium Salvage Tackle I\nMedium Salvage Tackle I\n"
  },
  "expected": {
   "rifter": {
@@ -1220,6 +1225,785 @@
     "turret": 0,
     "launcher": 0
    }
+  },
+  "astero_explo": {
+   "dps": 0.0,
+   "weapon_dps": 0.0,
+   "drone_dps": 0,
+   "volley": 0.0,
+   "ehp": {
+    "shield": 931.0344827586207,
+    "armor": 1388.8888888888887,
+    "hull": 716.4179104477612
+   },
+   "hp": {
+    "shield": 675.0,
+    "armor": 750.0,
+    "hull": 480.0
+   },
+   "resonance": {
+    "shield_em": 1.0,
+    "shield_thermal": 0.8,
+    "shield_kinetic": 0.6,
+    "shield_explosive": 0.5,
+    "armor_em": 0.4,
+    "armor_thermal": 0.52,
+    "armor_kinetic": 0.52,
+    "armor_explosive": 0.7200000000000001,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 90.0,
+   "cpu_out": 212.5,
+   "pg_used": 21.0,
+   "pg_out": 40.0,
+   "calibration_used": 400.0,
+   "max_velocity": 3459.4890901794147,
+   "align_time": 2.8805208124463055,
+   "sig_radius": 201.25,
+   "mass": 1475000.0,
+   "lock_range": 46250.0,
+   "scan_res": 775.0,
+   "cap_capacity": 430.0,
+   "cap_recharge_ms": 146250.0,
+   "shield_recharge_ms": 468750.0,
+   "cap": {
+    "stable": false,
+    "state": 150.0,
+    "used_per_s": 8.777777777777779,
+    "recharge_peak": 7.350427350427351
+   },
+   "tank_sustained": {
+    "passiveShield": 3.6,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 3.6,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 25.0,
+   "cargo": 210.0,
+   "slots": {
+    "high": 2,
+    "med": 4,
+    "low": 4,
+    "rig": 3,
+    "turret": 2,
+    "launcher": 0
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Nanofiber Internal Structure II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Nanofiber Internal Structure II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "5MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 17.0,
+     "capacitorNeed": 30.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Data Analyzer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 6000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 10000.0,
+     "virusCoherence": 120.0,
+     "virusStrength": 40.0,
+     "virusElementSlots": 3.0,
+     "accessDifficultyBonus": 42.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Relic Analyzer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 6000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 10000.0,
+     "virusCoherence": 110.0,
+     "virusStrength": 40.0,
+     "virusElementSlots": 3.0,
+     "accessDifficultyBonus": 35.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cargo Scanner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 5.0,
+     "power": 1.0,
+     "capacitorNeed": 4.0,
+     "duration": 2250.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Sisters Core Probe Launcher",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 1500.0,
+     "falloff": 1.0,
+     "cpu": 10.0,
+     "power": 1.0,
+     "duration": 5625.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Sisters Core Scanner Probe",
+     "charge_maxVelocity": 3000.0,
+     "charge_explosionDelay": 4000000.0,
+     "charge_baseSensorStrength": 113.02186480035417,
+     "charge_baseMaxScanDeviation": 0.0703125
+    },
+    {
+     "name": "Small Gravity Capacitor Upgrade I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Memetic Algorithm Bank I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "heron_combat": {
+   "dps": 0.0,
+   "weapon_dps": 0.0,
+   "drone_dps": 0,
+   "volley": 0.0,
+   "ehp": {
+    "shield": 689.6551724137931,
+    "armor": 370.3703703703703,
+    "hull": 298.5074626865671
+   },
+   "hp": {
+    "shield": 500.0,
+    "armor": 250.0,
+    "hull": 200.0
+   },
+   "resonance": {
+    "shield_em": 1.0,
+    "shield_thermal": 0.8,
+    "shield_kinetic": 0.6,
+    "shield_explosive": 0.5,
+    "armor_em": 0.5,
+    "armor_thermal": 0.55,
+    "armor_kinetic": 0.75,
+    "armor_explosive": 0.9,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 275.0,
+   "cpu_out": 325.0,
+   "pg_used": 14.0,
+   "pg_out": 30.0,
+   "calibration_used": 200.0,
+   "max_velocity": 1179.3025568181818,
+   "align_time": 4.64388332087962,
+   "sig_radius": 40.0,
+   "mass": 1650000.0,
+   "lock_range": 46875.0,
+   "scan_res": 537.5,
+   "cap_capacity": 306.25,
+   "cap_recharge_ms": 101250.0,
+   "shield_recharge_ms": 468750.0,
+   "cap": {
+    "stable": true,
+    "state": 63.21982621221615,
+    "used_per_s": 4.733333333333333,
+    "recharge_peak": 7.561728395061728
+   },
+   "tank_sustained": {
+    "passiveShield": 2.6666666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 2.6666666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 15.0,
+   "cargo": 400.0,
+   "slots": {
+    "high": 3,
+    "med": 5,
+    "low": 2,
+    "rig": 3,
+    "turret": 2,
+    "launcher": 2
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Nanofiber Internal Structure II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "1MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 15.0,
+     "power": 11.0,
+     "capacitorNeed": 5.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Data Analyzer I",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 5000.0,
+     "falloff": 1.0,
+     "cpu": 20.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 10000.0,
+     "virusCoherence": 90.0,
+     "virusStrength": 25.0,
+     "virusElementSlots": 3.0,
+     "accessDifficultyBonus": 25.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Relic Analyzer I",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 5000.0,
+     "falloff": 1.0,
+     "cpu": 20.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 10000.0,
+     "virusCoherence": 90.0,
+     "virusStrength": 25.0,
+     "virusElementSlots": 3.0,
+     "accessDifficultyBonus": 25.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Expanded Probe Launcher I",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 2000.0,
+     "falloff": 1.0,
+     "cpu": 220.0,
+     "power": 1.0,
+     "duration": 5625.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Combat Scanner Probe I",
+     "charge_maxVelocity": 5000.0,
+     "charge_explosionDelay": 4000000.0,
+     "charge_baseSensorStrength": 47.26562500000001,
+     "charge_baseMaxScanDeviation": 0.140625
+    },
+    {
+     "name": "Small Gravity Capacitor Upgrade I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "venture_gas": {
+   "dps": 0.0,
+   "weapon_dps": 0.0,
+   "drone_dps": 0,
+   "volley": 0.0,
+   "ehp": {
+    "shield": 387.9310344827586,
+    "armor": 324.0740740740741,
+    "hull": 373.13432835820896
+   },
+   "hp": {
+    "shield": 281.25,
+    "armor": 218.75,
+    "hull": 250.0
+   },
+   "resonance": {
+    "shield_em": 1.0,
+    "shield_thermal": 0.8,
+    "shield_kinetic": 0.6,
+    "shield_explosive": 0.5,
+    "armor_em": 0.4,
+    "armor_thermal": 0.65,
+    "armor_kinetic": 0.75,
+    "armor_explosive": 0.9,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 195.0,
+   "cpu_out": 300.0,
+   "pg_used": 22.0,
+   "pg_out": 56.25,
+   "calibration_used": 0.0,
+   "max_velocity": 1042.2564338235295,
+   "align_time": 5.726782005786269,
+   "sig_radius": 40.0,
+   "mass": 1700000.0,
+   "lock_range": 18750.0,
+   "scan_res": 937.5,
+   "cap_capacity": 312.5,
+   "cap_recharge_ms": 93750.0,
+   "shield_recharge_ms": 468750.0,
+   "cap": {
+    "stable": true,
+    "state": 85.18913945530086,
+    "used_per_s": 1.7333333333333334,
+    "recharge_peak": 8.333333333333334
+   },
+   "tank_sustained": {
+    "passiveShield": 1.5,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 1.5,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 10.0,
+   "cargo": 50.0,
+   "slots": {
+    "high": 3,
+    "med": 3,
+    "low": 1,
+    "rig": 3,
+    "turret": 2,
+    "launcher": 0
+   },
+   "mining_yield": 2.6666666666666665,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Mining Laser Upgrade II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "1MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 15.0,
+     "power": 11.0,
+     "capacitorNeed": 5.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Gas Cloud Scoop II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 1500.0,
+     "falloff": 1.0,
+     "cpu": 70.0,
+     "power": 5.0,
+     "capacitorNeed": 15.0,
+     "duration": 30000.0,
+     "miningAmount": 40.0,
+     "miningWasteProbability": 34.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "mining_yps": 1.3333333333333333,
+     "mining_drain": 1.7866666666666666
+    },
+    {
+     "name": "Gas Cloud Scoop II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 1500.0,
+     "falloff": 1.0,
+     "cpu": 70.0,
+     "power": 5.0,
+     "capacitorNeed": 15.0,
+     "duration": 30000.0,
+     "miningAmount": 40.0,
+     "miningWasteProbability": 34.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "mining_yps": 1.3333333333333333,
+     "mining_drain": 1.7866666666666666
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "skiff_ice": {
+   "dps": 0.0,
+   "weapon_dps": 0.0,
+   "drone_dps": 0,
+   "volley": 0.0,
+   "ehp": {
+    "shield": 21293.10344827586,
+    "armor": 11111.11111111111,
+    "hull": 12126.86567164179
+   },
+   "hp": {
+    "shield": 12350.0,
+    "armor": 7500.0,
+    "hull": 8125.0
+   },
+   "resonance": {
+    "shield_em": 0.8,
+    "shield_thermal": 0.6400000000000001,
+    "shield_kinetic": 0.48,
+    "shield_explosive": 0.4,
+    "armor_em": 0.4,
+    "armor_thermal": 0.65,
+    "armor_kinetic": 0.75,
+    "armor_explosive": 0.9,
+    "hull_em": 0.67,
+    "hull_thermal": 0.67,
+    "hull_kinetic": 0.67,
+    "hull_explosive": 0.67
+   },
+   "cpu_used": 193.96,
+   "cpu_out": 387.5,
+   "pg_used": 34.5,
+   "pg_out": 220.0,
+   "calibration_used": 250.0,
+   "max_velocity": 137.5,
+   "align_time": 11.977583280075855,
+   "sig_radius": 207.0,
+   "mass": 20000000.0,
+   "lock_range": 84375.0,
+   "scan_res": 550.0,
+   "cap_capacity": 1125.0,
+   "cap_recharge_ms": 140625.0,
+   "shield_recharge_ms": 1875000.0,
+   "cap": {
+    "stable": true,
+    "state": 99.41674372589019,
+    "used_per_s": 0.13722541195068663,
+    "recharge_peak": 20.0
+   },
+   "tank_sustained": {
+    "passiveShield": 16.466666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 16.466666666666665,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 50.0,
+   "cargo": 350.0,
+   "slots": {
+    "high": 2,
+    "med": 5,
+    "low": 3,
+    "rig": 2,
+    "turret": 0,
+    "launcher": 0
+   },
+   "mining_yield": 11.864280408236448,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Ice Harvester Upgrade II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ice Harvester Upgrade II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 22.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ice Harvester II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "falloff": 1.0,
+     "cpu": 78.96,
+     "power": 10.0,
+     "capacitorNeed": 12.0,
+     "duration": 87447.36000000003,
+     "miningAmount": 1000.0,
+     "miningWasteProbability": 34.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "miningCritChance": 0.015,
+     "miningCritBonusYield": 2.5,
+     "mining_yps": 11.864280408236448,
+     "mining_drain": 15.32350433449334
+    },
+    {
+     "name": "Medium Ice Harvester Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "noctis_salvage": {
+   "dps": 0.0,
+   "weapon_dps": 0.0,
+   "drone_dps": 0,
+   "volley": 0.0,
+   "ehp": {
+    "shield": 3349.753694581281,
+    "armor": 4793.028322440087,
+    "hull": 9950.248756218905
+   },
+   "hp": {
+    "shield": 2125.0,
+    "armor": 2750.0,
+    "hull": 4000.0
+   },
+   "resonance": {
+    "shield_em": 0.875,
+    "shield_thermal": 0.7000000000000001,
+    "shield_kinetic": 0.525,
+    "shield_explosive": 0.4375,
+    "armor_em": 0.425,
+    "armor_thermal": 0.5525,
+    "armor_kinetic": 0.5525,
+    "armor_explosive": 0.765,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 130.0,
+   "cpu_out": 375.0,
+   "pg_used": 65.0,
+   "pg_out": 312.5,
+   "calibration_used": 100.0,
+   "max_velocity": 443.4596168533605,
+   "align_time": 20.13558039166382,
+   "sig_radius": 250.0,
+   "mass": 19640000.0,
+   "lock_range": 93750.0,
+   "scan_res": 112.5,
+   "cap_capacity": 2750.0,
+   "cap_recharge_ms": 300000.0,
+   "shield_recharge_ms": 300000.0,
+   "cap": {
+    "stable": true,
+    "state": 77.26973961111108,
+    "used_per_s": 9.666666666666666,
+    "recharge_peak": 22.916666666666668
+   },
+   "tank_sustained": {
+    "passiveShield": 17.708333333333332,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 17.708333333333332,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 25.0,
+   "cargo": 1460.0,
+   "slots": {
+    "high": 8,
+    "med": 2,
+    "low": 3,
+    "rig": 3,
+    "turret": 0,
+    "launcher": 0
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Salvager II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 6000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 7500.0,
+     "accessDifficultyBonus": 55.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Salvager II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 6000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 7500.0,
+     "accessDifficultyBonus": 55.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Tractor Beam II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 96000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 7.0,
+     "capacitorNeed": 5.0,
+     "duration": 3750.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Salvage Tackle I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "accessDifficultyBonus": 10.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Salvage Tackle I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "accessDifficultyBonus": 10.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   }
  }
 }
