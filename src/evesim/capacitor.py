@@ -19,6 +19,7 @@ class CapUser:
     cycle_s: float    # time between activations
     charges: int = 0  # shots before reload (0 = unlimited)
     reload_s: float = 0.0
+    stagger: bool = True  # identical modules fire spread over the cycle (turrets fire together)
 
 
 @dataclass
@@ -63,8 +64,31 @@ def simulate(capacity: float, recharge_ms: float, users: list[CapUser], max_time
         stable = peak + inject >= use
         return CapResult(stable, None, 1.0 if stable else 0.0, peak, use, inject)
 
+    # Identical modules are staggered like Pyfa does: without reloads they act as one module
+    # cycling N times as often; with reloads their first activations are spread out.
+    # Turrets fire together, and cap boosters are used as needed.
+    groups: dict[tuple, int] = {}
+    for u in users:
+        key = (u.name, u.amount, u.cycle_s, u.charges, u.reload_s, u.stagger)
+        groups[key] = groups.get(key, 0) + 1
+    sim_users, starts = [], []
+    for (name, amount, cycle, charges, reload, stagger), n in groups.items():
+        if amount < 0 or not stagger or n == 1:
+            for _ in range(n):
+                sim_users.append(CapUser(name, amount, cycle, charges, reload, stagger))
+                starts.append(0.0)
+        elif not charges:
+            sim_users.append(CapUser(name, amount, cycle / n, 0, 0.0, stagger))
+            starts.append(0.0)
+        else:
+            step = (cycle * charges + reload) / (n * charges)
+            for i in range(n):
+                sim_users.append(CapUser(name, amount, cycle, charges, reload, stagger))
+                starts.append(i * step)
+    users = sim_users
+
     # Event queue of (time, idx, shots fired since reload)
-    q = [(0.0, i, 0) for i in range(len(users))]
+    q = [(starts[i], i, 0) for i in range(len(users))]
     heapq.heapify(q)
     c, t = capacity, 0.0
     low_post = low_pre = capacity

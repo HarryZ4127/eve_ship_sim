@@ -98,6 +98,7 @@ class Stats:
     price: float | None = None
     extras: dict = field(default_factory=dict)
     tank_sustained_reload: dict[str, float] = field(default_factory=dict)
+    utility: dict = field(default_factory=dict)  # cargo, mining yield, remote repair
 
     @property
     def valid(self) -> bool:
@@ -181,6 +182,7 @@ class Stats:
             "navigation": self.nav,
             "targeting": self.targeting,
             "drones": self.drones,
+            "utility": self.utility,
             "price": self.price,
         }
 
@@ -353,7 +355,7 @@ def _cap_users(calc: FitCalc, assume_nos: bool = False) -> list[capacitor.CapUse
             continue
         need = calc.get(m, "capacitorNeed")
         if need > 0:
-            users.append(capacitor.CapUser(m.type.name, need, cyc))
+            users.append(capacitor.CapUser(m.type.name, need, cyc, stagger=not is_turret(m.type)))
     return users
 
 
@@ -422,6 +424,98 @@ def compute(fit: Fit, char: Character, profile: dict[str, float] | None = None,
         "max_active": calc.char_attr("maxActiveDrones"),
         "control_range": calc.char_attr("droneControlDistance"),
     }
+    utility = {
+        "cargo": g(ship, C.A_CAPACITY),
+        "mining_yield": _mining_yield(calc),
+        "remote_repair": _remote_reps(calc),
+        "ewar": _ewar(calc),
+    }
     return Stats(fit, calc, problems, res, slots, hardpoints, _weapons(calc, fit), hp, resonance, prof, ehp,
                  capres, cap_capacity, cap_recharge / 1000.0, peak, sustained, nav, targeting, drones,
-                 tank_sustained_reload=sustained_reload)
+                 tank_sustained_reload=sustained_reload, utility=utility)
+
+
+# Remote repair effects: effect id -> (layer, amount attribute)
+_REMOTE_REPAIR = {
+    6186: ("shield", "shieldBonus"), 6652: ("shield", "shieldBonus"),
+    6188: ("armor", "armorDamageAmount"), 6651: ("armor", "armorDamageAmount"), 7166: ("armor", "armorDamageAmount"),
+    6185: ("hull", "structureDamageAmount"),
+    6688: ("shield", "shieldBonus"), 6687: ("armor", "armorDamageAmount"), 6689: ("hull", "structureDamageAmount"),
+}
+_MINING_EFFECTS = {67, 17}  # miningLaser (modules), mining (drones)
+
+# Electronic warfare on a target: default effect -> (kind, strength attribute, unit).
+# Strength is per module as your skills and hull make it; stacking on the target is not modelled.
+EWAR_EFFECTS = {
+    6187: ("neut", "energyNeutralizerAmount", "GJ"),
+    6197: ("nos", "powerTransferAmount", "GJ"),
+    6426: ("web", "speedFactor", "%"),
+    6425: ("paint", "signatureRadiusBonus", "%"),
+    6470: ("ecm", None, "jam strength"),
+    6422: ("damp", "maxTargetRangeBonus", "%"),
+    6424: ("tracking_disruptor", "trackingSpeedBonus", "%"),
+    6423: ("guidance_disruptor", "aoeVelocityBonus", "%"),
+}
+_ECM_ATTRS = ("scanGravimetricStrengthBonus", "scanLadarStrengthBonus", "scanMagnetometricStrengthBonus",
+              "scanRadarStrengthBonus")
+
+
+def _mining_yield(calc: FitCalc) -> float:
+    """Ore/ice mined per second (m3/s), including critical-success bonus yield, like Pyfa."""
+    total = 0.0
+    for it in [m for m in calc.modules if m.state >= C.STATE_ACTIVE] + calc.drones:
+        if it.type.default_effect not in _MINING_EFFECTS:
+            continue
+        cyc = _cycle_s(calc, it)
+        amount = calc.get(it, "miningAmount")
+        if cyc <= 0 or not amount:
+            continue
+        crit = calc.get(it, "miningCritChance") * calc.get(it, "miningCritBonusYield")
+        total += amount / cyc * (1 + crit) * it.amount
+    return total
+
+
+def _ewar(calc: FitCalc) -> list[dict]:
+    """What each active EWAR/tackle module does to a target: strength, range, and per-second
+    capacitor drain for neutralizers and nosferatu."""
+    out: dict[tuple, dict] = {}
+    for m in calc.modules:
+        if m.state < C.STATE_ACTIVE:
+            continue
+        spec = EWAR_EFFECTS.get(m.type.default_effect)
+        scram = calc.get(m, "warpScrambleStrength") if not spec else 0.0
+        if not spec and scram <= 0:
+            continue
+        if spec:
+            kind, attr, unit = spec
+            strength = max(calc.get(m, a) for a in _ECM_ATTRS) if kind == "ecm" else abs(calc.get(m, attr))
+        else:
+            kind, strength, unit = ("scram" if scram >= 2 else "point"), scram, "points"
+        cyc = _cycle_s(calc, m)
+        entry = {"kind": kind, "name": m.type.name, "count": 1, "strength": strength, "unit": unit,
+                 "optimal": calc.get(m, "maxRange"), "falloff": calc.get(m, "falloffEffectiveness"),
+                 "cycle_s": cyc, "per_second": strength / cyc if kind in ("neut", "nos") and cyc else 0.0}
+        key = (m.type.id, round(strength, 6), round(entry["optimal"], 3))
+        if key in out:
+            out[key]["count"] += 1
+            out[key]["per_second"] += entry["per_second"]
+        else:
+            out[key] = entry
+    return list(out.values())
+
+
+def _remote_reps(calc: FitCalc) -> dict[str, float]:
+    """HP/s your remote repairers and logistics drones give to others, per layer."""
+    out = {"shield": 0.0, "armor": 0.0, "hull": 0.0}
+    for it in [m for m in calc.modules if m.state >= C.STATE_ACTIVE] + calc.drones:
+        spec = _REMOTE_REPAIR.get(it.type.default_effect)
+        if not spec:
+            continue
+        cyc = _cycle_s(calc, it)
+        if cyc <= 0:
+            continue
+        amount = calc.get(it, spec[1])
+        if it.charge is not None and it.type.default_effect == 6651:
+            amount *= calc.get(it, "chargedArmorDamageMultiplier")
+        out[spec[0]] += amount / cyc * it.amount
+    return out

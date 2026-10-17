@@ -1,0 +1,21 @@
+# Trade-off frontier for a Vexor between damage, tank and speed: each line of the
+# output is a fit that no other fit beats on all three at once.
+name = "Vexor trade-offs"
+ship = "Vexor"
+
+[objective]
+pareto = ["applied_dps", "ehp", "speed"]
+points = 10
+
+[target]
+preset = "cruiser"
+distance = 10000
+
+[constraints]
+cap_stable = true
+
+[fitting]
+tank = "armor"
+
+[search]
+effort = "quick"

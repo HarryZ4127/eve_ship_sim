@@ -73,6 +73,26 @@ def _optimal_range(s: Stats, _spec) -> float:
     return best
 
 
+def _ewar_sum(s: Stats, kinds) -> float:
+    return sum(e["per_second"] for e in s.utility.get("ewar", []) if e["kind"] in kinds)
+
+
+def _ewar_max(s: Stats, kinds, field) -> float:
+    return max((e[field] for e in s.utility.get("ewar", []) if e["kind"] in kinds), default=0.0)
+
+
+def _survival_time(s: Stats, spec) -> float:
+    net = spec.incoming_dps - s.sustained_ehps_reload
+    return math.inf if net <= 0 else s.ehp_total / net
+
+
+def _lock_time(s: Stats, spec) -> float:
+    """Seconds to lock the [target], from scan resolution and target signature."""
+    res = s.targeting["scan_resolution"]
+    sig = max(spec.target.signature, 1.0)
+    return 40000.0 / (res * math.asinh(sig) ** 2) if res > 0 else math.inf
+
+
 def _cap_seconds(s: Stats, _spec) -> float:
     return math.inf if s.cap.stable else (s.cap.lasts_s or 0.0)
 
@@ -102,7 +122,44 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
     Metric("price", False, lambda s, sp: s.price or 0.0, "ISK"),
     Metric("cpu_left", True, lambda s, sp: s.resources["cpu"][1] - s.resources["cpu"][0], "tf"),
     Metric("pg_left", True, lambda s, sp: s.resources["power"][1] - s.resources["power"][0], "MW"),
+    Metric("hull_ehp", True, lambda s, sp: s.ehp["hull"], "HP"),
+    Metric("survival_time", True, _survival_time, "s",
+           "seconds until dead under [incoming] dps, after sustained repairs (inf if the tank holds)"),
+    Metric("dps_per_misk", True, lambda s, sp: s.dps / max((s.price or 0.0) / 1e6, 0.01), "DPS/M ISK",
+           "raw DPS per million ISK of fit price"),
+    Metric("ehp_per_misk", True, lambda s, sp: s.ehp_total / max((s.price or 0.0) / 1e6, 0.01), "EHP/M ISK"),
+    Metric("cargo", True, lambda s, sp: s.utility.get("cargo", 0.0), "m3", "cargo hold"),
+    Metric("warp_speed", True, lambda s, sp: s.nav["warp_speed"], "AU/s"),
+    Metric("mass", False, lambda s, sp: s.nav["mass"], "kg"),
+    Metric("max_targets", True, lambda s, sp: s.targeting["max_targets"], ""),
+    Metric("sensor_strength", True, lambda s, sp: s.targeting["sensor_strength"], "", "resistance to ECM"),
+    Metric("lock_time", False, _lock_time, "s", "time to lock [target]"),
+    Metric("drone_control_range", True, lambda s, sp: s.drones["control_range"], "m"),
+    Metric("cap_capacity", True, lambda s, sp: s.cap_capacity, "GJ"),
+    Metric("cap_recharge", True, lambda s, sp: s.cap.peak_recharge, "GJ/s", "peak capacitor regeneration"),
+    Metric("mining_yield", True, lambda s, sp: s.utility.get("mining_yield", 0.0), "m3/s",
+           "ore/ice per second (crystal bonuses assume the matching ore)"),
+    Metric("remote_repair", True, lambda s, sp: sum(s.utility.get("remote_repair", {}).values()), "HP/s",
+           "repair given to other ships by remote repairers and logistics drones"),
+    Metric("neut_rate", True, lambda s, sp: _ewar_sum(s, ("neut", "nos")), "GJ/s",
+           "capacitor drained from a target per second by neutralizers and nosferatu"),
+    Metric("tackle_range", True, lambda s, sp: _ewar_max(s, ("scram", "point"), "optimal"), "m",
+           "range of your longest warp scrambler/disruptor"),
+    Metric("web_range", True, lambda s, sp: _ewar_max(s, ("web",), "optimal"), "m"),
+    Metric("web_strength", True, lambda s, sp: _ewar_max(s, ("web",), "strength"), "%",
+           "speed reduction of your strongest web"),
+    Metric("paint_strength", True, lambda s, sp: _ewar_max(s, ("paint",), "strength"), "%",
+           "signature bloom of your strongest target painter"),
+    Metric("ecm_strength", True, lambda s, sp: _ewar_max(s, ("ecm",), "strength"), "",
+           "jam strength of your strongest ECM"),
+    Metric("damp_strength", True, lambda s, sp: _ewar_max(s, ("damp",), "strength"), "%",
+           "lock range reduction of your strongest sensor dampener"),
+    Metric("disruption_strength", True, lambda s, sp: _ewar_max(s, ("tracking_disruptor", "guidance_disruptor"),
+                                                               "strength"), "%",
+           "strength of your strongest tracking/guidance disruptor"),
 ]}
+
+DAMAGE_METRICS = {"dps", "weapon_dps", "drone_dps", "applied_dps", "volley", "weapon_range", "dps_per_misk"}
 
 # Dogma attribute names each metric depends on; used to skip modules that cannot matter.
 METRIC_ATTRS: dict[str, set[str]] = {
@@ -123,6 +180,22 @@ METRIC_ATTRS: dict[str, set[str]] = {
             "massAddition", "signatureRadiusBonus"},
     "targeting": {"maxTargetRange", "scanResolution"},
     "fitting": {"cpuOutput", "powerOutput", "upgradeCapacity", "cpu", "power", "upgradeCost"},
+    "cargo": {"capacity"},
+    "warp": {"warpSpeedMultiplier", "baseWarpSpeed"},
+    "sensors": {"maxLockedTargets", "scanRadarStrength", "scanLadarStrength", "scanMagnetometricStrength",
+                "scanGravimetricStrength"},
+    "drone_range": {"droneControlDistance"},
+    "mining": {"miningAmount", "duration", "miningCritChance", "miningCritBonusYield", "maxActiveDrones"},
+    "remote": {"shieldBonus", "armorDamageAmount", "structureDamageAmount", "duration", "maxRange"},
+    "neut": {"energyNeutralizerAmount", "powerTransferAmount", "duration", "maxRange", "falloffEffectiveness"},
+    "tackle": {"warpScrambleStrength", "maxRange"},
+    "web": {"speedFactor", "maxRange", "falloffEffectiveness"},
+    "paint": {"signatureRadiusBonus", "maxRange"},
+    "ecm": {"scanGravimetricStrengthBonus", "scanLadarStrengthBonus", "scanMagnetometricStrengthBonus",
+            "scanRadarStrengthBonus", "maxRange"},
+    "damp": {"maxTargetRangeBonus", "scanResolutionBonus", "maxRange"},
+    "disrupt": {"trackingSpeedBonus", "maxRangeBonus", "falloffBonus", "aoeVelocityBonus", "aoeCloudSizeBonus",
+                "missileVelocityBonus", "explosionDelayBonus", "maxRange"},
 }
 METRIC_GROUPS = {
     "dps": ["dps"], "weapon_dps": ["dps"], "drone_dps": ["dps"], "volley": ["volley"],
@@ -133,6 +206,13 @@ METRIC_GROUPS = {
     "lock_range": ["targeting"], "scan_resolution": ["targeting"],
     "cap_seconds": ["cap"], "cap_stable_fraction": ["cap"], "cap_delta": ["cap"],
     "price": [], "cpu_left": ["fitting"], "pg_left": ["fitting"],
+    "hull_ehp": ["ehp"], "survival_time": ["ehp", "tank", "cap"], "dps_per_misk": ["dps"], "ehp_per_misk": ["ehp"],
+    "cargo": ["cargo"], "warp_speed": ["warp"], "mass": ["nav"], "max_targets": ["sensors"],
+    "sensor_strength": ["sensors"], "lock_time": ["targeting"], "drone_control_range": ["drone_range"],
+    "cap_capacity": ["cap"], "cap_recharge": ["cap"], "mining_yield": ["mining"], "remote_repair": ["remote", "cap"],
+    "neut_rate": ["neut"], "tackle_range": ["tackle"], "web_range": ["web"], "web_strength": ["web"],
+    "paint_strength": ["paint"], "ecm_strength": ["ecm"], "damp_strength": ["damp"],
+    "disruption_strength": ["disrupt"],
 }
 
 
@@ -160,11 +240,16 @@ class Constraint:
 class Spec:
     ships: list[str] = field(default_factory=list)
     ship_groups: list[str] = field(default_factory=list)
+    ship_classes: list[str] = field(default_factory=list)
+    screen_top: int = 5          # with many hulls: how many get the full search after screening
     weights: dict[str, float] = field(default_factory=lambda: {"dps": 1.0})
     scales: dict[str, float] = field(default_factory=dict)
+    pareto: list[str] = field(default_factory=list)  # metrics for a trade-off frontier
+    pareto_points: int = 10
     constraints: list[Constraint] = field(default_factory=list)
     target: Target = field(default_factory=lambda: TARGET_PRESETS["cruiser"])
     incoming: dict[str, float] = field(default_factory=lambda: {"em": 25, "thermal": 25, "kinetic": 25, "explosive": 25})
+    incoming_dps: float = 0.0    # for survival_time
     meta: list[str] = field(default_factory=lambda: list(DEFAULT_META))
     ammo_meta: list[str] = field(default_factory=lambda: list(DEFAULT_AMMO_META))
     require: list[str] = field(default_factory=list)
@@ -220,7 +305,10 @@ def _profile(d) -> dict[str, float]:
             raise ValueError(f"unknown damage profile {name!r}; choose from {', '.join(DAMAGE_PROFILES)}")
         em, th, ki, ex = DAMAGE_PROFILES[name]
         return {"em": em, "thermal": th, "kinetic": ki, "explosive": ex}
-    return {k: float(d.get(k, 0)) for k in ("em", "thermal", "kinetic", "explosive")}
+    out = {k: float(d.get(k, 0)) for k in ("em", "thermal", "kinetic", "explosive")}
+    if not any(out.values()):
+        raise ValueError("incoming damage needs a preset or em/thermal/kinetic/explosive weights")
+    return out
 
 
 def _target(d: dict) -> Target:
@@ -237,7 +325,7 @@ def _target(d: dict) -> Target:
     return t
 
 
-_KNOWN_TOP = {"ship", "ships", "ship_groups", "name", "objective", "target", "incoming", "constraints",
+_KNOWN_TOP = {"ship", "ships", "ship_groups", "ship_classes", "name", "objective", "target", "incoming", "constraints",
               "fitting", "search"}
 
 
@@ -248,8 +336,15 @@ def from_dict(d: dict) -> Spec:
     sp = Spec(name=d.get("name", ""))
     if "ship" in d:
         sp.ships = [d["ship"]]
-    sp.ships += list(d.get("ships", []))
+    ships = d.get("ships", [])
+    sp.ships += [ships] if isinstance(ships, str) else list(ships)
     sp.ship_groups = list(d.get("ship_groups", []))
+    classes = d.get("ship_classes", [])
+    sp.ship_classes = [c.lower() for c in ([classes] if isinstance(classes, str) else classes)]
+    from evesim.optimize.search import SHIP_CLASSES
+    for c in sp.ship_classes:
+        if c != "all" and c not in SHIP_CLASSES:
+            raise ValueError(f"unknown ship class {c!r}; choose from all, {', '.join(SHIP_CLASSES)}")
 
     obj = d.get("objective", {})
     if "weights" in obj:
@@ -259,14 +354,24 @@ def from_dict(d: dict) -> Spec:
     elif "minimize" in obj:
         sp.weights = {obj["minimize"]: 1.0}
     sp.scales = {k: float(v) for k, v in obj.get("scales", {}).items()}
-    for m in list(sp.weights) + list(sp.scales):
+    if "pareto" in obj:
+        sp.pareto = list(obj["pareto"])
+        sp.pareto_points = int(obj.get("points", sp.pareto_points))
+        if len(sp.pareto) < 2:
+            raise ValueError("objective.pareto needs at least two metrics")
+        if "weights" not in obj and "maximize" not in obj and "minimize" not in obj:
+            sp.weights = {m: 1.0 for m in sp.pareto}
+    for m in list(sp.weights) + list(sp.scales) + sp.pareto:
         if m not in METRICS:
             raise ValueError(f"unknown metric {m!r}; choose from {', '.join(METRICS)}")
 
     if "target" in d:
         sp.target = _target(d["target"])
     if "incoming" in d:
-        sp.incoming = _profile(d["incoming"])
+        inc = d["incoming"]
+        sp.incoming = _profile(inc)
+        if isinstance(inc, dict):
+            sp.incoming_dps = float(inc.get("dps", 0.0))
 
     for k, v in d.get("constraints", {}).items():
         if k == "cap_stable":
@@ -281,10 +386,13 @@ def from_dict(d: dict) -> Spec:
                              f"{', '.join(METRICS)}, or cap_stable / budget")
         sp.constraints.append(Constraint(metric, float(v), kind))
 
+    if "survival_time" in sp.relevant_metrics() and sp.incoming_dps <= 0:
+        raise ValueError("survival_time needs the incoming damage rate: set dps = ... under [incoming]")
+
     f = d.get("fitting", {})
     for k in ("meta", "ammo_meta", "require", "exclude", "ammo", "subsystems"):
         if k in f:
-            setattr(sp, k, list(f[k]))
+            setattr(sp, k, [f[k]] if isinstance(f[k], str) else list(f[k]))
     for k in ("tank", "propulsion", "weapons"):
         if k in f:
             setattr(sp, k, str(f[k]).lower())
@@ -310,7 +418,8 @@ def from_dict(d: dict) -> Spec:
     s = d.get("search", {})
     sp.effort = s.get("effort", sp.effort)
     sp.seed = int(s.get("seed", sp.seed))
-    if sp.effort not in ("quick", "normal", "thorough"):
+    sp.screen_top = int(s.get("screen_top", sp.screen_top))
+    if sp.effort not in ("screen", "quick", "normal", "thorough"):
         raise ValueError("search.effort must be quick, normal or thorough")
     return sp
 

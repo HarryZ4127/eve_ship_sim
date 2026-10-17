@@ -24,6 +24,7 @@ class SkillProfile:
     levels: dict[int, int]
     implants: list[int] = field(default_factory=list)
     source: str = ""
+    attributes: dict[str, float] = field(default_factory=dict)  # charisma, intelligence, ... (training speed)
 
     def character(self, data: StaticData) -> Character:
         return Character(data, self.levels, self.implants, self.name)
@@ -35,7 +36,8 @@ class SkillProfile:
             return str(sid)
         return {"name": self.name, "source": self.source,
                 "skills": {key(s): lvl for s, lvl in sorted(self.levels.items())},
-                "implants": [data.types[i].name if data and i in data.types else i for i in self.implants]}
+                "implants": [data.types[i].name if data and i in data.types else i for i in self.implants],
+                "attributes": self.attributes}
 
     def save(self, path: str | Path, data: StaticData | None = None):
         Path(path).write_text(json.dumps(self.to_json(data), indent=1))
@@ -73,7 +75,9 @@ def from_dict(data: StaticData, d: dict, name: str = "character", source: str = 
                   for s in skills}
     else:
         levels = {_resolve(data, k): int(v) for k, v in skills.items()}
-    return SkillProfile(d.get("name", name) if isinstance(d, dict) else name, levels, implants, source)
+    attrs = {k: float(v) for k, v in (d.get("attributes") or {}).items()
+             if k in ("charisma", "intelligence", "memory", "perception", "willpower")} if isinstance(d, dict) else {}
+    return SkillProfile(d.get("name", name) if isinstance(d, dict) else name, levels, implants, source, attrs)
 
 
 def load(data: StaticData, spec: str) -> SkillProfile:

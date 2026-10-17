@@ -59,6 +59,14 @@ def stats_text(st: Stats, target: Target | None = None) -> str:
     d = st.drones
     if d["bandwidth"]:
         L.append(f"Drones    bandwidth {_n(d['bandwidth_used'])}/{_n(d['bandwidth'])}, bay {_n(d['bay_used'])}/{_n(d['bay'])}")
+    for e in st.utility.get("ewar", []):
+        what = f"{_n(e['per_second'], 1)} GJ/s" if e["kind"] in ("neut", "nos") else f"{_n(e['strength'], 1)} {e['unit']}"
+        rng = f"{e['optimal'] / 1000:.1f} km" + (f" + {e['falloff'] / 1000:.1f} km" if e["falloff"] else "")
+        L.append(f"EWAR      {e['count']}x {e['name']}: {what}, {rng}")
+    if st.utility.get("remote_repair") and any(st.utility["remote_repair"].values()):
+        L.append("Remote    " + ", ".join(f"{k} {_n(v, 1)} HP/s" for k, v in st.utility["remote_repair"].items() if v))
+    if st.utility.get("mining_yield"):
+        L.append(f"Mining    {_n(st.utility['mining_yield'], 2)} m3/s")
     if st.price is not None:
         L.append(f"Price     {_n(st.price)} ISK")
     return "\n".join(L)
@@ -102,3 +110,63 @@ def result_text(results: list[Result], spec: Spec) -> str:
                          + ("" if a.feasible else "  [infeasible]"))
         L.append("")
     return "\n".join(L).rstrip() + "\n"
+
+
+def pareto_text(points, spec: Spec) -> str:
+    ms = spec.pareto
+    L = [f"Pareto front over {', '.join(ms)}: {len(points)} fits, none beaten on all of them by another", ""]
+    head = f"{'#':>2}  {'ship':<20}" + "".join(f"{m:>16}" for m in ms)
+    L += [head, "-" * len(head)]
+    for i, p in enumerate(points, 1):
+        L.append(f"{i:>2}  {p.ship:<20}" + "".join(f"{_n(p.metrics[m], 1):>16}" for m in ms))
+    for i, p in enumerate(points, 1):
+        L += ["", f"--- #{i} ({', '.join(f'{m} {w:.2f}' for m, w in p.weights.items())})", p.evaluation.fit.to_eft().rstrip()]
+    return "\n".join(L) + "\n"
+
+
+def _dur(seconds: float) -> str:
+    d, rem = divmod(int(seconds), 86400)
+    h, rem = divmod(rem, 3600)
+    m = rem // 60
+    return f"{d}d {h}h" if d else (f"{h}h {m}m" if h else f"{m}m")
+
+
+def training_text(prof, adv, spec: Spec, fit, single, plan, before, after, refit, days) -> str:
+    from evesim.advisor import describe_change, objective_metrics
+    roman = {0: "0", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
+    attrs = ", ".join(f"{k} {v:g}" for k, v in adv.attributes.items())
+    L = [f"Skills: {prof.name} ({prof.source})   attributes: {attrs}",
+         "Objective: " + " + ".join(f"{w:g} x {m}" for m, w in spec.weights.items()),
+         f"Fit analysed: {fit.ship.name} ({fit.name})", ""]
+    L.append("Best single trainings for this fit (gain per day of training):")
+    if not single:
+        L.append("   none: no skill raises the objective for this fit")
+    for s in single:
+        pre = [f"{n} {roman[b]}" for n, a, b in s.steps[:-1]]
+        L.append(f"   {s.skill} {roman[s.from_level]} -> {roman[s.to_level]:<4} {_dur(s.seconds):>8}   "
+                 f"{describe_change(s, spec)}" + (f"   (needs {', '.join(pre)})" if pre else ""))
+    L += ["", f"Training plan, {days:g} days:"]
+    total = 0.0
+    for s in plan:
+        total += s.seconds
+        L.append(f"   {_dur(total):>8}  {s.skill} {roman[s.to_level]}")
+    if plan:
+        changes = []
+        for m in objective_metrics(spec):
+            a, b = before.get(m), after.get(m)
+            if a is not None and b is not None and a != b and abs(a) != float("inf") and abs(b) != float("inf"):
+                changes.append(f"{m} {a:,.1f} -> {b:,.1f}" + (f" ({(b - a) / abs(a) * 100:+.1f}%)" if a else ""))
+        L.append("   result: " + ("; ".join(changes) or "no change"))
+    else:
+        L.append("   nothing to train within the budget improves this fit")
+    if refit or getattr(adv, "reference", None) is not None:
+        ref = adv.reference
+        L += ["", "Skills that unlock a better fit (the fit is re-optimized with the skill trained), compared "
+                  "with the best fit your current skills can fly (" + ", ".join(
+                      f"{m} {_n(ref.metrics[m], 1)}" for m in spec.weights) + "):"]
+        if not refit:
+            L.append("   none found within the budget")
+        for s in refit:
+            L.append(f"   {s.skill} {roman[s.to_level]:<4} {_dur(s.seconds):>8}   {describe_change(s, spec)}")
+            L.append(f"        unlocks e.g. {', '.join(s.unlocks[:4])}")
+    return "\n".join(L) + "\n"

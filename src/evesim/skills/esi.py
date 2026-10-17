@@ -201,8 +201,14 @@ def fetch_profile(data: StaticData, character: str | None = None) -> SkillProfil
         implants = esi_get(f"/characters/{cid}/implants/", token)
     except Exception:
         implants = []
+    try:
+        attrs = esi_get(f"/characters/{cid}/attributes/", token)
+    except Exception:
+        attrs = {}
     name = _record(str(cid))["name"]
-    prof = from_dict(data, {"name": name, "skills": skills["skills"]}, name=name, source=f"esi:{cid}")
+    prof = from_dict(data, {"name": name, "skills": skills["skills"], "attributes": {
+        k: attrs[k] for k in ("charisma", "intelligence", "memory", "perception", "willpower") if k in attrs}},
+        name=name, source=f"esi:{cid}")
     prof.implants = [i for i in implants if i in data.types]
     return prof
 

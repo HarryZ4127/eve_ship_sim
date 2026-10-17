@@ -33,12 +33,13 @@ from evesim.data.store import CAT_DRONE, CAT_MODULE, StaticData, Type
 from evesim.dogma import const as C
 from evesim.dogma.engine import Character
 from evesim.fit import (DroneSpec, Fit, ModuleSpec, charge_fits, default_state, is_launcher, is_turret,
-                        module_fits_ship, slot_of)
+                        module_fits_ship, ship_modes, slot_of)
 from evesim.market import Prices
-from evesim.optimize.spec import METRICS, Spec
-from evesim.stats import Stats, compute
+from evesim.optimize.spec import DAMAGE_METRICS, METRIC_ATTRS, METRICS, Spec
+from evesim.stats import _MINING_EFFECTS, _REMOTE_REPAIR, EWAR_EFFECTS, Stats, compute
 
 PENALTY = 1000.0
+CACHE_LIMIT = 20_000  # evaluations kept for re-use; cleared when full and between hulls
 GROUP_PROPULSION = 46
 
 # Metric scales: a weight of 1 means "one scale unit of this metric is worth one point".
@@ -48,13 +49,37 @@ DEFAULT_SCALES = {
     "sustained_tank": 100.0, "peak_tank": 100.0, "speed": 1000.0, "align_time": 10.0, "signature": 100.0,
     "lock_range": 50_000.0, "scan_resolution": 500.0, "weapon_range": 10_000.0, "cap_seconds": 300.0,
     "cap_stable_fraction": 1.0, "cap_delta": 10.0, "price": 100_000_000.0, "cpu_left": 100.0, "pg_left": 100.0,
+    "hull_ehp": 10_000.0, "survival_time": 300.0, "dps_per_misk": 10.0, "ehp_per_misk": 1000.0, "cargo": 1000.0,
+    "warp_speed": 5.0, "mass": 10_000_000.0, "max_targets": 5.0, "sensor_strength": 20.0, "lock_time": 5.0,
+    "drone_control_range": 50_000.0, "cap_capacity": 1000.0, "cap_recharge": 10.0, "mining_yield": 10.0,
+    "remote_repair": 100.0, "neut_rate": 10.0, "tackle_range": 10_000.0, "web_range": 10_000.0,
+    "web_strength": 50.0, "paint_strength": 25.0, "ecm_strength": 5.0, "damp_strength": 25.0,
+    "disruption_strength": 25.0,
 }
 EFFORT = {  # (weapon configs, perturbation rounds, perturbation size)
+    "screen": (1, 0, 0),  # greedy fill only: used to rank many hulls before searching the best ones
     "quick": (1, 1, 2),
     "normal": (3, 3, 3),
     "thorough": (6, 10, 3),
 }
 GROUP_SMARTBOMB = 72
+
+# Ship classes for ship_classes = [...]: names of in-game ship groups.
+SHIP_CLASSES = {
+    "frigate": ["Frigate", "Assault Frigate", "Interceptor", "Covert Ops", "Electronic Attack Ship",
+                "Stealth Bomber", "Logistics Frigate", "Expedition Frigate", "Prototype Exploration Ship"],
+    "destroyer": ["Destroyer", "Interdictor", "Tactical Destroyer", "Command Destroyer"],
+    "cruiser": ["Cruiser", "Heavy Assault Cruiser", "Heavy Interdiction Cruiser", "Force Recon Ship",
+                "Combat Recon Ship", "Logistics", "Strategic Cruiser", "Flag Cruiser"],
+    "battlecruiser": ["Combat Battlecruiser", "Attack Battlecruiser", "Command Ship"],
+    "battleship": ["Battleship", "Black Ops", "Marauder"],
+    "capital": ["Carrier", "Dreadnought", "Lancer Dreadnought", "Force Auxiliary", "Supercarrier", "Titan",
+                "Command Carrier", "Capital Industrial Ship"],
+    "industrial": ["Hauler", "Deep Space Transport", "Blockade Runner", "Freighter", "Jump Freighter",
+                   "Industrial Command Ship", "Expedition Command Ship"],
+    "mining": ["Mining Barge", "Exhumer", "Expedition Frigate", "Industrial Command Ship", "Capital Industrial Ship"],
+    "corvette": ["Corvette", "Shuttle"],
+}
 
 _SHIELD_ATTRS = {"shieldCapacity", "shieldEmDamageResonance", "shieldThermalDamageResonance",
                  "shieldKineticDamageResonance", "shieldExplosiveDamageResonance", "shieldRechargeRate"}
@@ -117,6 +142,8 @@ class Optimizer:
                                   if a in data._attr_by_name}
         self._fitting_out = {data.attr_id(a) for a in ("cpuOutput", "powerOutput", "upgradeCapacity")}
         self._fitting_use = {data.attr_id(a) for a in ("cpu", "power", "upgradeCost")}
+        self._ewar_attr_ids = {data.attr_id(a) for g in ("neut", "tackle", "web", "paint", "ecm", "damp", "disrupt")
+                               for a in METRIC_ATTRS[g] if a in data._attr_by_name}
         self._cache: dict[tuple, Evaluation] = {}
         self.evaluations = 0
         self.max_price = min((c.bound for c in spec.constraints if c.metric == "price" and c.kind == "max"),
@@ -127,6 +154,7 @@ class Optimizer:
         self._touch_cache: dict[int, set[int]] = {}
         self._cost: dict[int, tuple[float, float, float]] = {}  # measured cpu/pg/calibration per module
         self._sim_default = False  # search on capacitor averages; finalists are re-checked with the sim
+        self.screened: list[tuple[str, float]] = []  # (hull, screening score) when many hulls were ranked
 
     # ---- evaluation -------------------------------------------------------------------------
     def _key(self, fit: Fit) -> tuple:
@@ -147,6 +175,7 @@ class Optimizer:
             st.cap.stable = st.cap.delta_per_s >= 0
             st.cap.lasts_s = None if st.cap.stable else _estimate_lasts(st)
         st.price = self.prices.fit_price(fit)
+        st.calc = None  # the dogma state is large; nothing downstream needs it once stats exist
         self.evaluations += 1
         metrics = {m: METRICS[m].fn(st, self.spec) for m in self.metric_names}
 
@@ -182,6 +211,8 @@ class Optimizer:
         frugal = 1e-3 * ((cpu_out - cpu_used) / max(cpu_out, 1.0) + (pg_out - pg_used) / max(pg_out, 1.0)) \
             - 1e-4 * (st.price or 0.0) / 1e8
         ev = Evaluation(fit, st, obj + frugal - PENALTY * viol, obj, viol, metrics, st.problems)
+        if len(self._cache) >= CACHE_LIMIT:
+            self._cache.clear()
         self._cache[key] = ev
         return ev
 
@@ -212,6 +243,12 @@ class Optimizer:
             out |= {a("capacitorBonus"), a("capacitorCapacity")}
         if C.E_ADAPTIVE_ARMOR_HARDENER in eids:
             out |= set(C.ARMOR_RESONANCES)
+        if t.default_effect in _REMOTE_REPAIR:
+            out.add(a(_REMOTE_REPAIR[t.default_effect][1]))
+        if t.default_effect in _MINING_EFFECTS:
+            out.add(a("miningAmount"))
+        if t.default_effect in EWAR_EFFECTS or t.attrs.get(a("warpScrambleStrength")):
+            out |= {x for x in self._ewar_attr_ids if x in t.attrs}
         self._touch_cache[t.id] = out
         return out
 
@@ -261,7 +298,7 @@ class Optimizer:
             if t.category_id != CAT_MODULE:
                 continue
             slot = slot_of(t)
-            if slot not in raw or is_turret(t) or is_launcher(t):
+            if slot not in raw or _is_weapon(t):
                 continue
             if not self._usable(t, ship, self.allowed_meta) or not self._layer_ok(t):
                 continue
@@ -315,7 +352,8 @@ class Optimizer:
         # Second probe with "enablers" fitted, so modules that only work in combination
         # (boost amplifiers with a booster, prop rigs with a prop mod ...) are not lost.
         enabler_effects = [(C.E_SHIELD_BOOSTING, C.E_FUELED_SHIELD_BOOSTING), (C.E_ARMOR_REPAIR, C.E_FUELED_ARMOR_REPAIR),
-                           (C.E_POWER_BOOSTER,), (C.E_MWD,), (C.E_AB,)]
+                           (C.E_POWER_BOOSTER,), (C.E_MWD,), (C.E_AB,), tuple(_MINING_EFFECTS),
+                           tuple(_REMOTE_REPAIR)]
         probe2 = base.copy()
         for effs in enabler_effects:
             cands = [t for types in raw.values() for t in types if set(t.effect_ids) & set(effs)]
@@ -372,7 +410,8 @@ class Optimizer:
         hp_t = int(calc.get(calc.ship, C.A_TURRET_SLOTS))
         hp_l = int(calc.get(calc.ship, C.A_LAUNCHER_SLOTS))
         n_high = int(calc.get(calc.ship, C.A_HI_SLOTS)) - sum(1 for m in base.modules if m.slot == "high")
-        if self.spec.weapons in ("drone", "none"):
+        if self.spec.weapons in ("drone", "none") or not (self.relevant & DAMAGE_METRICS):
+            # No damage metric in play (mining, logistics, hauling ...): keep the high slots free.
             return [WeaponConfig([])]
         weapons = []
         for t in self.data.types.values():
@@ -573,7 +612,7 @@ class Optimizer:
 
     def _assemble(self, base: Fit, slots: dict[str, list[Type]]) -> Fit:
         f = base.copy()
-        for slot in ("high", "med", "low", "rig", "prop"):
+        for slot in ("high", "med", "low", "rig", "prop", "mode"):
             for t in slots.get(slot, ()):
                 f.modules.append(ModuleSpec(t, default_state(t, self.data), self._default_charge(t)))
         return f
@@ -598,7 +637,7 @@ class Optimizer:
                 if old is not None and old not in slots[slot]:
                     continue  # changed earlier in this pass
                 options = [t for t in pools[slot] if t is not old]
-                if old is not None and slot != "prop":
+                if old is not None and slot not in ("prop", "mode"):
                     options.append(None)  # removal
                 best = None
                 for new in options:
@@ -637,7 +676,8 @@ class Optimizer:
     def optimize_config(self, base: Fit, cfg: WeaponConfig, drones: list[Type]) -> Evaluation:
         armed = self.pick_drones(self._apply_weapons(base, cfg), drones)
         pools = self.module_pools(base.ship, armed)
-        self.log(f"  {cfg.label()}: candidates " + " ".join(f"{k}={len(v)}" for k, v in pools.items()))
+        if self.spec.effort != "screen":
+            self.log(f"  {cfg.label()}: candidates " + " ".join(f"{k}={len(v)}" for k, v in pools.items()))
         calc = armed.calc(self.char)
         used = {s: sum(1 for m in armed.modules if m.slot == s) for s in ("high", "med", "low", "rig")}
         free = {"high": int(calc.get(calc.ship, C.A_HI_SLOTS)) - used["high"],
@@ -655,8 +695,16 @@ class Optimizer:
                 slots["prop"] = [max(props, key=lambda t: self.evaluate(self._assemble(armed, {"prop": [t]})).score)]
             else:
                 slots["prop"] = []
+        modes = ship_modes(base.ship, self.data)
+        if modes and not any(m.slot == "mode" for m in armed.modules):
+            # T3 destroyers: the tactical mode is one more slot the search chooses.
+            pools["mode"] = modes
+            free["mode"] = 1
+            slots["mode"] = [max(modes, key=lambda t: self.evaluate(self._assemble(armed, dict(slots, mode=[t]))).score)]
         current = self.evaluate(self._assemble(armed, slots))
         slots, current = self._greedy(armed, slots, free, pools, current)
+        if self.spec.effort == "screen":
+            return current
         slots, current = self._local_search(armed, slots, free, pools, current)
 
         rounds, size = EFFORT[self.spec.effort][1:]
@@ -667,7 +715,7 @@ class Optimizer:
                 slot = self.rng.choice([s for s in pools if pools[s] and free.get(s, 0) > 0] or ["med"])
                 if not pools.get(slot):
                     continue
-                if trial[slot] and (len(trial[slot]) >= free[slot] or self.rng.random() < 0.5 or slot == "prop"):
+                if trial[slot] and (len(trial[slot]) >= free[slot] or self.rng.random() < 0.5 or slot in ("prop", "mode")):
                     trial[slot].pop(self.rng.randrange(len(trial[slot])))
                 if len(trial[slot]) < free[slot]:
                     trial[slot].append(self.rng.choice(pools[slot]))
@@ -735,10 +783,11 @@ class Optimizer:
                     best = cand
         return best
 
-    def base_fit(self, ship: Type) -> Fit:
+    def base_fit(self, ship: Type, subsystems: list[Type] | None = None) -> Fit:
         f = Fit(ship, name=self.spec.name or "evesim optimized")
-        for name in self.spec.subsystems:
-            t = self.data.type_by_name(name)
+        if subsystems is None and ship.attrs.get(1367):
+            subsystems = [self.data.type_by_name(n) for n in self.spec.subsystems if n != "auto"]
+        for t in subsystems or []:
             f.modules.append(ModuleSpec(t, C.STATE_ONLINE))
         for name in self.spec.require:
             t = self.data.type_by_name(name)
@@ -746,6 +795,7 @@ class Optimizer:
         return f
 
     def run_ship(self, ship: Type) -> Result:
+        self._cache.clear()
         t0 = time.time()
         n0 = self.evaluations
         res = Result(ship, None)
@@ -753,17 +803,25 @@ class Optimizer:
             miss = ", ".join(f"{self.data.types[s].name} {lvl}" for s, lvl in self.char.missing(ship).items())
             res.notes.append(f"cannot fly {ship.name}: needs {miss}")
             return res
-        if ship.attrs.get(1367) and not self.spec.subsystems:
-            res.notes.append(f"{ship.name} is a T3 cruiser: list its four subsystems under fitting.subsystems")
-            return res
-        base = self.base_fit(ship)
+        subsystems = None
+        if ship.attrs.get(1367):
+            if not self.spec.subsystems:
+                res.notes.append(f"{ship.name} is a T3 cruiser: list its four subsystems under fitting.subsystems, "
+                                 f'or set subsystems = "auto" to search them')
+                return res
+            if self.spec.subsystems == ["auto"]:
+                subsystems = self.pick_subsystems(ship)
+                self.log(f"{ship.name}: subsystems " + ", ".join(t.name for t in subsystems))
+        base = self.base_fit(ship, subsystems)
         configs = self.weapon_configs(ship, base)
-        self.log(f"{ship.name}: {len(configs)} weapon configuration(s): " + "; ".join(c.label() for c in configs))
+        if self.spec.effort != "screen":
+            self.log(f"{ship.name}: {len(configs)} weapon configuration(s): " + "; ".join(c.label() for c in configs))
         drones = self.drone_candidates(ship)
         evals = []
         for cfg in configs:
             ev = self.optimize_config(base, cfg, drones)
-            self.log(f"  {cfg.label()}: score {ev.score:.3f} ({'feasible' if ev.feasible else 'infeasible'})")
+            if self.spec.effort != "screen":
+                self.log(f"  {cfg.label()}: score {ev.score:.3f} ({'feasible' if ev.feasible else 'infeasible'})")
             evals.append(ev)
         evals.sort(key=lambda e: -e.score)
         res.best = evals[0]
@@ -772,22 +830,92 @@ class Optimizer:
         res.seconds = time.time() - t0
         return res
 
+    def pick_subsystems(self, ship: Type) -> list[Type]:
+        """Choose a T3 cruiser's subsystems: screen every combination with a greedy fit."""
+        by_slot: dict[int, list[Type]] = {}
+        for t in self.data.types.values():
+            if t.category_id == 32 and int(t.attrs.get(1380, 0)) == ship.id and t.market_group \
+                    and self.char.meets(t):
+                by_slot.setdefault(int(t.attrs.get(1366, 0)), []).append(t)
+        if len(by_slot) < 4:
+            raise ValueError(f"cannot fly {ship.name}: subsystem skills missing")
+        slots = sorted(by_slot)
+        drones = self.drone_candidates(ship)
+        scores: dict[tuple, float] = {}
+
+        def score(combo: tuple) -> float:
+            if combo not in scores:
+                base = self.base_fit(ship, list(combo))
+                cfgs = self.weapon_configs(ship, base)
+                scores[combo] = self.optimize_config(base, cfgs[0], drones).score
+            return scores[combo]
+
+        # Coordinate descent: change one subsystem at a time while it helps (about 10-25
+        # screens instead of all 81 combinations).
+        saved = self.spec.effort
+        self.spec.effort = "screen"
+        try:
+            current = tuple(by_slot[s][0] for s in slots)
+            improved = True
+            while improved:
+                improved = False
+                for i, s in enumerate(slots):
+                    for alt in by_slot[s]:
+                        trial = current[:i] + (alt,) + current[i + 1:]
+                        if score(trial) > score(current) + 1e-9:
+                            current, improved = trial, True
+        finally:
+            self.spec.effort = saved
+        return list(current)
+
     def ships(self) -> list[Type]:
-        out = [self.data.type_by_name(n) for n in self.spec.ships]
-        if self.spec.ship_groups:
-            want = {g.lower() for g in self.spec.ship_groups}
-            for t in self.data.types.values():
-                if t.category_id == 6 and t.group_name.lower() in want and t.market_group is not None \
-                        and self.char.meets(t) and t not in out:
+        out = [self.data.type_by_name(n) for n in self.spec.ships if n != "all"]
+        groups = {g.lower() for g in self.spec.ship_groups}
+        for cls in self.spec.ship_classes:
+            groups |= {g.lower() for g in SHIP_CLASSES[cls]}
+        everything = "all" in self.spec.ships or "all" in self.spec.ship_classes
+        if groups or everything:
+            for t in sorted(self.data.types.values(), key=lambda t: t.name):
+                if t.category_id == 6 and t.market_group is not None and self.char.meets(t) and t not in out \
+                        and (everything or t.group_name.lower() in groups):
                     out.append(t)
         if not out:
-            raise ValueError("spec names no ship: set ship, ships or ship_groups")
+            raise ValueError("no ship to optimize: set ship, ships, ship_classes or ship_groups "
+                             "(and check the character can fly them)")
         return out
 
     def run(self) -> list[Result]:
-        results = [self.run_ship(s) for s in self.ships()]
+        ships = self.ships()
+        top = self.spec.screen_top
+        if len(ships) > top:
+            # Many hulls: rank them all with a fast greedy fit, then search the best few properly.
+            self.log(f"screening {len(ships)} hulls, then searching the best {top}")
+            saved = self.spec.effort
+            self.spec.effort = "screen"
+            screened = []
+            try:
+                for ship in ships:
+                    r = self.run_ship(ship)
+                    screened.append((r.best.score if r.best else -math.inf, ship, r))
+                    if r.best:
+                        self.log(f"  screen {ship.name}: {r.best.score:.3f}")
+            finally:
+                self.spec.effort = saved
+            screened.sort(key=lambda x: -x[0])
+            results = [self.run_ship(ship) for score, ship, _ in screened[:top] if score > -math.inf]
+            self.screened = [(ship.name, score) for score, ship, _ in screened]
+        else:
+            results = [self.run_ship(s) for s in ships]
         results.sort(key=lambda r: -(r.best.score if r.best else -math.inf))
         return results
+
+
+_WEAPON_EFFECTS = {C.E_PROJECTILE_FIRED, C.E_TARGET_ATTACK, C.E_USE_MISSILES, C.E_DISINTEGRATOR_ATTACK, C.E_VORTON}
+
+
+def _is_weapon(t: Type) -> bool:
+    """Turrets and launchers that shoot (mining lasers are turrets too, but not weapons)."""
+    return (is_turret(t) or is_launcher(t)) and t.default_effect in _WEAPON_EFFECTS
 
 
 def _charge_damage(c: Type | None) -> float:

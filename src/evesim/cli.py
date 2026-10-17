@@ -138,6 +138,17 @@ def cmd_optimize(args):
         print("warning: no market prices available (ESI unreachable); budget uses static base prices",
               file=sys.stderr)
     log = (lambda m: print(m, file=sys.stderr)) if not args.quiet else (lambda m: None)
+    if sp.pareto:
+        from evesim.optimize import pareto
+        from evesim.report import pareto_text
+        points = pareto.run(d, char, sp, prices, log=log)
+        if args.json:
+            print(_dump([{"ship": p.ship, "weights": p.weights, "metrics": p.metrics, "eft": p.evaluation.fit.to_eft()}
+                         for p in points]))
+        else:
+            print(f"Skills: {prof.name} ({prof.source})")
+            print(pareto_text(points, sp))
+        return
     opt = Optimizer(d, char, sp, prices, log=log)
     results = opt.run()
     if args.json:
@@ -154,6 +165,53 @@ def cmd_optimize(args):
         print(result_text(results, sp))
     if args.eft_out and results and results[0].best:
         Path(args.eft_out).write_text(results[0].best.fit.to_eft())
+
+
+def _parse_weights(text: str) -> dict[str, float]:
+    out = {}
+    for part in text.split(","):
+        name, _, w = part.partition("=")
+        out[name.strip()] = float(w) if w.strip() else 1.0
+    return out
+
+
+def cmd_train(args):
+    from evesim.advisor import Advisor
+    from evesim.fit import Fit
+    from evesim.optimize import spec as specmod
+    from evesim.report import training_text
+    d = _data(args)
+    if args.spec:
+        sp = specmod.load(args.spec)
+    else:
+        sp = specmod.from_dict({"objective": {"weights": _parse_weights(args.objective)},
+                                "target": {"preset": args.target, **({"distance": args.distance} if args.distance else {})},
+                                "incoming": {"preset": args.profile}})
+    if args.effort:
+        sp.effort = args.effort
+    prof = _skills(args, d)
+    attrs = dict(prof.attributes)
+    if args.attributes:
+        attrs.update({k: float(v) for k, v in (kv.split("=") for kv in args.attributes.split(","))})
+    log = (lambda m: print(m, file=sys.stderr)) if not args.quiet else (lambda m: None)
+    adv = Advisor(d, prof.levels, sp, prof.implants, attrs, _prices(args, d), log=log)
+    fit = None
+    if args.fit:
+        text = sys.stdin.read() if args.fit == "-" else Path(args.fit).read_text()
+        fit = Fit.from_eft(text, d)
+        sp.ships = [fit.ship.name]
+    refit, base = [], None
+    if args.refit:
+        if not sp.ships:
+            raise ValueError("--refit needs a ship: give a fit or a spec with ship = ...")
+        refit, base = adv.refit_suggestions(args.days, args.unlocks)
+        if fit is None:
+            fit = base.best.fit
+    if fit is None:
+        raise ValueError("give a fit (EFT file) to analyse, or --refit with a spec")
+    single = adv.fit_suggestions(fit, args.days)
+    plan, before, after = adv.plan(fit, args.days)
+    print(training_text(prof, adv, sp, fit, single[:args.top], plan, before, after, refit, args.days))
 
 
 def cmd_metrics(args):
@@ -221,6 +279,25 @@ def main(argv=None):
     op.add_argument("--json", action="store_true")
     op.add_argument("--quiet", "-q", action="store_true")
     op.set_defaults(fn=cmd_optimize)
+
+    tr = sub.add_parser("train", help="skill training advice: which skills improve a fit most per day")
+    tr.add_argument("fit", nargs="?", help="EFT fit to analyse (- for stdin); optional with --refit and --spec")
+    skills_arg(tr)
+    tr.add_argument("--spec", help="requirements spec: objective, target and constraints to value skills by")
+    tr.add_argument("--objective", default="dps=1,ehp=1", help="weights when no spec is given (default dps=1,ehp=1)")
+    tr.add_argument("--target", default="cruiser")
+    tr.add_argument("--distance", type=float)
+    tr.add_argument("--profile", default="uniform")
+    tr.add_argument("--days", type=float, default=30, help="training-time budget for the plan (default 30)")
+    tr.add_argument("--top", type=int, default=15, help="how many single-skill suggestions to list")
+    tr.add_argument("--refit", action="store_true", help="also value skills that unlock better modules (re-optimizes)")
+    tr.add_argument("--unlocks", type=int, default=8, help="how many unlock candidates to re-optimize for")
+    tr.add_argument("--attributes", help="training attributes, e.g. perception=27,willpower=21 (default 20 each, "
+                                         "or from ESI)")
+    tr.add_argument("--effort", choices=["quick", "normal", "thorough"])
+    tr.add_argument("--offline", action="store_true")
+    tr.add_argument("--quiet", "-q", action="store_true")
+    tr.set_defaults(fn=cmd_train)
 
     me = sub.add_parser("metrics", help="list metrics usable in objectives and constraints")
     me.set_defaults(fn=cmd_metrics)

@@ -67,6 +67,9 @@ def stats(fit):
         'cap': cap,
         'tank_sustained': fit.sustainableTank, 'tank_peak': fit.tank,
         'drone_bw': s.getModifiedItemAttr('droneBandwidth'),
+        'cargo': s.getModifiedItemAttr('capacity'),
+        'mining_yield': fit.minerYield + fit.droneYield,
+        'remote_reps': {k: getattr(fit.getRemoteReps(), k) for k in ('shield', 'armor', 'hull')},
         'modules': [],
     }
     for m in fit.modules:
@@ -102,6 +105,10 @@ def parse_eft(text):
             continue  # cargo
         mname, _, cname = l.partition(',')
         it = eos.db.getItem(mname.strip())
+        if it is not None and it.group.name == 'Ship Modifiers':
+            from eos.saveddata.mode import Mode
+            fit.mode = Mode(it)
+            continue
         if it is None: raise SystemExit("unknown item " + mname)
         m = Module(it)
         if cname.strip(): m.charge = eos.db.getItem(cname.strip())

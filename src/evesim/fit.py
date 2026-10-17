@@ -9,7 +9,8 @@ from evesim.data.store import CAT_DRONE, CAT_MODULE, CAT_SHIP, CAT_SUBSYSTEM, St
 from evesim.dogma import const as C
 from evesim.dogma.engine import Character, FitCalc
 
-SLOTS = ("low", "med", "high", "rig", "subsystem")
+SLOTS = ("low", "med", "high", "rig", "subsystem", "mode")
+GROUP_SHIP_MODES = 1306
 _SLOT_EFFECTS = {C.E_LO_POWER: "low", C.E_MED_POWER: "med", C.E_HI_POWER: "high",
                  C.E_RIG_SLOT: "rig", C.E_SUBSYSTEM: "subsystem"}
 _SLOT_COUNT_ATTR = {"low": C.A_LOW_SLOTS, "med": C.A_MED_SLOTS, "high": C.A_HI_SLOTS, "rig": C.A_RIG_SLOTS}
@@ -23,11 +24,25 @@ A_DRONE_BANDWIDTH, A_DRONE_CAPACITY, A_DRONE_BANDWIDTH_USED = 1271, 283, 1272
 
 
 def slot_of(t: Type) -> str | None:
+    if t.group_id == GROUP_SHIP_MODES:
+        return "mode"
     for e in t.effect_ids:
         s = _SLOT_EFFECTS.get(e)
         if s:
             return s
     return None
+
+
+_modes_cache: dict[tuple[int, int], list[Type]] = {}
+
+
+def ship_modes(ship: Type, data: StaticData) -> list[Type]:
+    """Tactical modes of a T3 destroyer (empty for other hulls)."""
+    key = (id(data), ship.id)
+    if key not in _modes_cache:
+        _modes_cache[key] = sorted((t for t in data.types.values() if t.group_id == GROUP_SHIP_MODES
+                                    and t.name.startswith(ship.name + " ")), key=lambda t: t.name)
+    return _modes_cache[key]
 
 
 def can_activate(t: Type, data: StaticData) -> bool:
@@ -40,8 +55,16 @@ def can_activate(t: Type, data: StaticData) -> bool:
     return False
 
 
+A_REACTIVATION_DELAY = 669
+
+
 def default_state(t: Type, data: StaticData) -> int:
-    if slot_of(t) in ("rig", "subsystem"):
+    """Active when the module can run continuously. Burst modules with a long reactivation
+    delay (assault damage controls, cloaks, micro jump drives, bombs) stay online: their
+    active bonus is up only a few seconds at a time, so it is not a sustained stat."""
+    if slot_of(t) in ("rig", "subsystem", "mode"):
+        return C.STATE_ONLINE
+    if t.attrs.get(A_REACTIVATION_DELAY, 0.0) > 0:
         return C.STATE_ONLINE
     return C.STATE_ACTIVE if can_activate(t, data) else C.STATE_ONLINE
 
@@ -96,7 +119,7 @@ class Fit:
         lines = [f"[{self.ship.name}, {self.name or 'evesim fit'}]"]
         for slot in SLOTS:
             mods = self.by_slot(slot)
-            if not mods and slot == "subsystem":
+            if not mods and slot in ("subsystem", "mode"):
                 continue
             for m in mods:
                 line = m.type.name
@@ -192,6 +215,8 @@ def module_fits_ship(t: Type, ship: Type, data: StaticData) -> bool:
             return False
     if slot == "subsystem":
         return int(t.attrs.get(A_FITS_TO_SHIP_TYPE, 0)) == ship.id
+    if slot == "mode":
+        return t.name.startswith(ship.name + " ")
     if not ship.attrs.get(A_MAX_SUBSYSTEMS):  # T3 cruisers get hardpoints from subsystems
         if is_turret(t) and not ship.attrs.get(C.A_TURRET_SLOTS):
             return False
@@ -240,6 +265,11 @@ def check(fit: Fit, char: Character, calc: FitCalc | None = None) -> list[str]:
             problems.append(f"{m.type.name} cannot be fitted to {fit.ship.name}")
     for d in fit.drones:
         need(d.type, "drone")
+    modes = fit.by_slot("mode")
+    if len(modes) > 1:
+        problems.append("only one tactical mode can be active")
+    elif not modes and ship_modes(fit.ship, data):
+        problems.append(f"{fit.ship.name} needs a tactical mode (e.g. {ship_modes(fit.ship, data)[0].name})")
 
     ship = calc.ship
     for slot, attr in _SLOT_COUNT_ATTR.items():

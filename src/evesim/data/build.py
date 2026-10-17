@@ -24,6 +24,7 @@ PYFA_RAW = "https://raw.githubusercontent.com/pyfa-org/Pyfa/{ref}/staticdata/"
 # Categories that matter for fitting.
 KEEP_CATEGORIES = {6, 7, 8, 16, 18, 20, 32}
 CHARACTER_TYPE_ID = 1373
+GROUP_SHIP_MODES = 1306  # T3 destroyer tactical modes: unpublished, but part of every T3D fit
 
 # Type fields that dogma also exposes as attributes.
 TYPE_FIELD_ATTRS = {"mass": 4, "capacity": 38, "volume": 161, "radius": 162}
@@ -124,7 +125,7 @@ def build(source: str | Path | None = None, ref: str = "master",
         if itid != CHARACTER_TYPE_ID:
             if gid not in keep_groups or int(gid) == 1:
                 continue
-            if not t.get("published"):
+            if not t.get("published") and gid != GROUP_SHIP_MODES:
                 continue
         td = typedogma.get(tid, {})
         a = {str(x["attributeID"]): x["value"] for x in td.get("dogmaAttributes", [])}
