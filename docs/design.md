@@ -64,10 +64,10 @@ Missile damage is the charge's damage times the character's `missileDamageMultip
 ## Validation
 
 `tests/test_against_pyfa.py` compares evesim with Pyfa's `eos` engine, run headless
-via `tools/pyfa_reference.py`, on twelve fits: projectile, missile, drone, laser,
+via `tools/pyfa_reference.py`, on sixteen fits: projectile, missile, drone, laser,
 hybrid, an ancillary repairer with cap booster, a T3C with subsystems, a cruise missile
-battleship, two T3 destroyers in different tactical modes, a mining barge, and shield and
-armor logistics. Every compared value matches to 0.1% (capacitor time-to-empty is
+battleship, two T3 destroyers in different tactical modes, a mining barge, shield and
+armor logistics, and four carriers/supercarriers with fighters. Every compared value matches to 0.1% (capacitor time-to-empty is
 checked to 5% and currently matches exactly): DPS, volley, drone DPS,
 HP/EHP per layer, all 12 resists, CPU/PG/calibration, speed, align time, signature,
 mass, lock range, scan resolution, capacitor capacity/recharge/usage, stability and
@@ -140,8 +140,8 @@ and no hull has effects the engine cannot execute. What it found and what was do
 * **Burst modules** (assault damage controls, cloaks, micro jump drives, bombs) have a
   long reactivation delay. They used to count as permanently active, which gave an
   assault frigate 194k EHP. They now default to online.
-* **Fighters** (carriers, supercarriers, one dreadnought, one titan) are not modelled.
-  These hulls fit and simulate, but fighter damage and abilities are missing.
+* **Fighters** (carriers, supercarriers, one dreadnought, one titan) are modelled: see
+  [Fighters](#fighters).
 * **Roles without damage** (logistics, mining, hauling) now have metrics:
   `remote_repair`, `mining_yield` and `cargo` (all matching Pyfa). When no damage metric
   is in play, high slots stay free for repairers or mining lasers instead of weapons.
@@ -150,6 +150,25 @@ and no hull has effects the engine cannot execute. What it found and what was do
 * **Storyline modules** include officer-grade "Naiyon's Modified" items. Combined with
   Polarized weapons they produce very high DPS fits (an Eris at 1,412 DPS), which Pyfa
   confirms. Restrict `meta` or set a budget if you want ordinary fits.
+
+## Fighters
+
+A fighter squadron is an item in the fighter bay with an amount (EFT `Templar II x6`).
+Hull, skill and Fighter Support Unit / Drone Damage Amplifier bonuses reach fighters
+through the normal modifier rules. Fitting checks cover the fighter skills, the total
+number of tubes, the light/support/heavy tube limits, the bay volume and each type's
+maximum squadron size.
+
+Damage follows Pyfa's defaults: abilities are active in effect-ID order up to and
+including the standard attack, except propulsion and evasive abilities. A squadron's
+DPS is damage × multiplier × squadron size per cycle. Secondary salvos (missiles,
+rockets) are counted like the attack, ignoring their limited charges and rearm time,
+and bombs are off. Application uses the missile formula with the fighter's explosion
+radius and velocity, and assumes the squadron reaches the target.
+
+The optimizer fills tubes greedily by value per squadron for the objective, using full
+squadrons, and leaves out structure (Standup) fighters. All four reference carrier fits
+match Pyfa per squadron, including the Drone Damage Amplifier bonus.
 
 ## Training advisor
 
@@ -164,7 +183,7 @@ result is not mistaken for a skill benefit.
 
 ## Not modelled (yet)
 
-Fighters and carriers, command bursts and fleet boosts, projected effects (your webs
+Command bursts and fleet boosts, projected effects (your webs
 and paints on the target are reported as strength and range but do not change your
 applied damage; enemy EWAR on you), mutated (abyssal)
 modules, drugs, heat damage, Reactive Armor Hardener adaptation, entropic

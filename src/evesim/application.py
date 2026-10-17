@@ -83,6 +83,13 @@ def weapon_factor(w: Weapon, t: Target) -> float:
         return missile_factor(w, t) if t.distance <= w.optimal else 0.0
     if w.kind == "smartbomb":
         return 1.0 if t.distance <= w.optimal else 0.0
+    if w.kind == "fighter":  # fighters fly to the target, then hit like missiles
+        if w.explosion_radius <= 0:
+            return 1.0
+        sig_ratio = t.signature / w.explosion_radius
+        if t.velocity <= 0 or w.explosion_velocity <= 0:
+            return min(1.0, sig_ratio)
+        return min(1.0, sig_ratio, (sig_ratio * w.explosion_velocity / t.velocity) ** w.drf)
     if w.kind == "drone":
         return drone_factor(w, t)
     return 1.0

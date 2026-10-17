@@ -4,7 +4,7 @@
 
 For each published hull: compute stats on the empty hull with all-V skills, list hull
 effects the engine cannot execute (no modifierInfo and no hand-written handler), and
-flag features evesim does not model (fighters, T3 destroyer modes, subsystems).
+flag hull features that need extra input (T3 cruiser subsystems, T3 destroyer modes, fighters).
 With --optimize, also run a quick optimization for one hull per ship group.
 """
 
@@ -49,7 +49,7 @@ def main():
         if eff:
             row["flags"].append("hull effects not executed: " + ", ".join(e.name for e in eff))
         if t.attr("fighterCapacity", 0.0):
-            row["flags"].append("fighters not modelled")
+            row["flags"].append("fighter bay")
         if t.attr("maxSubSystems", 0.0):
             row["flags"].append("T3 cruiser: subsystems must be listed")
         if any(m.group_id == 1306 and int(m.attr("fitsToShipType", 0.0)) == t.id for m in data.types.values()):

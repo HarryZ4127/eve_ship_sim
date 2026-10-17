@@ -7,7 +7,7 @@ import pytest
 from evesim.advisor import Advisor, sp_for_level, steps_to, train_seconds
 from evesim.fit import Fit, check, ship_modes
 from evesim.optimize import pareto
-from evesim.optimize.search import Optimizer
+from evesim.optimize.search import GROUPS_STRUCTURE_FIGHTERS, Optimizer
 from evesim.optimize.spec import from_dict
 from evesim.skills.profile import all_level
 from evesim.stats import compute
@@ -130,3 +130,33 @@ def test_ewar_constraints_make_the_optimizer_fit_tackle(data, all5):
     best = Optimizer(data, all5, spec).run()[0].best
     assert best.feasible
     assert best.metrics["web_strength"] >= 50 and best.metrics["tackle_range"] >= 9000
+
+
+THANATOS = ("[Thanatos, fighters]\nFighter Support Unit II\nFighter Support Unit II\n\n\n\n"
+            "Templar II x6\nTemplar II x6\nTemplar II x6\nSiren II x3\n")
+
+
+def test_fighters_round_trip_and_check(data, all5):
+    fit = Fit.from_eft(THANATOS, data)
+    assert [(f.type.name, f.amount) for f in fit.fighters] == [("Templar II", 6)] * 3 + [("Siren II", 3)]
+    assert check(fit, all5) == []
+    assert "Templar II x6" in fit.to_eft()
+    st = compute(fit, all5)
+    assert st.fighter_dps > 0 and st.weapon_dps == 0
+    assert st.dps == pytest.approx(st.drone_dps + st.fighter_dps)
+
+
+def test_fighter_tube_and_bay_limits(data, all5):
+    too_many = Fit.from_eft("[Thanatos, x]\n\n\n\n\n" + "Templar II x6\n" * 4, data)
+    assert any("light" in p or "tube" in p for p in check(too_many, all5))
+    oversized = Fit.from_eft("[Thanatos, x]\n\n\n\n\nTemplar II x12\n", data)
+    assert check(oversized, all5)
+
+
+def test_optimizer_picks_fighters(data, all5):
+    spec = from_dict({"ship": "Thanatos", "objective": {"maximize": "dps"},
+                      "search": {"effort": "quick"}})
+    best = Optimizer(data, all5, spec).run()[0].best
+    assert best.fit.fighters and compute(best.fit, all5).fighter_dps > 0
+    assert not any(f.type.group_id in GROUPS_STRUCTURE_FIGHTERS for f in best.fit.fighters)
+    assert check(best.fit, all5) == []

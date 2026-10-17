@@ -12,6 +12,7 @@ from pathlib import Path
 REQUIRED_SKILL_ATTRS = ((182, 277), (183, 278), (184, 279), (1285, 1286), (1289, 1287), (1290, 1288))
 
 CAT_SHIP, CAT_MODULE, CAT_CHARGE, CAT_SKILL, CAT_DRONE, CAT_IMPLANT, CAT_SUBSYSTEM = 6, 7, 8, 16, 18, 20, 32
+CAT_FIGHTER = 87
 
 
 def default_data_path() -> Path:

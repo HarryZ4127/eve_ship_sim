@@ -110,7 +110,11 @@ class Stats:
 
     @property
     def weapon_dps(self) -> float:
-        return sum(w.dps() for w in self.weapons if w.kind != "drone")
+        return sum(w.dps() for w in self.weapons if w.kind not in ("drone", "fighter"))
+
+    @property
+    def fighter_dps(self) -> float:
+        return sum(w.dps() for w in self.weapons if w.kind == "fighter")
 
     @property
     def drone_dps(self) -> float:
@@ -156,6 +160,7 @@ class Stats:
             "hardpoints": {k: {"used": u, "total": t} for k, (u, t) in self.hardpoints.items()},
             "offense": {
                 "dps": self.dps, "weapon_dps": self.weapon_dps, "drone_dps": self.drone_dps,
+                "fighter_dps": self.fighter_dps,
                 "dps_with_reload": sum(w.dps(reload=True) for w in self.weapons),
                 "volley": self.volley,
                 "weapons": [{
@@ -272,7 +277,81 @@ def _weapons(calc: FitCalc, fit: Fit) -> list[Weapon]:
                           optimal=calc.get(d, "maxRange"), falloff=calc.get(d, "falloff"),
                           tracking=calc.get(d, "trackingSpeed"), optimal_sig=calc.get(d, "optimalSigRadius"),
                           velocity=calc.get(d, "maxVelocity")))
+    out += _fighter_weapons(calc)
     return out
+
+
+# Fighter abilities that deal damage: effect id -> (attribute prefix, uses limited charges).
+FIGHTER_ATTACKS = {6465: ("fighterAbilityAttackMissile", False),   # primary attack
+                   6431: ("fighterAbilityMissiles", True),          # missile salvo
+                   6485: ("fighterAbilityLaunchBomb", True)}        # heavy fighter bomb
+_FIGHTER_ATTACK_M = 6465
+_FIGHTER_NO_AUTOSTART = {6441, 6443}  # microwarpdrive, evasive maneuvers
+# Charges carried per squadron and rearm time per charge, by squadron role (as Pyfa).
+_FIGHTER_SHOTS = {1: 0, 2: 12, 4: 6, 5: 3}
+_FIGHTER_REARM_MS = {1: 0, 2: 4000, 4: 6000, 5: 20000}
+
+
+def fighter_active_abilities(t) -> list[int]:
+    """Abilities a squadron uses by default, as Pyfa: the standard attack, plus abilities
+    listed before it (e.g. light fighters' missile salvo); bombs and propulsion stay off."""
+    active, attack_seen = [], False
+    for eid in sorted(t.effect_ids):
+        if eid == _FIGHTER_ATTACK_M:
+            active.append(eid)
+            attack_seen = True
+        elif not attack_seen and eid not in _FIGHTER_NO_AUTOSTART:
+            active.append(eid)
+    return active
+
+
+def _fighter_weapons(calc: FitCalc) -> list[Weapon]:
+    groups: dict[tuple, Weapon] = {}
+    data = calc.data
+
+    def opt(item, name: str) -> float:
+        """Attribute value, or 0 when this ability has no such attribute."""
+        return calc.get(item, name) if name in data._attr_by_name else 0.0
+
+    for f in calc.fighters:
+        role = int(calc.get(f, "fighterSquadronRole"))
+        for eid in fighter_active_abilities(f.type):
+            spec = FIGHTER_ATTACKS.get(eid)
+            if not spec:
+                continue
+            prefix, has_charges = spec
+            if prefix == "fighterAbilityLaunchBomb":
+                bomb = data.types.get(int(calc.get(f, "fighterAbilityLaunchBombType")))
+                if bomb is None:
+                    continue
+                dmg = {k: bomb.attr(a) * f.amount for k, a in zip(C.DAMAGE_TYPES, C.DAMAGE_ATTRS)}
+            else:
+                mult = opt(f, prefix + "DamageMultiplier") * f.amount
+                dmg = {k: opt(f, prefix + "Damage" + suffix) * mult
+                       for k, suffix in zip(C.DAMAGE_TYPES, ("EM", "Therm", "Kin", "Exp"))}
+            cycle = opt(f, prefix + "Duration") / 1000.0
+            if sum(dmg.values()) <= 0 or cycle <= 0:
+                continue
+            factor = opt(f, prefix + "DamageReductionFactor") or opt(f, prefix + "ReductionFactor")
+            sens = opt(f, prefix + "DamageReductionSensitivity") or opt(f, prefix + "ReductionSensitivity")
+            drf = math.log(factor) / math.log(sens) if factor > 0 and sens > 1 else 1.0
+            label = "attack" if eid == _FIGHTER_ATTACK_M else ("missiles" if eid == 6431 else "bomb")
+            w = Weapon(f"{f.type.name} ({label})", "fighter", 1, dmg, cycle,
+                       optimal=opt(f, prefix + "RangeOptimal") or opt(f, prefix + "Range"),
+                       falloff=opt(f, prefix + "RangeFalloff"),
+                       explosion_radius=opt(f, prefix + "ExplosionRadius"),
+                       explosion_velocity=opt(f, prefix + "ExplosionVelocity"), drf=drf,
+                       velocity=calc.get(f, "maxVelocity"))
+            if has_charges:
+                w.shots_before_reload = _FIGHTER_SHOTS.get(role, 0)
+                w.reload_s = (calc.get(f, "fighterRefuelingTime")
+                              + _FIGHTER_REARM_MS.get(role, 0) * w.shots_before_reload) / 1000.0
+            key = (w.name, round(sum(dmg.values()), 6), round(cycle, 6))
+            if key in groups:
+                groups[key].count += 1
+            else:
+                groups[key] = w
+    return list(groups.values())
 
 
 def _sustained(reps, capres, peak, with_reload: bool) -> dict[str, float]:
@@ -423,6 +502,10 @@ def compute(fit: Fit, char: Character, profile: dict[str, float] | None = None,
         "bay": g(ship, "droneCapacity"),
         "max_active": calc.char_attr("maxActiveDrones"),
         "control_range": calc.char_attr("droneControlDistance"),
+        "fighter_tubes_used": sum(1 for f in fit.fighters if f.active),
+        "fighter_tubes": g(ship, "fighterTubes"),
+        "fighter_bay_used": sum(f.amount * f.type.attrs.get(C.A_VOLUME, 0) for f in fit.fighters),
+        "fighter_bay": g(ship, "fighterCapacity"),
     }
     utility = {
         "cargo": g(ship, C.A_CAPACITY),

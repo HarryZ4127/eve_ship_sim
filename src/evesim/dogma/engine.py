@@ -57,7 +57,7 @@ class Item:
         self.values: dict[int, float] = {}
         self.req = set(type_.required_skills)
         self.located = {"module": "ship", "charge": "ship", "skill": "char", "implant": "char"}.get(kind)
-        self.owned = kind in ("module", "charge", "drone")
+        self.owned = kind in ("module", "charge", "drone", "fighter")
         self.level = 0
         self.uid = 0
 
@@ -294,7 +294,7 @@ class FitCalc(_Calculator):
     """Modified attributes for one fit flown by one character."""
 
     def __init__(self, char: Character, ship: Type, modules: list[tuple[Type, int, str, Type | None]],
-                 drones: list[tuple[Type, int]] = ()):
+                 drones: list[tuple[Type, int]] = (), fighters: list[tuple[Type, int]] = ()):
         self.data = char.data
         self.char = char
         self.char_item = Item(self.data.character_type, "char")
@@ -312,6 +312,11 @@ class FitCalc(_Calculator):
             d = Item(t, "drone")
             d.amount = n
             self.drones.append(d)
+        self.fighters: list[Item] = []  # one item per squadron; amount = fighters in it
+        for t, n in fighters:
+            f = Item(t, "fighter")
+            f.amount = n
+            self.fighters.append(f)
         self.index = _Index()
         self._dynamic: dict[tuple[int, int], list[_Mod]] = {}
         for it in self._fit_items():
@@ -328,6 +333,7 @@ class FitCalc(_Calculator):
             if m.charge:
                 yield m.charge
         yield from self.drones
+        yield from self.fighters
 
     def _resolve(self, domain, src):
         if domain == "shipID":

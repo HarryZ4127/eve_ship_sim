@@ -29,11 +29,11 @@ import random
 import time
 from dataclasses import dataclass, field
 
-from evesim.data.store import CAT_DRONE, CAT_MODULE, StaticData, Type
+from evesim.data.store import CAT_DRONE, CAT_FIGHTER, CAT_MODULE, StaticData, Type
 from evesim.dogma import const as C
 from evesim.dogma.engine import Character
-from evesim.fit import (DroneSpec, Fit, ModuleSpec, charge_fits, default_state, is_launcher, is_turret,
-                        module_fits_ship, ship_modes, slot_of)
+from evesim.fit import (FIGHTER_TUBE_ATTRS, DroneSpec, FighterSpec, Fit, ModuleSpec, charge_fits, default_state,
+                        fighter_class, is_launcher, is_turret, module_fits_ship, ship_modes, slot_of)
 from evesim.market import Prices
 from evesim.optimize.spec import DAMAGE_METRICS, METRIC_ATTRS, METRICS, Spec
 from evesim.stats import _MINING_EFFECTS, _REMOTE_REPAIR, EWAR_EFFECTS, Stats, compute
@@ -44,7 +44,7 @@ GROUP_PROPULSION = 46
 
 # Metric scales: a weight of 1 means "one scale unit of this metric is worth one point".
 DEFAULT_SCALES = {
-    "dps": 100.0, "weapon_dps": 100.0, "drone_dps": 100.0, "applied_dps": 100.0, "volley": 1000.0,
+    "dps": 100.0, "weapon_dps": 100.0, "drone_dps": 100.0, "fighter_dps": 100.0, "applied_dps": 100.0, "volley": 1000.0,
     "ehp": 10_000.0, "shield_ehp": 10_000.0, "armor_ehp": 10_000.0,
     "sustained_tank": 100.0, "peak_tank": 100.0, "speed": 1000.0, "align_time": 10.0, "signature": 100.0,
     "lock_range": 50_000.0, "scan_resolution": 500.0, "weapon_range": 10_000.0, "cap_seconds": 300.0,
@@ -63,6 +63,7 @@ EFFORT = {  # (weapon configs, perturbation rounds, perturbation size)
     "thorough": (6, 10, 3),
 }
 GROUP_SMARTBOMB = 72
+GROUPS_STRUCTURE_FIGHTERS = {4777, 4778, 4779}  # launched from citadels, not ships
 
 # Ship classes for ship_classes = [...]: names of in-game ship groups.
 SHIP_CLASSES = {
@@ -160,7 +161,8 @@ class Optimizer:
     def _key(self, fit: Fit) -> tuple:
         return (fit.ship.id,
                 tuple(sorted((m.type.id, m.charge.id if m.charge else 0, m.state) for m in fit.modules)),
-                tuple(sorted((d.type.id, d.count, d.active) for d in fit.drones)))
+                tuple(sorted((d.type.id, d.count, d.active) for d in fit.drones)),
+                tuple(sorted((x.type.id, x.amount) for x in fit.fighters)))
 
     def evaluate(self, fit: Fit, sim_cap: bool | None = None) -> Evaluation:
         key = self._key(fit)
@@ -533,6 +535,68 @@ class Optimizer:
         return out
 
     def pick_drones(self, fit: Fit, candidates: list[Type]) -> Fit:
+        """Best drone flight, and for carriers the best fighter squadrons."""
+        return self.pick_fighters(self._pick_drone_flight(fit, candidates))
+
+    def fighter_candidates(self, ship: Type) -> list[Type]:
+        if not self.spec.drones or not ship.attr("fighterTubes"):
+            return []
+        out = []
+        for t in self.data.types.values():
+            if t.category_id != CAT_FIGHTER or t.market_group is None or t.group_id in GROUPS_STRUCTURE_FIGHTERS:
+                continue
+            if t.meta_group not in self.allowed_meta or not self.char.meets(t) or t.id in self.exclude:
+                continue
+            if self.prices(t.id) > self.max_price:
+                continue
+            out.append(t)
+        return out
+
+    def pick_fighters(self, fit: Fit) -> Fit:
+        """Fill launch tubes with the squadrons that add the most to the objective's damage."""
+        cands = self.fighter_candidates(fit.ship)
+        if not cands or not (self.relevant & DAMAGE_METRICS):
+            return fit
+        f = fit.copy()
+        f.fighters = []
+        probe = f.copy()
+        probe.fighters = [FighterSpec(t, 1) for t in cands]
+        calc = probe.calc(self.char)
+        sizes = {it.type.id: max(int(calc.get(it, "fighterSquadronMaxSize")), 1) for it in calc.fighters}
+        probe.fighters = [FighterSpec(t, sizes[t.id]) for t in cands]
+        st = compute(probe, self.char, profile=self.spec.incoming, simulate_cap=False)
+        from evesim.application import weapon_factor
+        use_applied = "applied_dps" in self.relevant
+        value: dict[str, float] = {}
+        for w in st.weapons:
+            if w.kind != "fighter":
+                continue
+            name = w.name.rsplit(" (", 1)[0]
+            v = w.dps() * (weapon_factor(w, self.spec.target) if use_applied else 1.0)
+            value[name] = value.get(name, 0.0) + v
+        c0 = f.calc(self.char)
+        tubes = int(c0.get(c0.ship, "fighterTubes"))
+        free = {role: int(c0.get(c0.ship, attr)) for role, attr in FIGHTER_TUBE_ATTRS.items()}
+        bay = c0.get(c0.ship, "fighterCapacity")
+        ranked = sorted((t for t in cands if value.get(t.name, 0) > 0),
+                        key=lambda t: (-value[t.name], self.prices(t.id)))
+        while len(f.fighters) < tubes:
+            pick = None
+            for t in ranked:
+                role = fighter_class(t)
+                vol = sizes[t.id] * t.attrs.get(C.A_VOLUME, 0.0)
+                if free.get(role, 0) > 0 and vol <= bay + 1e-6:
+                    pick = (t, role, vol)
+                    break
+            if pick is None:
+                break
+            t, role, vol = pick
+            f.fighters.append(FighterSpec(t, sizes[t.id]))
+            free[role] -= 1
+            bay -= vol
+        return f
+
+    def _pick_drone_flight(self, fit: Fit, candidates: list[Type]) -> Fit:
         if not candidates:
             return fit
         f = fit.copy()

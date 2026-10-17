@@ -36,7 +36,7 @@ def test_fit_matches_pyfa(name, data, all5, same_build):
             bad.append(f"{label}: evesim {mine:.4f} vs pyfa {theirs:.4f}")
 
     chk("dps", st.dps, exp["dps"])
-    chk("drone_dps", st.drone_dps, exp["drone_dps"])
+    chk("drone_dps", st.drone_dps + st.fighter_dps, exp["drone_dps"])  # Pyfa counts fighters as drones
     chk("volley", st.volley, exp["volley"])
     for layer in ("shield", "armor", "hull"):
         chk(f"hp.{layer}", st.hp[layer], exp["hp"][layer])

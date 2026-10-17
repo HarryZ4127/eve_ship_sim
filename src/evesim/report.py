@@ -27,7 +27,8 @@ def stats_text(st: Stats, target: Target | None = None) -> str:
              f"  Calibration {_n(r['calibration'][0])}/{_n(r['calibration'][1])}")
     L.append("Slots     " + "  ".join(f"{k} {u}/{t}" for k, (u, t) in st.slots.items())
              + "  | turrets {}/{}  launchers {}/{}".format(*st.hardpoints["turret"], *st.hardpoints["launcher"]))
-    L.append(f"Offense   DPS {_n(st.dps, 1)} (weapons {_n(st.weapon_dps, 1)}, drones {_n(st.drone_dps, 1)})"
+    fighters = f", fighters {_n(st.fighter_dps, 1)}" if st.fighter_dps else ""
+    L.append(f"Offense   DPS {_n(st.dps, 1)} (weapons {_n(st.weapon_dps, 1)}, drones {_n(st.drone_dps, 1)}{fighters})"
              f"  volley {_n(st.volley)}")
     if target is not None:
         L.append(f"          applied vs {target.name} (sig {target.signature:g} m, {target.velocity:g} m/s, "
@@ -59,6 +60,9 @@ def stats_text(st: Stats, target: Target | None = None) -> str:
     d = st.drones
     if d["bandwidth"]:
         L.append(f"Drones    bandwidth {_n(d['bandwidth_used'])}/{_n(d['bandwidth'])}, bay {_n(d['bay_used'])}/{_n(d['bay'])}")
+    if d.get("fighter_tubes"):
+        L.append(f"Fighters  tubes {int(d['fighter_tubes_used'])}/{int(d['fighter_tubes'])}, "
+                 f"bay {_n(d['fighter_bay_used'])}/{_n(d['fighter_bay'])} m3")
     for e in st.utility.get("ewar", []):
         what = f"{_n(e['per_second'], 1)} GJ/s" if e["kind"] in ("neut", "nos") else f"{_n(e['strength'], 1)} {e['unit']}"
         rng = f"{e['optimal'] / 1000:.1f} km" + (f" + {e['falloff'] / 1000:.1f} km" if e["falloff"] else "")

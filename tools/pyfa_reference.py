@@ -84,6 +84,8 @@ def stats(fit):
                 v = m.getModifiedChargeAttr(a)
                 if v: d['charge_'+a] = v
         out['modules'].append(d)
+    out['fighters'] = [{'name': f.item.name, 'amount': f.amount, 'dps': f.getDps().total, 'volley': f.getVolley().total}
+                       for f in fit.fighters]
     out['drones'] = [{'name': d.item.name, 'amount': d.amount, 'active': d.amountActive, 'damageMultiplier': d.getModifiedItemAttr('damageMultiplier'), 'speed': d.getModifiedItemAttr('speed'), 'thermalDamage': d.getModifiedItemAttr('thermalDamage'), 'kineticDamage': d.getModifiedItemAttr('kineticDamage'),'emDamage': d.getModifiedItemAttr('emDamage'),'explosiveDamage': d.getModifiedItemAttr('explosiveDamage')} for d in fit.drones]
     return out
 
@@ -100,6 +102,9 @@ def parse_eft(text):
         parts = l.rsplit(' x', 1)
         if len(parts) == 2 and parts[1].isdigit():
             item = eos.db.getItem(parts[0].strip())
+            if item.category.name == 'Fighter':
+                from eos.saveddata.fighter import Fighter
+                fi = Fighter(item); fi.amount = int(parts[1]); fi.owner = fit; fit.fighters.append(fi); continue
             if item.category.name == 'Drone':
                 d = Drone(item); d.amount = int(parts[1]); n = min(d.amount, fit._left[0], int(fit._left[1] // item.getAttribute('droneBandwidthUsed'))); d.amountActive = n; fit._left[0] -= n; fit._left[1] -= n * item.getAttribute('droneBandwidthUsed'); d.owner = fit; fit.drones.append(d); continue
             continue  # cargo

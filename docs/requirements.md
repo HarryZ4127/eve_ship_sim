@@ -150,7 +150,7 @@ static base prices are used and budgets become unreliable (a warning is printed)
 | `weapons` | `any` | `turret` / `missile` / `drone` / `none` |
 | `weapon` | none | pin one weapon module by name |
 | `ammo` | all allowed | list of allowed charges by name |
-| `drones` | `true` | fill the drone bay |
+| `drones` | `true` | fill the drone bay (and fighter tubes on carriers) |
 | `require` | `[]` | modules that must be fitted (kept fixed) |
 | `exclude` | `[]` | modules never to use |
 | `subsystems` | `[]` | the four subsystems of a T3 cruiser, or `"auto"` to choose them |

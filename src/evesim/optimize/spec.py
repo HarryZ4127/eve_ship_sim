@@ -66,7 +66,7 @@ class Metric:
 def _optimal_range(s: Stats, _spec) -> float:
     best = 0.0
     for w in s.weapons:
-        if w.kind == "drone":
+        if w.kind in ("drone", "fighter"):
             continue
         r = w.optimal if w.kind in ("missile", "vorton", "smartbomb") else w.optimal + w.falloff
         best = max(best, r)
@@ -101,6 +101,7 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
     Metric("dps", True, lambda s, sp: s.dps, "HP/s", "raw DPS of weapons and drones"),
     Metric("weapon_dps", True, lambda s, sp: s.weapon_dps, "HP/s", "raw DPS without drones"),
     Metric("drone_dps", True, lambda s, sp: s.drone_dps, "HP/s", "raw drone DPS"),
+    Metric("fighter_dps", True, lambda s, sp: s.fighter_dps, "HP/s", "raw fighter squadron DPS"),
     Metric("applied_dps", True, lambda s, sp: applied_dps(s, sp.target), "HP/s",
            "DPS landing on [target] after tracking/explosion and its resists"),
     Metric("volley", True, lambda s, sp: s.volley, "HP", "alpha strike"),
@@ -159,16 +160,22 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
            "strength of your strongest tracking/guidance disruptor"),
 ]}
 
-DAMAGE_METRICS = {"dps", "weapon_dps", "drone_dps", "applied_dps", "volley", "weapon_range", "dps_per_misk"}
+DAMAGE_METRICS = {"dps", "weapon_dps", "drone_dps", "fighter_dps", "applied_dps", "volley", "weapon_range",
+                  "dps_per_misk"}
 
 # Dogma attribute names each metric depends on; used to skip modules that cannot matter.
 METRIC_ATTRS: dict[str, set[str]] = {
     "dps": {"damageMultiplier", "speed", "emDamage", "thermalDamage", "kineticDamage", "explosiveDamage",
-            "missileDamageMultiplier", "maxActiveDrones"},
+            "missileDamageMultiplier", "maxActiveDrones", "fighterAbilityAttackMissileDamageMultiplier",
+            "fighterAbilityMissilesDamageMultiplier", "fighterAbilityAttackMissileDuration",
+            "fighterAbilityMissilesDuration", "fighterSquadronMaxSize", "fighterTubes", "fighterLightSlots",
+            "fighterHeavySlots"},
     "volley": {"damageMultiplier", "emDamage", "thermalDamage", "kineticDamage", "explosiveDamage",
                "missileDamageMultiplier"},
     "application": {"trackingSpeed", "maxRange", "falloff", "aoeCloudSize", "aoeVelocity", "maxVelocity",
-                    "explosionDelay", "aoeDamageReductionFactor"},
+                    "explosionDelay", "aoeDamageReductionFactor", "fighterAbilityAttackMissileExplosionRadius",
+                    "fighterAbilityAttackMissileExplosionVelocity", "fighterAbilityMissilesExplosionRadius",
+                    "fighterAbilityMissilesExplosionVelocity"},
     "ehp": {"shieldCapacity", "armorHP", "hp", "shieldEmDamageResonance", "shieldThermalDamageResonance",
             "shieldKineticDamageResonance", "shieldExplosiveDamageResonance", "armorEmDamageResonance",
             "armorThermalDamageResonance", "armorKineticDamageResonance", "armorExplosiveDamageResonance",
@@ -198,7 +205,7 @@ METRIC_ATTRS: dict[str, set[str]] = {
                 "missileVelocityBonus", "explosionDelayBonus", "maxRange"},
 }
 METRIC_GROUPS = {
-    "dps": ["dps"], "weapon_dps": ["dps"], "drone_dps": ["dps"], "volley": ["volley"],
+    "dps": ["dps"], "weapon_dps": ["dps"], "drone_dps": ["dps"], "fighter_dps": ["dps"], "volley": ["volley"],
     "applied_dps": ["dps", "application"], "weapon_range": ["application"],
     "ehp": ["ehp"], "shield_ehp": ["ehp"], "armor_ehp": ["ehp"],
     "sustained_tank": ["ehp", "tank", "cap"], "peak_tank": ["ehp", "tank"],

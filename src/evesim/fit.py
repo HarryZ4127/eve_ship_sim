@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from evesim.data.store import CAT_DRONE, CAT_MODULE, CAT_SHIP, CAT_SUBSYSTEM, StaticData, Type
+from evesim.data.store import CAT_DRONE, CAT_FIGHTER, CAT_MODULE, CAT_SHIP, CAT_SUBSYSTEM, StaticData, Type
 from evesim.dogma import const as C
 from evesim.dogma.engine import Character, FitCalc
 
@@ -21,6 +21,8 @@ A_MAX_GROUP_FITTED, A_MAX_GROUP_ACTIVE, A_MAX_TYPE_FITTED = 1544, 763, 2431
 A_FITS_TO_SHIP_TYPE = 1380
 A_MAX_SUBSYSTEMS = 1367
 A_DRONE_BANDWIDTH, A_DRONE_CAPACITY, A_DRONE_BANDWIDTH_USED = 1271, 283, 1272
+A_FIGHTER_IS_LIGHT, A_FIGHTER_IS_SUPPORT, A_FIGHTER_IS_HEAVY = 2212, 2213, 2214
+FIGHTER_TUBE_ATTRS = {"light": "fighterLightSlots", "support": "fighterSupportSlots", "heavy": "fighterHeavySlots"}
 
 
 def slot_of(t: Type) -> str | None:
@@ -96,23 +98,46 @@ class DroneSpec:
 
 
 @dataclass
+class FighterSpec:
+    """One fighter squadron in a launch tube."""
+    type: Type
+    amount: int  # fighters in the squadron (EFT's "x6")
+    active: bool = True
+
+    @property
+    def role(self) -> str:
+        return fighter_class(self.type)
+
+
+def fighter_class(t: Type) -> str:
+    if t.attrs.get(A_FIGHTER_IS_HEAVY):
+        return "heavy"
+    if t.attrs.get(A_FIGHTER_IS_SUPPORT):
+        return "support"
+    return "light"
+
+
+@dataclass
 class Fit:
     ship: Type
     modules: list[ModuleSpec] = field(default_factory=list)
     drones: list[DroneSpec] = field(default_factory=list)
     name: str = ""
+    fighters: list[FighterSpec] = field(default_factory=list)
 
     def calc(self, char: Character) -> FitCalc:
         return FitCalc(char, self.ship,
                        [(m.type, m.state, m.slot, m.charge) for m in self.modules],
-                       [(d.type, d.active) for d in self.drones if d.active > 0])
+                       [(d.type, d.active) for d in self.drones if d.active > 0],
+                       [(f.type, f.amount) for f in self.fighters if f.active and f.amount > 0])
 
     def by_slot(self, slot: str) -> list[ModuleSpec]:
         return [m for m in self.modules if m.slot == slot]
 
     def copy(self) -> "Fit":
         return Fit(self.ship, [ModuleSpec(m.type, m.state, m.charge) for m in self.modules],
-                   [DroneSpec(d.type, d.count, d.active) for d in self.drones], self.name)
+                   [DroneSpec(d.type, d.count, d.active) for d in self.drones], self.name,
+                   [FighterSpec(f.type, f.amount, f.active) for f in self.fighters])
 
     # ---- EFT ---------------------------------------------------------------------------
     def to_eft(self) -> str:
@@ -133,6 +158,10 @@ class Fit:
             lines.append("")
             for d in self.drones:
                 lines.append(f"{d.type.name} x{d.count}")
+        if self.fighters:
+            lines.append("")
+            for f in self.fighters:
+                lines.append(f"{f.type.name} x{f.amount}")
         return "\n".join(lines).rstrip() + "\n"
 
     @classmethod
@@ -157,6 +186,8 @@ class Fit:
                 if t.category_id == CAT_DRONE:
                     n = int(qty.group(2))
                     fit.drones.append(DroneSpec(t, n, n))
+                elif t.category_id == CAT_FIGHTER:
+                    fit.fighters.append(FighterSpec(t, int(qty.group(2))))
                 continue  # cargo is ignored
             name, _, charge = line.partition(",")
             t = data.type_by_name(name)
@@ -315,6 +346,26 @@ def check(fit: Fit, char: Character, calc: FitCalc | None = None) -> list[str]:
     max_active = calc.char_attr("maxActiveDrones")
     if sum(d.active for d in fit.drones) > max_active:
         problems.append(f"more than {int(max_active)} drones active")
+
+    if fit.fighters:
+        for f in fit.fighters:
+            need(f.type, "fighter")
+        launched = [f for f in fit.fighters if f.active]
+        tubes = int(calc.get(ship, "fighterTubes"))
+        if len(launched) > tubes:
+            problems.append(f"{len(launched)} fighter squadrons but only {tubes} launch tubes")
+        for role, attr in FIGHTER_TUBE_ATTRS.items():
+            n = sum(1 for f in launched if f.role == role)
+            have = int(calc.get(ship, attr))
+            if n > have:
+                problems.append(f"{n} {role} fighter squadrons but only {have} {role} tubes")
+        bay = sum(f.amount * f.type.attrs.get(C.A_VOLUME, 0) for f in fit.fighters)
+        if bay > calc.get(ship, "fighterCapacity") + 1e-6:
+            problems.append("fighter bay capacity exceeded")
+        for f, it in zip(launched, calc.fighters):
+            size = int(calc.get(it, "fighterSquadronMaxSize"))
+            if f.amount > size:
+                problems.append(f"{f.type.name} squadrons hold at most {size} fighters")
     return problems
 
 

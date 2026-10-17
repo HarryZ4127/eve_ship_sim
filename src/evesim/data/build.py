@@ -22,7 +22,7 @@ from typing import Any, Callable
 PYFA_RAW = "https://raw.githubusercontent.com/pyfa-org/Pyfa/{ref}/staticdata/"
 
 # Categories that matter for fitting.
-KEEP_CATEGORIES = {6, 7, 8, 16, 18, 20, 32}
+KEEP_CATEGORIES = {6, 7, 8, 16, 18, 20, 32, 87}  # 87: fighters
 CHARACTER_TYPE_ID = 1373
 GROUP_SHIP_MODES = 1306  # T3 destroyer tactical modes: unpublished, but part of every T3D fit
 

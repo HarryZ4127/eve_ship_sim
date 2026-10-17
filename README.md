@@ -5,16 +5,17 @@ for the **best fit those skills allow** under requirements you write down (minim
 tank, cap stability, budget, tank type, required modules ...).
 
 * **Simulator.** A generic dogma engine driven by CCP's own `modifierInfo` data, with
-  stacking penalties, skill and hull bonuses, subsystems, propulsion, charges and drones.
+  stacking penalties, skill and hull bonuses, subsystems, propulsion, charges, drones and
+  fighters.
   It reports fitting, DPS/volley, applied DPS against a target, EHP against a damage
   profile, active/passive tank, a time-domain capacitor simulation, navigation and
   targeting, plus cargo, mining yield, remote repair output and EWAR/tackle strength.
-  Across twelve reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
+  Across sixteen reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
   (see [Validation](docs/design.md#validation)). All 421 hulls compute; T3 cruiser
-  subsystems and T3 destroyer modes are supported (fighters are not yet).
+  subsystems, T3 destroyer modes and carrier/supercarrier fighters are supported.
 * **Skills.** Pull them from ESI with an EVE SSO login, load a JSON file, or use
   presets (`all5`, `all0`, or alpha clone caps like `alpha caldari`).
-* **Optimizer.** Searches the modules, weapons, ammo and drones your skills allow,
+* **Optimizer.** Searches the modules, weapons, ammo, drones and fighters your skills allow,
   scoring every candidate with the exact simulator. You set the objective (one metric,
   a weighted mix of any number, or a Pareto trade-off frontier) and the constraints in a
   short TOML file. It can also pick the best hull from a whole ship class.
@@ -77,11 +78,11 @@ require = ["Warp Scrambler II"]
 exclude = ["Polarized Heavy Assault Missile Launcher"]
 ```
 
-`evesim metrics` lists the 45 metrics you can maximize or constrain:
+`evesim metrics` lists the 46 metrics you can maximize or constrain:
 
 | area | metrics |
 |---|---|
-| damage | `dps`, `applied_dps`, `weapon_dps`, `drone_dps`, `volley`, `weapon_range` |
+| damage | `dps`, `applied_dps`, `weapon_dps`, `drone_dps`, `fighter_dps`, `volley`, `weapon_range` |
 | tank | `ehp`, `shield_ehp`, `armor_ehp`, `hull_ehp`, `sustained_tank`, `peak_tank`, `survival_time` |
 | capacitor | `cap_seconds`, `cap_stable_fraction`, `cap_delta`, `cap_capacity`, `cap_recharge` |
 | movement | `speed`, `align_time`, `signature`, `mass`, `warp_speed` |
@@ -126,13 +127,12 @@ is only a lower bound. Add them to `exclude` if you don't want that trade.
 | `evesim train FIT.eft` | skill training advice for a fit; `--days`, `--refit` (unlocks), `--spec` or `--objective` |
 | `evesim metrics` | list objective/constraint metrics |
 
-Fits use the EFT text format that the game client (*Copy to clipboard* / *Import from
+Fits use the EFT text format (fighter squadrons as `Templar II x6`) that the game client (*Copy to clipboard* / *Import from
 clipboard*) and Pyfa read and write.
 
 ## Status and limits
 
-Not modelled yet: fighters (carriers, supercarriers and a few dreads and titans fit and
-simulate, but without fighter damage), command bursts, the effect of your webs and paints
+Not modelled yet: command bursts, the effect of your webs and paints
 on your own applied damage, mutated modules, drugs, and Reactive Armor Hardener
 adaptation. EWAR is reported as each module's strength and range, not as its effect on a
 particular target. The optimizer is a heuristic over an exact simulator, so it is not
