@@ -37,10 +37,20 @@ choices**:
 ```toml
 ship = "Caracal"            # one hull
 ships = ["Kestrel", "Condor"]
-ship_groups = ["Frigate"]   # every hull in the group your skills can fly (slow for big groups)
+ship_groups = ["Assault Frigate"]   # exact in-game ship groups
+ship_classes = ["cruiser"]  # frigate, destroyer, cruiser, battlecruiser, battleship, capital,
+                            # industrial, mining, corvette, or "all"
+ships = "all"               # every hull your skills can fly
 ```
 
-Several hulls are optimized one after another and ranked by score.
+Hulls your skills cannot fly are skipped. When more hulls are listed than
+`search.screen_top` (default 5), every hull first gets a fast screening fit (greedy fill
+only), and only the best few get the full search. A class takes a minute or two from the
+command line; every hull (about 400) takes much longer.
+
+T3 cruisers need subsystems: list them under `fitting.subsystems`, or set
+`subsystems = "auto"` to let the optimizer choose them. T3 destroyers choose their
+tactical mode automatically.
 
 ### `[objective]`
 
@@ -64,6 +74,21 @@ With weight 1, one "scale unit" is worth one point:
 
 So `weights = { applied_dps = 1.0, ehp = 0.5 }` trades 100 DPS for 20,000 EHP. Metrics
 where lower is better (align time, signature, price) are subtracted automatically.
+Any number of metrics can be weighted.
+
+#### Trade-off frontier
+
+```toml
+[objective]
+pareto = ["applied_dps", "ehp", "speed"]
+points = 10                 # weightings to try (spread evenly, extremes included)
+```
+
+Instead of one answer for one weighting, the optimizer runs once per weighting and
+returns every fit that no other fit beats on all listed metrics at once (the Pareto
+front). Use it when you don't know the right weights yet: the frontier shows what each
+extra point of one metric costs in the others. Constraints and fitting choices still
+apply to every point. It takes about `points` times as long as one optimization.
 
 ### `[target]`: who you shoot
 
@@ -93,10 +118,15 @@ explosive = 0
 ```
 
 The NPC presets are approximate damage mixes. Use your own numbers for specific sites.
+Add `dps = 400` (the damage you expect to take per second) to use `survival_time`: how
+long the fit lasts against that damage after its sustained repairs.
 
 ### `[constraints]`
 
-Any metric can be bounded with `min_<metric>` or `max_<metric>`. Two shortcuts:
+Any metric can be bounded with `min_<metric>` or `max_<metric>` (`evesim metrics` lists
+them all). Constraints are how you ask for utility: `min_tackle_range = 9000` and
+`min_web_strength = 50` make the optimizer fit a scram and a web, `min_remote_repair`
+logistics, `min_cargo` hauling space. Two shortcuts:
 
 ```toml
 min_ehp = 15000
@@ -123,7 +153,7 @@ static base prices are used and budgets become unreliable (a warning is printed)
 | `drones` | `true` | fill the drone bay |
 | `require` | `[]` | modules that must be fitted (kept fixed) |
 | `exclude` | `[]` | modules never to use |
-| `subsystems` | `[]` | the four subsystems of a T3 cruiser (required for T3Cs) |
+| `subsystems` | `[]` | the four subsystems of a T3 cruiser, or `"auto"` to choose them |
 | `smartbombs` | `false` | allow smartbombs as utility (they also hit your own drones) |
 | `fill_slots` | `true` | fill slots the objective leaves empty with EHP/DPS |
 | `cpu_margin`, `pg_margin` | 0 | keep this much CPU/PG free |
@@ -133,6 +163,7 @@ static base prices are used and budgets become unreliable (a warning is printed)
 ```toml
 effort = "normal"           # quick (~5-10 s per hull), normal (~20-40 s), thorough (minutes)
 seed = 1                    # the search is randomized but reproducible for a given seed
+screen_top = 5              # with many hulls: how many get the full search after screening
 ```
 
 ## Reading the result
@@ -143,3 +174,25 @@ seed = 1                    # the search is randomized but reproducible for a gi
   objective comes from.
 * **Other weapon setups tried** shows the runner-up weapon/ammo choices and their
   scores, a quick way to see how much the weapon choice matters.
+
+
+## Training advice
+
+`evesim train` values skills with the same objective and constraints:
+
+```bash
+evesim train my_fit.eft --skills esi:Name --objective applied_dps=1,ehp=0.5 --days 30
+evesim train --spec examples/caracal_pve.toml --skills me.json --refit --days 60
+```
+
+* **Best single trainings:** every skill below V is raised one level (with any missing
+  prerequisites), and the change in the objective is divided by the training time.
+  Training time uses EVE's skill-point table and your attributes (from ESI, the JSON
+  file's `attributes`, or `--attributes perception=27,willpower=21`; 20 each otherwise).
+* **Training plan:** the best step is taken repeatedly until the day budget is used.
+* **Unlocks (`--refit`):** skills that let you use better modules, ammo or drones do
+  nothing for the current fit, so the optimizer is re-run with each promising unlock.
+  The gain is measured against the best fit your current skills can already fly, so
+  search noise is not credited to the skill.
+
+Alpha clone limits are not applied to training suggestions.

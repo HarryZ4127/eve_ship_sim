@@ -17,7 +17,7 @@ from evesim.data.store import StaticData
 from evesim.dogma.engine import Character
 from evesim.market import Prices
 from evesim.optimize.search import Evaluation, Optimizer
-from evesim.optimize.spec import METRICS, Spec
+from evesim.optimize.spec import DAMAGE_METRICS, METRICS, Spec
 
 
 @dataclass
@@ -79,6 +79,11 @@ def run(data: StaticData, char: Character, spec: Spec, prices: Prices | None = N
     vectors = weight_vectors(len(metrics), spec.pareto_points)
     for i, vec in enumerate(vectors, 1):
         weights = {m: w for m, w in zip(metrics, vec) if w > 0}
+        # A frontier about damage should not include unarmed fits: keep a token weight on
+        # damage metrics at the other extremes so weapons stay fitted.
+        for m in metrics:
+            if m in DAMAGE_METRICS and m not in weights:
+                weights[m] = 1e-3
         log(f"pareto point {i}/{len(vectors)}: " + ", ".join(f"{m} {w:.2f}" for m, w in weights.items()))
         sub = copy.copy(spec)
         sub.weights = weights

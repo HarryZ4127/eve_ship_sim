@@ -106,6 +106,19 @@ pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); bor
 .cons { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .cons div { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .err { color: var(--bad); background: var(--bad-soft); padding: 8px 12px; border-radius: 4px; margin: 0; font-size: 13px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 86px 32px; gap: 6px; align-items: center; }
+.crow { display: grid; grid-template-columns: minmax(0, 1fr) 64px 92px 32px; gap: 6px; align-items: center; }
+.mini { font: 600 13px var(--body); background: var(--sunk); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 0; cursor: pointer; }
+.add { align-self: flex-start; font: 600 12px var(--body); background: none; color: var(--accent); border: 1px dashed var(--accent); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg label { flex: 1; text-align: center; padding: 6px 8px; font-size: 13px; cursor: pointer; background: var(--sunk); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+tr.pick { cursor: pointer; }
+tr.pick:hover td, tr.pick.on td { background: var(--accent-soft); }
+.timeline { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.timeline div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
 @media (prefers-reduced-motion: no-preference) { .bar i { transition: width 0.4s ease; } }
 </style>
 
@@ -118,6 +131,7 @@ pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); bor
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-sim" aria-selected="true" aria-controls="panel-sim">Simulate a fit</button>
     <button role="tab" id="tab-opt" aria-selected="false" aria-controls="panel-opt">Optimize</button>
+    <button role="tab" id="tab-train" aria-selected="false" aria-controls="panel-train">Train skills</button>
   </div>
 
   <section class="bay" id="panel-sim" role="tabpanel" aria-labelledby="tab-sim">
@@ -150,27 +164,39 @@ pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); bor
 
   <section class="bay" id="panel-opt" role="tabpanel" aria-labelledby="tab-opt" hidden>
     <form class="rack" id="opt-form">
-      <div class="row">
-        <div class="field"><label for="opt-ship">Ship</label><input id="opt-ship" list="ship-list" value="Caracal" autocomplete="off"></div>
-        <div class="field"><label for="opt-skills">Skills</label><select id="opt-skills" class="skills"></select></div>
-      </div>
-      <div class="field skills-file" hidden>
-        <label for="opt-skills-file">Skills JSON</label>
-        <input type="file" id="opt-skills-file" accept=".json,application/json">
-      </div>
-      <datalist id="ship-list"></datalist>
       <fieldset>
-        <legend>Objective</legend>
-        <div class="row">
-          <div class="field"><label for="opt-obj">Maximize</label><select id="opt-obj"></select></div>
-          <div class="field"><label for="opt-obj2">Also value</label><select id="opt-obj2"></select></div>
+        <legend>Ships</legend>
+        <div class="seg" role="radiogroup" aria-label="Ship scope">
+          <label><input type="radio" name="scope" value="ship" checked> One ship</label>
+          <label><input type="radio" name="scope" value="class"> Best of a class</label>
         </div>
+        <div class="field" id="scope-ship"><label for="opt-ship">Ship</label><input id="opt-ship" list="ship-list" value="Caracal" autocomplete="off"></div>
+        <div class="row" id="scope-class" hidden>
+          <div class="field"><label for="opt-class">Class</label><select id="opt-class"></select></div>
+          <div class="field"><label for="opt-top">Fully search the best</label><input id="opt-top" type="number" min="1" max="10" value="3"></div>
+        </div>
+        <p class="hint" id="scope-hint" hidden>Every hull you can fly in the class gets a fast screening fit; the best ones get the full search. A class takes a few minutes here.</p>
+        <div class="field"><label for="opt-skills">Skills</label><select id="opt-skills" class="skills"></select></div>
+        <div class="field skills-file" hidden>
+          <label for="opt-skills-file">Skills JSON</label>
+          <input type="file" id="opt-skills-file" accept=".json,application/json">
+        </div>
+        <datalist id="ship-list"></datalist>
+      </fieldset>
+      <fieldset>
+        <legend>Objectives</legend>
+        <div class="seg" role="radiogroup" aria-label="Objective mode">
+          <label><input type="radio" name="omode" value="weighted" checked> Weighted mix</label>
+          <label><input type="radio" name="omode" value="pareto"> Trade-off frontier</label>
+        </div>
+        <div class="rows" id="obj-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button type="button" class="add" id="obj-add">+ Add objective</button>
+        <p class="hint" id="omode-hint">Weights compare 100 DPS, 10,000 EHP, 100 EHP/s of tank and 1,000 m/s of speed as one point each.</p>
         <div class="row">
-          <div class="field"><label for="opt-w2">Weight of second metric</label><input id="opt-w2" type="number" min="0" step="0.1" value="0.5"></div>
+          <div class="field" id="pareto-points-f" hidden><label for="opt-points">Frontier points</label><input id="opt-points" type="number" min="3" max="30" value="8"></div>
           <div class="field"><label for="opt-effort">Search effort</label>
             <select id="opt-effort"><option value="quick">Quick (seconds)</option><option value="normal">Normal (a minute or two here)</option></select></div>
         </div>
-        <p class="hint">Weights compare 100 DPS, 10,000 EHP, 100 EHP/s of tank and 1,000 m/s of speed as one point each.</p>
       </fieldset>
       <fieldset>
         <legend>Engagement</legend>
@@ -178,23 +204,16 @@ pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); bor
           <div class="field"><label for="opt-target">Target</label><select id="opt-target" class="targets"></select></div>
           <div class="field"><label for="opt-distance">Distance (m)</label><input id="opt-distance" type="number" min="0" step="500" value="30000"></div>
         </div>
-        <div class="field"><label for="opt-profile">Incoming damage</label><select id="opt-profile" class="profiles"></select></div>
+        <div class="row">
+          <div class="field"><label for="opt-profile">Incoming damage</label><select id="opt-profile" class="profiles"></select></div>
+          <div class="field"><label for="opt-indps">Incoming DPS (for survival time)</label><input id="opt-indps" type="number" min="0" step="50" placeholder="e.g. 400"></div>
+        </div>
       </fieldset>
       <fieldset>
-        <legend>Constraints (leave blank for none)</legend>
-        <div class="row">
-          <div class="field"><label for="c-ehp">Min EHP</label><input id="c-ehp" type="number" min="0" step="1000" value="12000"></div>
-          <div class="field"><label for="c-tank">Min sustained tank (EHP/s)</label><input id="c-tank" type="number" min="0" step="10"></div>
-        </div>
-        <div class="row">
-          <div class="field"><label for="c-speed">Min speed (m/s)</label><input id="c-speed" type="number" min="0" step="100"></div>
-          <div class="field"><label for="c-range">Min weapon range (m)</label><input id="c-range" type="number" min="0" step="1000"></div>
-        </div>
-        <div class="row">
-          <div class="field"><label for="c-align">Max align time (s)</label><input id="c-align" type="number" min="0" step="0.5"></div>
-          <div class="field"><label class="lbl" for="c-cap">Capacitor</label>
-            <div class="checks"><label><input type="checkbox" id="c-cap" checked> Cap stable</label></div></div>
-        </div>
+        <legend>Constraints</legend>
+        <div id="con-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button type="button" class="add" id="con-add">+ Add constraint</button>
+        <div class="checks"><label><input type="checkbox" id="c-cap" checked> Capacitor stable</label></div>
       </fieldset>
       <fieldset>
         <legend>Fitting choices</legend>
@@ -214,11 +233,52 @@ pre.eft { margin: 0; font: 12.5px/1.45 var(--mono); background: var(--sunk); bor
         <div class="checks"><label><input type="checkbox" id="f-nopol"> Exclude Polarized weapons (they zero your resists)</label></div>
         <div class="field"><label for="f-require">Must fit (comma-separated)</label><input id="f-require" placeholder="Warp Scrambler II, Stasis Webifier II"></div>
         <div class="field"><label for="f-exclude">Never fit (comma-separated)</label><input id="f-exclude"></div>
+        <p class="hint">T3 cruisers pick their own subsystems. T3 destroyers pick their tactical mode.</p>
       </fieldset>
       <button class="go" id="opt-go" type="submit" disabled>Find best fit</button>
       <p class="hint">The page stays usable while the search runs in a background thread.</p>
     </form>
     <div class="readout" id="opt-out"></div>
+  </section>
+
+  <section class="bay" id="panel-train" role="tabpanel" aria-labelledby="tab-train" hidden>
+    <form class="rack" id="train-form">
+      <div class="field">
+        <label for="train-eft">Fit to train for (EFT)</label>
+        <textarea id="train-eft" spellcheck="false" style="min-height:220px"></textarea>
+      </div>
+      <button type="button" class="add" id="train-use-opt" disabled>Use the last optimized fit</button>
+      <div class="field"><label for="train-skills">Your skills</label><select id="train-skills" class="skills"></select></div>
+      <div class="field skills-file" hidden>
+        <label for="train-skills-file">Skills JSON (from <code>evesim skills -s esi:You -o me.json</code>)</label>
+        <input type="file" id="train-skills-file" accept=".json,application/json">
+      </div>
+      <fieldset>
+        <legend>Training attributes (blank: from the JSON, else 20)</legend>
+        <div class="row" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+          <div class="field"><label for="a-per">Per</label><input id="a-per" type="number" min="17" max="40"></div>
+          <div class="field"><label for="a-wil">Wil</label><input id="a-wil" type="number" min="17" max="40"></div>
+          <div class="field"><label for="a-int">Int</label><input id="a-int" type="number" min="17" max="40"></div>
+          <div class="field"><label for="a-mem">Mem</label><input id="a-mem" type="number" min="17" max="40"></div>
+          <div class="field"><label for="a-cha">Cha</label><input id="a-cha" type="number" min="17" max="40"></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>What should training improve?</legend>
+        <div id="tobj-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button type="button" class="add" id="tobj-add">+ Add objective</button>
+        <div class="row">
+          <div class="field"><label for="train-target">Target</label><select id="train-target" class="targets"></select></div>
+          <div class="field"><label for="train-distance">Distance (m)</label><input id="train-distance" type="number" min="0" step="500" value="30000"></div>
+        </div>
+        <div class="field"><label for="train-profile">Incoming damage</label><select id="train-profile" class="profiles"></select></div>
+      </fieldset>
+      <div class="field"><label for="train-days">Training budget (days)</label><input id="train-days" type="number" min="1" max="365" value="30"></div>
+      <div class="checks"><label><input type="checkbox" id="train-refit"> Also check skills that unlock better modules (re-optimizes; a few minutes here)</label></div>
+      <button class="go" id="train-go" type="submit" disabled>Advise training</button>
+      <p class="hint">Each skill is valued by how much one more level improves your objective for this fit, per day of training at your attributes. Alpha clone limits are not applied to training.</p>
+    </form>
+    <div class="readout" id="train-out"></div>
   </section>
 </div>
 
@@ -231,8 +291,19 @@ const TARGETS = ["frigate", "destroyer", "cruiser", "battlecruiser", "battleship
 const DT = ["em", "thermal", "kinetic", "explosive"];
 const DT_LABEL = { em: "EM", thermal: "Thermal", kinetic: "Kinetic", explosive: "Explosive" };
 const METRIC_LABEL = { dps: "Raw DPS", applied_dps: "Applied DPS", weapon_dps: "Weapon DPS", drone_dps: "Drone DPS", volley: "Volley",
-  ehp: "EHP", sustained_tank: "Sustained tank", peak_tank: "Peak tank", speed: "Speed", align_time: "Align time", signature: "Signature",
-  lock_range: "Lock range", weapon_range: "Weapon range", price: "Price", cap_seconds: "Cap duration", scan_resolution: "Scan resolution" };
+  ehp: "EHP", shield_ehp: "Shield EHP", armor_ehp: "Armor EHP", hull_ehp: "Hull EHP", sustained_tank: "Sustained tank", peak_tank: "Peak tank",
+  survival_time: "Survival time", speed: "Speed", align_time: "Align time", signature: "Signature", mass: "Mass", warp_speed: "Warp speed",
+  lock_range: "Lock range", lock_time: "Lock time", scan_resolution: "Scan resolution", max_targets: "Max targets", sensor_strength: "Sensor strength",
+  weapon_range: "Weapon range", price: "Price", dps_per_misk: "DPS per M ISK", ehp_per_misk: "EHP per M ISK",
+  cap_seconds: "Cap duration", cap_stable_fraction: "Cap stable %", cap_delta: "Cap surplus", cap_capacity: "Cap capacity", cap_recharge: "Cap recharge",
+  cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Mining yield", remote_repair: "Remote repair",
+  drone_control_range: "Drone range", neut_rate: "Neut drain", tackle_range: "Tackle range", web_range: "Web range", web_strength: "Web strength",
+  paint_strength: "Painter strength", ecm_strength: "ECM strength", damp_strength: "Damp strength", disruption_strength: "Disruption strength" };
+const METRICS_INFO = null;
+const SHIP_CLASSES = ["frigate", "destroyer", "cruiser", "battlecruiser", "battleship", "capital", "industrial", "mining", "corvette"];
+const label = (m) => METRIC_LABEL[m] || m.replace(/_/g, " ");
+const unitOf = (m) => (METRICS_INFO && METRICS_INFO[m] && METRICS_INFO[m].unit) || "";
+let lastOptEft = null;
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -263,7 +334,7 @@ function startWorker() {
       sel.innerHTML = skillOptions(info.grades);
       sel.value = cur || "all5";
     }
-    $("#sim-go").disabled = false; $("#opt-go").disabled = false;
+    $("#sim-go").disabled = false; $("#opt-go").disabled = false; $("#train-go").disabled = false;
   }).catch((e) => setStatus("Python failed to load: " + e.message, "error"));
 }
 
@@ -338,7 +409,18 @@ function renderStats(d, opts = {}) {
       <dt>Signature</dt><dd>${fmt(n.signature_radius, 1)} m</dd>
       <dt>Lock range</dt><dd>${fmt(t.lock_range / 1000, 1)} km · ${fmt(t.scan_resolution)} mm · ${t.max_targets} targets</dd>
       ${d.drones.bandwidth ? `<dt>Drones</dt><dd>bandwidth ${fmt(d.drones.bandwidth_used)}/${fmt(d.drones.bandwidth)} · bay ${fmt(d.drones.bay_used)}/${fmt(d.drones.bay)}</dd>` : ""}
+      <dt>Cargo</dt><dd>${fmt(d.utility.cargo)} m³</dd>
+      ${d.utility.mining_yield ? `<dt>Mining</dt><dd>${fmt(d.utility.mining_yield, 2)} m³/s</dd>` : ""}
+      ${Object.values(d.utility.remote_repair || {}).some((v) => v) ? `<dt>Remote repair</dt><dd>${Object.entries(d.utility.remote_repair).filter(([, v]) => v).map(([k, v]) => `${k} ${fmt(v, 1)} HP/s`).join(" · ")}</dd>` : ""}
     </dl></div></div>`;
+  if ((d.utility.ewar || []).length) {
+    h += `<div class="card"><h2>Electronic warfare and tackle</h2><div class="scroll"><table><thead><tr><th>Module</th><th class="r">Strength</th><th class="r">Range</th></tr></thead><tbody>`;
+    for (const e of d.utility.ewar) {
+      const str = e.kind === "neut" || e.kind === "nos" ? `${fmt(e.per_second, 1)} GJ/s` : `${fmt(e.strength, 1)} ${esc(e.unit)}`;
+      h += `<tr><td>${e.count}× ${esc(e.name)}</td><td class="r num">${str}</td><td class="r num">${fmt(e.optimal / 1000, 1)}${e.falloff ? ` + ${fmt(e.falloff / 1000, 1)}` : ""} km</td></tr>`;
+    }
+    h += `</tbody></table></div></div>`;
+  }
   if (opts.showEft) {
     h += `<div class="card"><h2>Fit to import in game</h2><pre class="eft" id="${opts.showEft}">${esc(d.eft)}</pre>
       <button type="button" class="copy" data-copy="${opts.showEft}">Copy EFT</button></div>`;
@@ -354,9 +436,34 @@ document.addEventListener("click", async (e) => {
   setTimeout(() => (b.textContent = "Copy EFT"), 2000);
 });
 
+let paretoPoints = [];
+function renderPareto(res) {
+  paretoPoints = res.points;
+  const ms = res.pareto;
+  let h = `<div class="card"><h2>Trade-off frontier</h2><p class="sub">${res.points.length} fits. None of them is beaten by another on all of ${ms.map(label).join(", ")}. Pick a row to see the fit.</p>
+    <div class="scroll"><table><thead><tr><th>#</th><th>Ship</th>${ms.map((m) => `<th class="r">${label(m)}</th>`).join("")}</tr></thead><tbody>`;
+  res.points.forEach((p, i) => {
+    h += `<tr class="pick" data-point="${i}" tabindex="0"><td>${i + 1}</td><td>${esc(p.ship)}</td>${ms.map((m) => `<td class="r num">${fmt(p.metrics[m], 1)}</td>`).join("")}</tr>`;
+  });
+  return h + `</tbody></table></div></div><div id="pareto-detail" class="readout"></div>`;
+}
+function showPoint(i) {
+  const p = paretoPoints[i]; if (!p) return;
+  for (const r of document.querySelectorAll("tr.pick")) r.classList.toggle("on", Number(r.dataset.point) === i);
+  lastOptEft = p.stats.eft; $("#train-use-opt").disabled = false;
+  $("#pareto-detail").innerHTML = renderStats(p.stats, { subtitle: `Frontier point ${i + 1}: weights ` + Object.entries(p.weights).map(([m, w]) => `${label(m)} ${w.toFixed(2)}`).join(", "), showEft: "eft-pareto", profile: $("#opt-profile").value });
+}
+document.addEventListener("click", (e) => { const r = e.target.closest("tr.pick"); if (r) showPoint(Number(r.dataset.point)); });
+document.addEventListener("keydown", (e) => { const r = e.target.closest && e.target.closest("tr.pick"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showPoint(Number(r.dataset.point)); } });
+
 function renderOpt(res, example) {
+  if (res.pareto) return renderPareto(res);
   const w = res.weights; const keys = Object.keys(w);
   let h = "";
+  if (res.screened && res.screened.length) {
+    h += `<div class="card"><h2>Hull screening</h2><p class="sub">Fast greedy fit for every hull you can fly; the best went on to the full search.</p><div class="scroll"><table><thead><tr><th>Hull</th><th class="r">Screen score</th></tr></thead><tbody>${res.screened.slice(0, 12).map(([n, sc]) => `<tr><td>${esc(n)}</td><td class="r num">${fmt(sc, 2)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+  if (!example && res.results[0] && res.results[0].best) { lastOptEft = res.results[0].best.stats.eft; $("#train-use-opt").disabled = false; }
   if (example) h += `<p class="hint"><span class="pill ex">Example</span> Precomputed result for the default request. Press <b>Find best fit</b> to run it yourself.</p>`;
   for (const r of res.results) {
     for (const note of r.notes) h += `<p class="err">${esc(note)}</p>`;
@@ -365,12 +472,12 @@ function renderOpt(res, example) {
     h += `<div class="card"><div class="banner"><div><div class="ship">${esc(r.ship)}</div>
       <div class="sub">${fmt(r.evaluations)} fits scored in ${fmt(r.seconds, 1)} s · skills: ${esc(res.skills)}</div></div>
       <span class="pill ${b.feasible ? "ok" : "bad"}">${b.feasible ? "All constraints met" : "Best compromise: constraints not met"}</span></div>
-      <div class="cons">${keys.map((k) => `<div><span class="lbl">Objective</span> ${METRIC_LABEL[k] || k} ${w[k] !== 1 ? `×${w[k]}` : ""} <span class="num">${fmt(b.metrics[k], 1)}</span></div>`).join("")}
-      ${b.constraints.map((c) => `<div><span class="pill ${c.ok ? "ok" : "bad"}">${c.ok ? "met" : "missed"}</span> ${METRIC_LABEL[c.metric] || c.metric}
+      <div class="cons">${keys.map((k) => `<div><span class="lbl">Objective</span> ${label(k)} ${w[k] !== 1 ? `×${w[k]}` : ""} <span class="num">${fmt(b.metrics[k], 1)} ${esc(unitOf(k))}</span></div>`).join("")}
+      ${b.constraints.map((c) => `<div><span class="pill ${c.ok ? "ok" : "bad"}">${c.ok ? "met" : "missed"}</span> ${label(c.metric)}
         <span class="num">${fmt(c.value, 1)}</span> <span class="sub">${c.bound === "inf" ? "must be stable" : (c.kind === "min" ? "≥ " : "≤ ") + fmt(c.bound, 1)}</span></div>`).join("")}</div></div>`;
     h += renderStats(b.stats, { subtitle: "Optimized fit", key: keys[0], showEft: "eft-" + r.ship.replace(/\W/g, ""), profile: $("#opt-profile").value });
     if (r.alternatives.length) {
-      h += `<div class="card"><h2>Other weapon setups tried</h2><div class="scroll"><table><thead><tr><th>Weapons</th><th class="r">Score</th>${keys.map((k) => `<th class="r">${METRIC_LABEL[k] || k}</th>`).join("")}</tr></thead><tbody>`;
+      h += `<div class="card"><h2>Other weapon setups tried</h2><div class="scroll"><table><thead><tr><th>Weapons</th><th class="r">Score</th>${keys.map((k) => `<th class="r">${label(k)}</th>`).join("")}</tr></thead><tbody>`;
       h += `<tr><td><b>Chosen</b></td><td class="r num">${fmt(b.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(b.metrics[k], 1)}</td>`).join("")}</tr>`;
       for (const a of r.alternatives) h += `<tr><td>${esc(a.label)}${a.feasible ? "" : ' <span class="pill bad">infeasible</span>'}</td><td class="r num">${fmt(a.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(a.metrics[k], 1)}</td>`).join("")}</tr>`;
       h += `</tbody></table></div></div>`;
@@ -387,11 +494,52 @@ function fill() {
   for (const s of document.querySelectorAll("select.profiles")) s.innerHTML = PROFILES.map((p) => `<option>${p}</option>`).join("");
   $("#opt-profile").value = "guristas";
   for (const s of document.querySelectorAll("select.targets")) { s.innerHTML = TARGETS.map((p) => `<option>${p}</option>`).join(""); s.value = "cruiser"; }
-  const obj = ["applied_dps", "dps", "ehp", "sustained_tank", "speed", "volley", "weapon_range"];
-  $("#opt-obj").innerHTML = obj.map((m) => `<option value="${m}">${METRIC_LABEL[m]}</option>`).join("");
-  $("#opt-obj2").innerHTML = '<option value="">Nothing else</option>' + obj.map((m) => `<option value="${m}">${METRIC_LABEL[m]}</option>`).join("");
+  $("#opt-class").innerHTML = ["all", ...SHIP_CLASSES].map((c) => `<option value="${c}">${c === "all" ? "Every ship" : c[0].toUpperCase() + c.slice(1)}</option>`).join("");
+  $("#opt-class").value = "frigate";
+  for (const s of ["#train-profile"]) $(s).value = "uniform";
+  addObjRow("#obj-rows", "applied_dps", 1);
+  addConRow("min", "ehp", 12000);
+  addObjRow("#tobj-rows", "applied_dps", 1); addObjRow("#tobj-rows", "ehp", 0.5);
+  $("#train-eft").value = TRAIN_SAMPLE;
+}
+const TRAIN_SAMPLE = "[Caracal, starter]\nBallistic Control System I\nBallistic Control System I\nDamage Control I\nNanofiber Internal Structure I\n\n10MN Afterburner I\nMedium Shield Extender I\nMedium Shield Extender I\nMultispectrum Shield Hardener I\nMissile Guidance Computer I\n\nHeavy Missile Launcher I, Scourge Heavy Missile\nHeavy Missile Launcher I, Scourge Heavy Missile\nHeavy Missile Launcher I, Scourge Heavy Missile\nHeavy Missile Launcher I, Scourge Heavy Missile\nHeavy Missile Launcher I, Scourge Heavy Missile\n";
+const ALL_METRICS = () => Object.keys(METRICS_INFO || METRIC_LABEL);
+function metricOptions(sel) { return ALL_METRICS().map((m) => `<option value="${m}"${m === sel ? " selected" : ""}>${esc(label(m))}</option>`).join(""); }
+let rowId = 0;
+function addObjRow(container, metric, weight) {
+  const id = ++rowId; const el = document.createElement("div"); el.className = "mrow";
+  el.innerHTML = `<select id="om-${id}" aria-label="Objective metric">${metricOptions(metric)}</select><input id="ow-${id}" type="number" step="0.1" min="0" value="${weight}" aria-label="Weight"><button type="button" class="mini" aria-label="Remove objective">×</button>`;
+  el.querySelector("button").addEventListener("click", () => { if ($(container).children.length > 1) el.remove(); });
+  $(container).appendChild(el);
+}
+function addConRow(kind, metric, value) {
+  const id = ++rowId; const el = document.createElement("div"); el.className = "crow";
+  el.innerHTML = `<select id="cm-${id}" aria-label="Constraint metric">${metricOptions(metric)}</select><select id="ck-${id}" aria-label="Bound"><option value="min"${kind === "min" ? " selected" : ""}>≥</option><option value="max"${kind === "max" ? " selected" : ""}>≤</option></select><input id="cv-${id}" type="number" step="any" value="${value ?? ""}" aria-label="Value"><button type="button" class="mini" aria-label="Remove constraint">×</button>`;
+  el.querySelector("button").addEventListener("click", () => el.remove());
+  $("#con-rows").appendChild(el);
+}
+function readObjRows(container) {
+  const out = {};
+  for (const r of $(container).children) {
+    const m = r.querySelector("select").value, w = Number(r.querySelector("input").value);
+    if (w > 0) out[m] = (out[m] || 0) + w;
+  }
+  return out;
 }
 fill();
+$("#obj-add").addEventListener("click", () => addObjRow("#obj-rows", "ehp", 0.5));
+$("#tobj-add").addEventListener("click", () => addObjRow("#tobj-rows", "speed", 0.5));
+$("#con-add").addEventListener("click", () => addConRow("min", "speed", ""));
+for (const r of document.querySelectorAll('input[name="scope"]')) r.addEventListener("change", () => {
+  const cls = $('input[name="scope"]:checked').value === "class";
+  $("#scope-ship").hidden = cls; $("#scope-class").hidden = !cls; $("#scope-hint").hidden = !cls;
+});
+for (const r of document.querySelectorAll('input[name="omode"]')) r.addEventListener("change", () => {
+  const par = $('input[name="omode"]:checked').value === "pareto";
+  $("#pareto-points-f").hidden = !par;
+  $("#omode-hint").textContent = par ? "The frontier shows every fit that no other fit beats on all listed metrics at once; weights are ignored. Each point is one search, so this takes a while."
+    : "Weights compare 100 DPS, 10,000 EHP, 100 EHP/s of tank and 1,000 m/s of speed as one point each.";
+});
 $("#sample").addEventListener("change", (e) => ($("#eft").value = SAMPLES[e.target.value]));
 for (const sel of document.querySelectorAll("select.skills")) {
   sel.addEventListener("change", () => { sel.closest("form").querySelector(".skills-file").hidden = sel.value !== "file"; });
@@ -432,23 +580,27 @@ $("#opt-form").addEventListener("submit", async (e) => {
   logSink = (m) => { log.textContent += `[${((performance.now() - t0) / 1000).toFixed(1)} s] ${m}\n`; log.scrollTop = log.scrollHeight; };
   logSink("Starting search");
   try {
-    const weights = { [$("#opt-obj").value]: 1 };
-    const o2 = $("#opt-obj2").value, w2 = num("#opt-w2");
-    if (o2 && w2) weights[o2] = (weights[o2] || 0) + w2;
+    const weights = readObjRows("#obj-rows");
+    if (!Object.keys(weights).length) throw new Error("Give at least one objective a weight above 0.");
     const constraints = {};
-    const put = (k, id) => { const v = num(id); if (v != null) constraints[k] = v; };
-    put("min_ehp", "#c-ehp"); put("min_sustained_tank", "#c-tank"); put("min_speed", "#c-speed");
-    put("min_weapon_range", "#c-range"); put("max_align_time", "#c-align");
+    for (const r of $("#con-rows").children) {
+      const [m, k] = [...r.querySelectorAll("select")].map((x) => x.value); const v = r.querySelector("input").value.trim();
+      if (v !== "") constraints[`${k}_${m}`] = Number(v);
+    }
     if ($("#c-cap").checked) constraints.cap_stable = true;
     const meta = [...document.querySelectorAll("#f-meta input:checked")].map((i) => i.value);
     if (!meta.length) throw new Error("Allow at least one module meta group.");
-    const exclude = list("#f-exclude");
+    const pareto = $('input[name="omode"]:checked').value === "pareto";
+    if (pareto && Object.keys(weights).length < 2) throw new Error("A trade-off frontier needs at least two objectives.");
+    const byClass = $('input[name="scope"]:checked').value === "class";
+    const incoming = { preset: $("#opt-profile").value }; if (num("#opt-indps")) incoming.dps = num("#opt-indps");
     const spec = {
-      ship: $("#opt-ship").value.trim(), objective: { weights },
+      ...(byClass ? { ship_classes: [$("#opt-class").value] } : { ship: $("#opt-ship").value.trim() }),
+      objective: pareto ? { pareto: Object.keys(weights), points: num("#opt-points") || 8 } : { weights },
       target: { preset: $("#opt-target").value, ...(num("#opt-distance") != null ? { distance: num("#opt-distance") } : {}) },
-      incoming: { preset: $("#opt-profile").value }, constraints,
-      fitting: { tank: $("#f-tank").value, propulsion: $("#f-prop").value, meta, require: list("#f-require"), exclude },
-      search: { effort: $("#opt-effort").value },
+      incoming, constraints,
+      fitting: { tank: $("#f-tank").value, propulsion: $("#f-prop").value, meta, require: list("#f-require"), exclude: list("#f-exclude"), subsystems: "auto" },
+      search: { effort: $("#opt-effort").value, ...(byClass ? { screen_top: num("#opt-top") || 3 } : {}) },
     };
     const req = Object.assign(await skillsReq(e.target), { spec, no_polarized: $("#f-nopol").checked });
     const res = JSON.parse(await call("optimize", JSON.stringify(req)));
@@ -456,6 +608,52 @@ $("#opt-form").addEventListener("submit", async (e) => {
     out.insertAdjacentHTML("beforeend", renderOpt(res, false));
   } catch (err) { out.insertAdjacentHTML("beforeend", `<p class="err">${esc(err.message)}</p>`); }
   logSink = null; btn.disabled = false; btn.textContent = "Find best fit";
+});
+
+$("#train-use-opt").addEventListener("click", () => { if (lastOptEft) $("#train-eft").value = lastOptEft; });
+const ROMAN = ["0", "I", "II", "III", "IV", "V"];
+function dur(sec) { const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`; }
+function change(s, ms) {
+  return ms.filter((m) => s.before[m] != null && s.after[m] != null && s.before[m] !== s.after[m] && s.before[m] !== "inf" && s.after[m] !== "inf")
+    .map((m) => `${label(m)} ${fmt(s.before[m], 1)} → ${fmt(s.after[m], 1)}${s.before[m] ? ` (${((s.after[m] - s.before[m]) / Math.abs(s.before[m]) * 100).toFixed(1)}%)` : ""}`).join("; ");
+}
+function renderTrain(r) {
+  const ms = r.metrics;
+  let h = `<div class="card"><div class="banner"><div><div class="ship">${esc(r.ship)}</div><div class="sub">Skills: ${esc(r.skills)} · training speed from ${Object.entries(r.attributes).map(([k, v]) => `${k.slice(0, 3)} ${v}`).join(", ")}</div></div></div></div>`;
+  h += `<div class="card"><h2>Training plan</h2>`;
+  if (r.plan.length) {
+    let t = 0;
+    h += `<div class="timeline">${r.plan.map((s) => { t += s.seconds; return `<div><span class="num">${dur(t)}</span><span>${esc(s.skill)} ${ROMAN[s.to]}${s.steps.length > 1 ? ` <span class="sub">(with ${s.steps.slice(0, -1).map(([n, , b]) => `${esc(n)} ${ROMAN[b]}`).join(", ")})</span>` : ""}</span></div>`; }).join("")}</div>`;
+    h += `<p class="sub">Result: ${change({ before: r.before, after: r.after }, ms) || "no change"}</p>`;
+  } else h += `<p class="sub">Nothing trainable within the budget improves this fit.</p>`;
+  h += `</div><div class="card"><h2>Best single trainings</h2><p class="sub">One more level each, ranked by gain per day of training.</p><div class="scroll"><table><thead><tr><th>Skill</th><th class="r">Time</th><th>Effect</th></tr></thead><tbody>`;
+  h += r.single.map((s) => `<tr><td>${esc(s.skill)} ${ROMAN[s.from]} → ${ROMAN[s.to]}${s.steps.length > 1 ? `<div class="sub">needs ${s.steps.slice(0, -1).map(([n, , b]) => `${esc(n)} ${ROMAN[b]}`).join(", ")}</div>` : ""}</td><td class="r num">${dur(s.seconds)}</td><td>${change(s, ms)}</td></tr>`).join("") || `<tr><td colspan="3">No skill raises the objective for this fit.</td></tr>`;
+  h += `</tbody></table></div></div>`;
+  if (r.reference) {
+    h += `<div class="card"><h2>Skills that unlock a better fit</h2><p class="sub">The fit is re-optimized with the skill trained and compared with the best fit your current skills can fly (${ms.map((m) => `${label(m)} ${fmt(r.reference[m], 1)}`).join(", ")}).</p>`;
+    h += r.refit.length ? `<div class="scroll"><table><thead><tr><th>Skill</th><th class="r">Time</th><th>Effect</th></tr></thead><tbody>${r.refit.map((s) => `<tr><td>${esc(s.skill)} ${ROMAN[s.to]}<div class="sub">unlocks ${s.unlocks.slice(0, 3).map(esc).join(", ")}</div></td><td class="r num">${dur(s.seconds)}</td><td>${change(s, ms)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="sub">None found within the budget.</p>`;
+    h += `</div>`;
+  }
+  return h;
+}
+$("#train-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#train-go"); btn.disabled = true; btn.textContent = "Working…";
+  const out = $("#train-out");
+  out.innerHTML = `<div class="card"><h2>Progress</h2><pre class="log" id="train-log"></pre></div>`;
+  const log = $("#train-log"); const t0 = performance.now();
+  logSink = (m) => { log.textContent += `[${((performance.now() - t0) / 1000).toFixed(1)} s] ${m}\n`; log.scrollTop = log.scrollHeight; };
+  try {
+    const weights = readObjRows("#tobj-rows");
+    if (!Object.keys(weights).length) throw new Error("Give at least one objective a weight above 0.");
+    const attributes = { perception: $("#a-per").value, willpower: $("#a-wil").value, intelligence: $("#a-int").value, memory: $("#a-mem").value, charisma: $("#a-cha").value };
+    const spec = { objective: { weights }, target: { preset: $("#train-target").value, ...(num("#train-distance") != null ? { distance: num("#train-distance") } : {}) },
+      incoming: { preset: $("#train-profile").value }, search: { effort: "quick" } };
+    const req = Object.assign(await skillsReq(e.target), { eft: $("#train-eft").value, spec, attributes, days: num("#train-days") || 30, refit: $("#train-refit").checked, unlocks: 5 });
+    const r = JSON.parse(await call("train", JSON.stringify(req)));
+    out.insertAdjacentHTML("beforeend", renderTrain(r));
+  } catch (err) { out.insertAdjacentHTML("beforeend", `<p class="err">${esc(err.message)}</p>`); }
+  logSink = null; btn.disabled = false; btn.textContent = "Advise training";
 });
 
 // tabs
@@ -467,6 +665,7 @@ for (const t of document.querySelectorAll('[role="tab"]')) {
 }
 try { const saved = localStorage.getItem("fitlab-tab"); if (saved && saved !== "tab-sim") document.getElementById(saved)?.click(); } catch {}
 if (location.hash === "#optimize") $("#tab-opt").click();
+if (location.hash === "#train") $("#tab-train").click();
 
 // example readouts so the page shows something real while Python boots
 if (INITIAL) $("#sim-out").innerHTML = renderStats(INITIAL, { subtitle: "Example readout: Caracal sample with all skills V", badge: '<span class="pill ex">Example</span>', key: "applied_dps", profile: "uniform" });

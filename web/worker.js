@@ -53,10 +53,10 @@ self.onmessage = async (e) => {
     else if (op === "simulate") {
       py.globals.set("REQ", payload);
       result = py.runPython("webapi.simulate(REQ)");
-    } else if (op === "optimize") {
+    } else if (op === "optimize" || op === "train") {
       py.globals.set("REQ", payload);
       py.globals.set("LOG", (m) => postMessage({ type: "log", msg: m }));
-      result = py.runPython("webapi.optimize(REQ, LOG)");
+      result = py.runPython(`webapi.${op}(REQ, LOG)`);
     } else throw new Error("unknown op " + op);
     postMessage({ id, ok: true, result });
   } catch (err) {

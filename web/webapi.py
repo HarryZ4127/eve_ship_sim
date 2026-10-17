@@ -6,7 +6,8 @@ import math
 from evesim.application import PRESETS, Target, applied_dps
 from evesim.data.store import CAT_SHIP, StaticData
 from evesim.fit import Fit
-from evesim.optimize.search import Optimizer
+from evesim.optimize import pareto
+from evesim.optimize.search import SHIP_CLASSES, Optimizer
 from evesim.optimize.spec import METRICS, from_dict, _profile
 from evesim.skills import profile as skillprof
 from evesim.stats import compute
@@ -31,12 +32,20 @@ def init(path):
     ships = sorted(t.name for t in _data.types.values() if t.category_id == CAT_SHIP and t.market_group)
     grades = sorted(g["name"] for g in _data.clone_grades.values())
     return json.dumps({"ships": ships, "grades": grades, "build": _data.meta.get("client_build"),
-                       "metrics": {m.name: {"higher": m.higher_is_better, "unit": m.unit} for m in METRICS.values()}})
+                       "classes": list(SHIP_CLASSES),
+                       "metrics": {m.name: {"higher": m.higher_is_better, "unit": m.unit, "about": m.description}
+                                   for m in METRICS.values()}})
+
+
+def _profile_of(skills, skills_json=None):
+    if skills == "file":
+        return skillprof.from_dict(_data, json.loads(skills_json), name="uploaded")
+    return skillprof.load(_data, skills)
 
 
 def _char(skills, skills_json=None):
     if skills == "file":
-        prof = skillprof.from_dict(_data, json.loads(skills_json), name="uploaded")
+        prof = _profile_of(skills, skills_json)
         return prof.character(_data), prof.name
     if skills not in _chars:
         prof = skillprof.load(_data, skills)
@@ -81,6 +90,11 @@ def optimize(req_json, log):
         sd.setdefault("fitting", {}).setdefault("exclude", []).extend(pol)
     spec = from_dict(sd)
     char, name = _char(req.get("skills", "all5"), req.get("skills_json"))
+    if spec.pareto:
+        points = pareto.run(_data, char, spec, log=log)
+        return json.dumps(_clean({"skills": name, "pareto": spec.pareto, "points": [
+            {"ship": p.ship, "weights": p.weights, "metrics": {m: p.metrics[m] for m in spec.pareto},
+             "stats": _stats_dict(p.evaluation.stats, spec.target)} for p in points]}))
     opt = Optimizer(_data, char, spec, log=log)
     results = opt.run()
     out = []
@@ -101,4 +115,37 @@ def optimize(req_json, log):
                 "score": a.score, "feasible": a.feasible,
                 "metrics": {m: a.metrics[m] for m in spec.weights}} for a in r.alternatives]
         out.append(item)
-    return json.dumps(_clean({"skills": name, "weights": spec.weights, "results": out}))
+    return json.dumps(_clean({"skills": name, "weights": spec.weights, "results": out,
+                              "screened": opt.screened[:30]}))
+
+
+def train(req_json, log):
+    from evesim.advisor import Advisor, objective_metrics
+    req = json.loads(req_json)
+    spec = from_dict(req["spec"])
+    prof = _profile_of(req.get("skills", "all5"), req.get("skills_json"))
+    attrs = dict(prof.attributes)
+    attrs.update({k: float(v) for k, v in (req.get("attributes") or {}).items() if v not in (None, "")})
+    fit = Fit.from_eft(req["eft"], _data)
+    spec.ships = [fit.ship.name]
+    adv = Advisor(_data, prof.levels, spec, prof.implants, attrs, log=log)
+    days = float(req.get("days", 30))
+    log("ranking single skills")
+    single = adv.fit_suggestions(fit, days)[:15]
+    log("building the training plan")
+    plan, before, after = adv.plan(fit, days)
+    refit, reference = [], None
+    if req.get("refit"):
+        log("re-optimizing for skills that unlock better modules")
+        refit, _ = adv.refit_suggestions(days, int(req.get("unlocks", 5)))
+        reference = adv.reference.metrics
+
+    def sugg(s):
+        return {"skill": s.skill, "from": s.from_level, "to": s.to_level, "seconds": s.seconds, "gain": s.gain,
+                "per_day": s.gain_per_day, "steps": s.steps, "before": s.before, "after": s.after,
+                "unlocks": s.unlocks, "eft": s.fit_eft}
+
+    return json.dumps(_clean({"skills": prof.name, "attributes": adv.attributes, "metrics": objective_metrics(spec),
+                              "single": [sugg(s) for s in single], "plan": [sugg(s) for s in plan],
+                              "before": before, "after": after, "refit": [sugg(s) for s in refit],
+                              "reference": reference, "ship": fit.ship.name}))

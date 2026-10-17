@@ -15,6 +15,8 @@ src/evesim/
   market.py          ESI average prices with a daily cache
   optimize/spec.py   requirements spec, metric registry
   optimize/search.py optimizer
+  optimize/pareto.py trade-off frontier over several metrics
+  advisor.py         skill training advisor
   report.py, cli.py  output and command line
 ```
 
@@ -62,13 +64,15 @@ Missile damage is the charge's damage times the character's `missileDamageMultip
 ## Validation
 
 `tests/test_against_pyfa.py` compares evesim with Pyfa's `eos` engine, run headless
-via `tools/pyfa_reference.py`, on seven fits: projectile, missile, drone, laser,
-hybrid, an ancillary repairer with cap booster, a T3C with subsystems, and a cruise
-missile battleship. Every compared value matches to 0.1% (capacitor time-to-empty is
+via `tools/pyfa_reference.py`, on twelve fits: projectile, missile, drone, laser,
+hybrid, an ancillary repairer with cap booster, a T3C with subsystems, a cruise missile
+battleship, two T3 destroyers in different tactical modes, a mining barge, and shield and
+armor logistics. Every compared value matches to 0.1% (capacitor time-to-empty is
 checked to 5% and currently matches exactly): DPS, volley, drone DPS,
 HP/EHP per layer, all 12 resists, CPU/PG/calibration, speed, align time, signature,
 mass, lock range, scan resolution, capacitor capacity/recharge/usage, stability and
-time-to-empty, and peak/sustained repair rates. The reference carries the game build
+time-to-empty, peak/sustained repair rates, cargo, mining yield and remote repair. Like
+Pyfa, the capacitor simulation staggers identical non-turret modules over their cycle. The reference carries the game build
 it was made from, and the test skips on a different build until regenerated.
 
 Known small differences:
@@ -123,16 +127,53 @@ that can be swapped for a smaller one with no immediate gain) can be walked off.
 
 Typical run times on one core: quick 2–10 s, normal 20–40 s per hull.
 
+## Ship coverage
+
+`tools/audit_ships.py` computes every published hull (421) on the empty hull and runs a
+quick optimization for one hull per ship group (49 groups). All compute without errors,
+and no hull has effects the engine cannot execute. What it found and what was done:
+
+* **T3 destroyer modes** were missing (CCP marks them unpublished). They are now in the
+  data, required on T3D fits, and chosen by the optimizer. Two Svipul fits match Pyfa.
+* **T3 cruiser subsystems** can be chosen automatically (`subsystems = "auto"`), by
+  coordinate descent over the four subsystem slots using fast screening fits.
+* **Burst modules** (assault damage controls, cloaks, micro jump drives, bombs) have a
+  long reactivation delay. They used to count as permanently active, which gave an
+  assault frigate 194k EHP. They now default to online.
+* **Fighters** (carriers, supercarriers, one dreadnought, one titan) are not modelled.
+  These hulls fit and simulate, but fighter damage and abilities are missing.
+* **Roles without damage** (logistics, mining, hauling) now have metrics:
+  `remote_repair`, `mining_yield` and `cargo` (all matching Pyfa). When no damage metric
+  is in play, high slots stay free for repairers or mining lasers instead of weapons.
+* **Freighter oddity:** in this game build the Avalanche has six launcher hardpoints
+  while other freighters have none; that comes from CCP's data, not evesim.
+* **Storyline modules** include officer-grade "Naiyon's Modified" items. Combined with
+  Polarized weapons they produce very high DPS fits (an Eris at 1,412 DPS), which Pyfa
+  confirms. Restrict `meta` or set a budget if you want ordinary fits.
+
+## Training advisor
+
+For a fixed fit, each skill below V is raised one level (with prerequisites) and the
+objective is re-scored; a skill is listed only for what it adds beyond its prerequisites.
+Training time is `250 * rank * sqrt(32)^(L-1)` skill points per level at
+`primary + secondary / 2` SP per minute. The plan is greedy by gain per day.
+Unlock analysis re-optimizes the hull with each candidate skill set (sets that unlock
+upgrades of items already in the fit first). Every re-run also yields fits the current
+skills can already fly, and the best of those is the reference, so a better search
+result is not mistaken for a skill benefit.
+
 ## Not modelled (yet)
 
 Fighters and carriers, command bursts and fleet boosts, projected effects (your webs
-and paints on the target; enemy EWAR on you), T3 destroyer modes, mutated (abyssal)
+and paints on the target are reported as strength and range but do not change your
+applied damage; enemy EWAR on you), mutated (abyssal)
 modules, drugs, heat damage, Reactive Armor Hardener adaptation, entropic
 disintegrator spool-up in the optimizer (the stats report base damage and the
 `spool_max` bonus), breacher pods, and drone application beyond "outrun or not". The
-optimizer does not choose implants (ESI implants are applied when fitting stats), does
-not choose T3C subsystems (you list them), and leaves utility high slots empty unless
-you `require` something.
+optimizer does not choose implants (ESI implants are applied when fitting stats), and
+fills utility high slots only when a metric rewards them (EWAR, remote repair, mining).
+Mining crystals only boost their own ore type, and `mining_yield` assumes you mine that
+ore; set `fitting.ammo` to the crystal for your ore.
 
 ## Open decisions
 
@@ -148,5 +189,5 @@ These choices shape what the optimizer recommends and are worth settling:
    the prop mod. Some players judge stability with prop off.
 4. **Price source.** ESI average prices are free but loose. Jita sell prices would need
    a market API (e.g. Fuzzwork or Janice).
-5. **Skill-plan advice.** The engine can cheaply answer "which skill raises this fit's
-   DPS/EHP the most per training day". That would be a natural next feature.
+5. **Default module pool for storyline items.** Officer-grade storyline modules are
+   included by default; a metaLevel cap may suit most players better.

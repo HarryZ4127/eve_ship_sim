@@ -25,7 +25,7 @@ from evesim.data.store import CAT_CHARGE, CAT_DRONE, CAT_MODULE, StaticData, Typ
 from evesim.dogma.engine import Character
 from evesim.fit import Fit, module_fits_ship
 from evesim.market import Prices
-from evesim.optimize.search import Optimizer
+from evesim.optimize.search import PENALTY, Optimizer
 from evesim.optimize.spec import METRICS, Spec
 
 ATTRIBUTE_IDS = {"charisma": 164, "intelligence": 165, "memory": 166, "perception": 167, "willpower": 168}
@@ -113,7 +113,9 @@ class Advisor:
     def score_fit(self, fit: Fit, levels) -> tuple[float, dict[str, float]]:
         opt = Optimizer(self.data, self._char(levels), self.spec, self.prices)
         ev = opt.evaluate(fit, sim_cap=self.spec.cap_simulation_needed)
-        return ev.score, ev.metrics
+        # Objective and constraint penalty only: the optimizer's spare-CPU/price tie-breaker
+        # would otherwise credit fitting skills with phantom gains.
+        return ev.objective - PENALTY * ev.violation, ev.metrics
 
     def _apply(self, steps) -> dict[int, int]:
         lv = dict(self.levels)

@@ -29,7 +29,7 @@ DEFAULT_OPT = {
              "target": {"preset": "cruiser", "distance": 30000}, "incoming": {"preset": "guristas"},
              "constraints": {"min_ehp": 12000, "cap_stable": True},
              "fitting": {"tank": "shield", "propulsion": "ab", "meta": ["tech1", "tech2", "storyline"],
-                         "require": [], "exclude": []},
+                         "require": [], "exclude": [], "subsystems": "auto"},
              "search": {"effort": "quick"}},
 }
 
@@ -75,6 +75,12 @@ def main():
                         "const SAMPLES = " + json.dumps(samples))
     html = html.replace("const INITIAL = null;", "const INITIAL = " + json.dumps(initial) + ";")
     html = html.replace("const INITIAL_OPT = null;", "const INITIAL_OPT = " + json.dumps(initial_opt) + ";")
+    from evesim.optimize.search import SHIP_CLASSES
+    from evesim.optimize.spec import METRICS
+    info = {m.name: {"unit": m.unit, "higher": m.higher_is_better, "about": m.description} for m in METRICS.values()}
+    html = html.replace("const METRICS_INFO = null;", "const METRICS_INFO = " + json.dumps(info) + ";")
+    html = html.replace(html[html.index("const SHIP_CLASSES = "):html.index(";\nconst label = ")],
+                        "const SHIP_CLASSES = " + json.dumps(list(SHIP_CLASSES)))
     (out / "index.html").write_text(html)
     print(f"built {out}")
 
