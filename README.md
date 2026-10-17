@@ -90,7 +90,7 @@ require = ["Warp Scrambler II"]
 exclude = ["Polarized Heavy Assault Missile Launcher"]
 ```
 
-`evesim metrics` lists the 54 metrics you can maximize or constrain:
+`evesim metrics` lists the 57 metrics you can maximize or constrain:
 
 | area | metrics |
 |---|---|
@@ -102,7 +102,7 @@ exclude = ["Polarized Heavy Assault Missile Launcher"]
 | EWAR and tackle | `neut_rate`, `tackle_range`, `web_range`, `web_strength`, `paint_strength`, `ecm_strength`, `damp_strength`, `disruption_strength` |
 | roles | `remote_repair`, `cargo` |
 | mining | `mining_yield` (ore), `ice_yield`, `gas_yield` |
-| exploration | `probe_strength`, `data_coherence`, `data_strength`, `relic_coherence`, `relic_strength`, `salvage_chance` |
+| exploration | `probe_strength`, `hacking_coherence`, `hacking_strength`, `hacking_power` (data and relic together), `data_coherence`, `data_strength`, `relic_coherence`, `relic_strength`, `salvage_chance` |
 | cost and fitting | `price`, `dps_per_misk`, `ehp_per_misk`, `cpu_left`, `pg_left` |
 
 [docs/requirements.md](docs/requirements.md) documents every field and how to choose good requirements.

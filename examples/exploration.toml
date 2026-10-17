@@ -4,7 +4,7 @@ name = "Explorer"
 ships = ["Heron", "Magnate", "Imicus", "Probe", "Astero", "Buzzard", "Anathema", "Cheetah", "Helios"]
 
 [objective]
-weights = { probe_strength = 1.0, relic_coherence = 0.5, data_coherence = 0.5 }
+weights = { probe_strength = 1.0, hacking_power = 1.0 }   # hacking_power: data and relic together
 
 [constraints]
 min_speed = 1000

@@ -156,6 +156,14 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
            "virus coherence of your relic analyzer"),
     Metric("relic_strength", True, lambda s, sp: _hack(s, "relic", "strength"), "",
            "virus strength of your relic analyzer"),
+    Metric("hacking_coherence", True, lambda s, sp: min(_hack(s, "data", "coherence"), _hack(s, "relic", "coherence")),
+           "", "virus coherence for both data and relic sites (the weaker of the two; 0 without both)"),
+    Metric("hacking_strength", True, lambda s, sp: min(_hack(s, "data", "strength"), _hack(s, "relic", "strength")),
+           "", "virus strength for both data and relic sites (the weaker of the two)"),
+    Metric("hacking_power", True, lambda s, sp: min(_hack(s, k, "coherence") * _hack(s, k, "strength")
+                                                    for k in ("data", "relic")), "",
+           "coherence x strength for both data and relic sites (the weaker of the two): one number "
+           "for how much of the hacking game you can push through"),
     Metric("salvage_chance", True, lambda s, sp: s.utility.get("salvage_chance", 0.0), "%",
            "salvager access bonus added to each wreck's salvage chance"),
     Metric("remote_repair", True, lambda s, sp: sum(s.utility.get("remote_repair", {}).values()), "HP/s",
@@ -240,6 +248,7 @@ METRIC_GROUPS = {
     "cap_capacity": ["cap"], "cap_recharge": ["cap"], "mining_yield": ["mining"],
     "ice_yield": ["mining"], "gas_yield": ["mining"], "probe_strength": ["scan"], "data_coherence": ["hacking"],
     "data_strength": ["hacking"], "relic_coherence": ["hacking"], "relic_strength": ["hacking"],
+    "hacking_coherence": ["hacking"], "hacking_strength": ["hacking"], "hacking_power": ["hacking"],
     "salvage_chance": ["salvage"], "remote_repair": ["remote", "cap"],
     "neut_rate": ["neut"], "tackle_range": ["tackle"], "web_range": ["web"], "web_strength": ["web"],
     "paint_strength": ["paint"], "ecm_strength": ["ecm"], "damp_strength": ["damp"],

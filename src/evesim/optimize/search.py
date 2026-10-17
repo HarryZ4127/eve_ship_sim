@@ -55,7 +55,8 @@ DEFAULT_SCALES = {
     "warp_speed": 5.0, "mass": 10_000_000.0, "max_targets": 5.0, "sensor_strength": 20.0, "lock_time": 5.0,
     "drone_control_range": 50_000.0, "cap_capacity": 1000.0, "cap_recharge": 10.0, "mining_yield": 10.0,
     "ice_yield": 10.0, "gas_yield": 2.0, "probe_strength": 100.0, "data_coherence": 50.0, "data_strength": 20.0,
-    "relic_coherence": 50.0, "relic_strength": 20.0, "salvage_chance": 10.0,
+    "relic_coherence": 50.0, "relic_strength": 20.0,
+    "hacking_coherence": 50.0, "hacking_strength": 20.0, "hacking_power": 5000.0, "salvage_chance": 10.0,
     "remote_repair": 100.0, "neut_rate": 10.0, "tackle_range": 10_000.0, "web_range": 10_000.0,
     "web_strength": 50.0, "paint_strength": 25.0, "ecm_strength": 5.0, "damp_strength": 25.0,
     "disruption_strength": 25.0,
@@ -142,6 +143,8 @@ class Optimizer:
         self.scales.update(spec.scales)
         self.relevant = spec.relevant_metrics()
         self.metric_names = self.relevant | {"dps", "ehp", "price", "speed", "cap_delta"}
+        if self.relevant & HACKING_COMBINED:
+            self.metric_names |= {"data_coherence", "data_strength", "relic_coherence", "relic_strength"}
         fitting = {"cpu", "power", "upgradeCost", "cpuOutput", "powerOutput", "upgradeCapacity"}
         self.relevant_attr_ids = {data.attr_id(a) for a in spec.relevant_attrs() - fitting
                                   if a in data._attr_by_name}
@@ -191,7 +194,13 @@ class Optimizer:
             if c.bound == math.inf:  # cap stable
                 viol += 0.0 if v == math.inf else 1.0 + max(0.0, 1.0 - min(v, 600.0) / 600.0)
             else:
-                viol += c.shortfall(v)
+                short = c.shortfall(v)
+                if short and c.metric in HACKING_COMBINED and c.kind == "min":
+                    # Partial credit for the kind already good enough, so the search can add
+                    # the second analyzer; still infeasible until both are.
+                    progress = sum(min(x / max(c.bound, 1e-9), 1.0) for x in _hack_kinds(metrics, c.metric)) / 2
+                    short *= 1.0 - 0.5 * progress
+                viol += short
         for kind, margin in (("cpu", self.spec.cpu_margin), ("power", self.spec.pg_margin), ("calibration", 0.0)):
             used, out = st.resources[kind]
             if used + margin > out + 1e-6:
@@ -203,20 +212,23 @@ class Optimizer:
             if not any(want in m.type.effect_ids for m in fit.modules):
                 viol += 1.0
 
-        obj = 0.0
+        obj = shaping = 0.0
         for m, w in self.spec.weights.items():
             v = metrics[m]
             if v == math.inf:
                 v = 3600.0
             sign = 1.0 if METRICS[m].higher_is_better else -1.0
             obj += w * sign * v / self.scales.get(m, 1.0)
+            if m in HACKING_COMBINED:  # same idea for objectives: a little credit for one kind
+                kinds = _hack_kinds(metrics, m)
+                shaping += 0.05 * w * (sum(kinds) / 2 - v) / self.scales.get(m, 1.0)
         # Tiny tie-breaker: among equal fits prefer spare CPU/PG and lower price, which lets the
         # search walk off plateaus (e.g. swap an oversized module for one that leaves room).
         cpu_used, cpu_out = st.resources["cpu"]
         pg_used, pg_out = st.resources["power"]
         frugal = 1e-3 * ((cpu_out - cpu_used) / max(cpu_out, 1.0) + (pg_out - pg_used) / max(pg_out, 1.0)) \
             - 1e-4 * (st.price or 0.0) / 1e8
-        ev = Evaluation(fit, st, obj + frugal - PENALTY * viol, obj, viol, metrics, st.problems)
+        ev = Evaluation(fit, st, obj + frugal + shaping - PENALTY * viol, obj, viol, metrics, st.problems)
         if len(self._cache) >= CACHE_LIMIT:
             self._cache.clear()
         self._cache[key] = ev
@@ -324,8 +336,14 @@ class Optimizer:
                 continue
             raw[slot].append(t)
 
-        dims = sorted(self.relevant | ({"cap_delta"} if self.relevant & {"sustained_tank", "cap_seconds",
-                                                                         "cap_stable_fraction"} else set()))
+        dims = set(self.relevant)
+        if dims & {"sustained_tank", "cap_seconds", "cap_stable_fraction"}:
+            dims.add("cap_delta")
+        if dims & HACKING_COMBINED:
+            # The combined metrics take the weaker of data and relic, so one analyzer alone
+            # shows no gain; judge candidates on each kind separately.
+            dims |= {"data_coherence", "data_strength", "relic_coherence", "relic_strength"}
+        dims = sorted(dims)
         base_ev = self.evaluate(base, sim_cap=False)
         cpu_out = base_ev.stats.resources["cpu"][1]
         pg_out = base_ev.stats.resources["power"][1]
@@ -987,6 +1005,17 @@ class Optimizer:
 
 
 _WEAPON_EFFECTS = {C.E_PROJECTILE_FIRED, C.E_TARGET_ATTACK, C.E_USE_MISSILES, C.E_DISINTEGRATOR_ATTACK, C.E_VORTON}
+
+
+HACKING_COMBINED = {"hacking_coherence", "hacking_strength", "hacking_power"}
+
+
+def _hack_kinds(metrics: dict, m: str) -> list[float]:
+    """Data and relic values behind a combined hacking metric."""
+    if m == "hacking_power":
+        return [metrics[f"{k}_coherence"] * metrics[f"{k}_strength"] for k in ("data", "relic")]
+    field = m.split("_", 1)[1]
+    return [metrics[f"data_{field}"], metrics[f"relic_{field}"]]
 
 
 def _is_weapon(t: Type) -> bool:

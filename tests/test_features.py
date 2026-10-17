@@ -178,3 +178,14 @@ def test_harvest_kinds(data, all5):
     fit = Fit.from_eft("[Venture, x]\n\n\nGas Cloud Scoop I\nMiner I\n", data)
     u = compute(fit, all5).utility
     assert u["gas_yield"] > 0 and u["mining_yield"] > 0 and u["ice_yield"] == 0
+
+
+def test_combined_hacking_needs_both_kinds(data, all5):
+    integrated = [t.name for t in data.types.values() if t.name.endswith("Integrated Analyzer")]
+    spec = from_dict({"ship": "Heron", "objective": {"maximize": "hacking_power"},
+                      "fitting": {"exclude": integrated}, "search": {"effort": "quick"}})
+    best = Optimizer(data, all5, spec).run()[0].best
+    names = [m.type.name for m in best.fit.modules]
+    assert any(n.startswith("Data Analyzer") for n in names) and any(n.startswith("Relic Analyzer") for n in names)
+    m = best.metrics
+    assert m["hacking_power"] == min(m["data_coherence"] * m["data_strength"], m["relic_coherence"] * m["relic_strength"])

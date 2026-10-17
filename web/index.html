@@ -424,7 +424,8 @@ const METRIC_LABEL = { dps: "Raw DPS", applied_dps: "Applied DPS", weapon_dps: "
   cap_seconds: "Cap duration", cap_stable_fraction: "Cap stable %", cap_delta: "Cap surplus", cap_capacity: "Cap capacity", cap_recharge: "Cap recharge",
   cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Ore yield", remote_repair: "Remote repair",
   ice_yield: "Ice yield", gas_yield: "Gas yield", probe_strength: "Probe strength", data_coherence: "Data coherence", data_strength: "Data strength",
-  relic_coherence: "Relic coherence", relic_strength: "Relic strength", salvage_chance: "Salvage chance",
+  relic_coherence: "Relic coherence", relic_strength: "Relic strength",
+  hacking_coherence: "Hacking coherence (data + relic)", hacking_strength: "Hacking strength (data + relic)", hacking_power: "Hacking power (data + relic)", salvage_chance: "Salvage chance",
   drone_control_range: "Drone range", neut_rate: "Neut drain", tackle_range: "Tackle range", web_range: "Web range", web_strength: "Web strength",
   paint_strength: "Painter strength", ecm_strength: "ECM strength", damp_strength: "Damp strength", disruption_strength: "Disruption strength" };
 const METRICS_INFO = null;
@@ -1035,7 +1036,9 @@ function roleTiles(u) {
   let h = "";
   const p = (u.probes || [])[0];
   if (p) h += tile("Probe strength", fmt(p.strength, 1), "", esc(p.name));
-  for (const [k, x] of Object.entries(u.hacking || {})) h += tile(k === "data" ? "Data hacking" : "Relic hacking", fmt(x.coherence), "coh", `strength ${fmt(x.strength)}`);
+  const hk = u.hacking || {};
+  if (hk.data && hk.relic && hk.data.name === hk.relic.name) h += tile("Hacking", fmt(hk.data.coherence), "coh", `strength ${fmt(hk.data.strength)} · data and relic`);
+  else for (const [k, x] of Object.entries(hk)) h += tile(k === "data" ? "Data hacking" : "Relic hacking", fmt(x.coherence), "coh", `strength ${fmt(x.strength)}`);
   if (u.mining_yield) h += tile("Ore yield", fmt(u.mining_yield, 2), "m³/s", `${fmt(u.mining_yield * 3600)} m³/h`);
   if (u.ice_yield) h += tile("Ice yield", fmt(u.ice_yield, 2), "m³/s", `${fmt(u.ice_yield * 3.6, 1)} blocks/h`);
   if (u.gas_yield) h += tile("Gas yield", fmt(u.gas_yield, 2), "m³/s", `${fmt(u.gas_yield * 3600)} m³/h`);

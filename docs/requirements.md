@@ -29,7 +29,7 @@ choices**:
 | Kiter | weights `applied_dps` + `speed` | `min_weapon_range`, `min_speed` | `propulsion = "mwd"` |
 | Fleet / alpha | `volley` or `ehp` | `min_lock_range`, `max_align_time` | `meta` limits for doctrine |
 | Travel / hauler | `ehp` | `max_align_time` | `propulsion = "mwd"` |
-| Exploration | weights `probe_strength` + `relic_coherence` + `data_coherence` | `min_speed`, `max_align_time` | `require` a cloak |
+| Exploration | weights `probe_strength` + `hacking_power` | `min_speed`, `max_align_time` | `require` a cloak |
 | Ice / gas mining | `ice_yield` or `gas_yield` | `min_ehp` | `tank` |
 | Salvaging | `salvage_chance` | `min_ehp` | `require` tractor beams and salvagers |
 
@@ -75,7 +75,8 @@ With weight 1, one "scale unit" is worth one point:
 | lock_range | 50 km | weapon_range | 10 km |
 | mining_yield, ice_yield | 10 m3/s | gas_yield | 2 m3/s |
 | probe_strength | 100 | salvage_chance | 10 % |
-| data/relic_coherence | 50 | data/relic_strength | 20 |
+| (data/relic/hacking)_coherence | 50 | (data/relic/hacking)_strength | 20 |
+| hacking_power | 5,000 | | |
 | cap_seconds | 300 s | price | 100M ISK |
 
 So `weights = { applied_dps = 1.0, ehp = 0.5 }` trades 100 DPS for 20,000 EHP. Metrics
@@ -95,6 +96,17 @@ returns every fit that no other fit beats on all listed metrics at once (the Par
 front). Use it when you don't know the right weights yet: the frontier shows what each
 extra point of one metric costs in the others. Constraints and fitting choices still
 apply to every point. It takes about `points` times as long as one optimization.
+
+#### Hacking: data and relic together
+
+Most explorers run both kinds of site, so three metrics treat them as one:
+
+* `hacking_coherence` and `hacking_strength`: the weaker of your data and relic analyzer.
+* `hacking_power`: coherence × strength, again the weaker kind. One number for how much of
+  the hacking game you can push through, handy as a single objective.
+
+A fit without both kinds scores 0 on them (an integrated analyzer counts for both). Use
+`data_*` / `relic_*` when you only run one kind of site.
 
 ### `[target]`: who you shoot
 

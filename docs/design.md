@@ -184,7 +184,11 @@ match Pyfa per squadron, including the Drone Damage Amplifier bonus.
   allowed probe (set `fitting.ammo` to choose combat probes).
 * **Hacking:** data and relic analyzers report virus coherence (your hit points in the
   hacking game), virus strength (damage per hit) and utility element slots. Integrated
-  analyzers count for both.
+  analyzers count for both. The combined metrics (`hacking_coherence`, `hacking_strength`,
+  `hacking_power` = coherence × strength) take the weaker kind, so a fit must handle both
+  site types. Because one analyzer alone then gains nothing, the search scores data and relic
+  separately when choosing candidates and gives a little partial credit for one kind (never
+  enough to make a fit with only one kind feasible).
 * **Salvage:** `salvage_chance` is the salvager's access bonus added to each wreck's base
   chance (it does not grow with more salvagers, which only salvage faster).
 * **Harvesting:** ore, ice and gas yields are separate metrics, told apart by the harvester's
