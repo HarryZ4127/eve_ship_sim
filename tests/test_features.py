@@ -189,3 +189,16 @@ def test_combined_hacking_needs_both_kinds(data, all5):
     assert any(n.startswith("Data Analyzer") for n in names) and any(n.startswith("Relic Analyzer") for n in names)
     m = best.metrics
     assert m["hacking_power"] == min(m["data_coherence"] * m["data_strength"], m["relic_coherence"] * m["relic_strength"])
+
+
+def test_probe_modules_count_with_only_a_t1_launcher(data):
+    # Astrometrics IV: only the T1 launcher, which has no strength bonus of its own. The
+    # strength modules must still be judged with a launcher fitted.
+    prof = all_level(data, 5)
+    prof.levels[data.type_by_name("Astrometrics").id] = 4
+    char = prof.character(data)
+    spec = from_dict({"ship": "Astero", "objective": {"maximize": "probe_strength"}, "search": {"effort": "quick"}})
+    best = Optimizer(data, char, spec).run()[0].best
+    names = [m.type.name for m in best.fit.modules]
+    assert "Core Probe Launcher I" in names or "Expanded Probe Launcher I" in names
+    assert any(n.startswith("Scan Rangefinding Array") or "Gravity Capacitor" in n for n in names)

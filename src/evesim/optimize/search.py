@@ -42,7 +42,6 @@ PENALTY = 1000.0
 CACHE_LIMIT = 20_000  # evaluations kept for re-use; cleared when full and between hulls
 GROUP_PROPULSION = 46
 GROUP_PROBE_LAUNCHER = 481
-E_PROBE_STRENGTH = 4162  # launcher effect boosting loaded probes
 
 # Metric scales: a weight of 1 means "one scale unit of this metric is worth one point".
 DEFAULT_SCALES = {
@@ -269,6 +268,8 @@ class Optimizer:
             out |= {a("virusCoherence"), a("virusStrength")}
         if t.default_effect == E_SALVAGING:
             out.add(a("accessDifficultyBonus"))
+        if t.group_id == GROUP_PROBE_LAUNCHER:  # launches the probes whose strength counts
+            out.add(a("baseSensorStrength"))
         if t.default_effect in EWAR_EFFECTS or t.attrs.get(a("warpScrambleStrength")):
             out |= {x for x in self._ewar_attr_ids if x in t.attrs}
         self._touch_cache[t.id] = out
@@ -381,10 +382,12 @@ class Optimizer:
         # (boost amplifiers with a booster, prop rigs with a prop mod ...) are not lost.
         enabler_effects = [(C.E_SHIELD_BOOSTING, C.E_FUELED_SHIELD_BOOSTING), (C.E_ARMOR_REPAIR, C.E_FUELED_ARMOR_REPAIR),
                            (C.E_POWER_BOOSTER,), (C.E_MWD,), (C.E_AB,), tuple(_MINING_EFFECTS),
-                           tuple(_REMOTE_REPAIR), (E_PROBE_STRENGTH,), (E_HACKING,), (E_SALVAGING,)]
+                           tuple(_REMOTE_REPAIR), (E_HACKING,), (E_SALVAGING,)]
+        enablers = [lambda t, e=frozenset(effs): bool(e & set(t.effect_ids)) for effs in enabler_effects]
+        enablers.append(lambda t: t.group_id == GROUP_PROBE_LAUNCHER)  # T1 launchers have no bonus effect
         probe2 = base.copy()
-        for effs in enabler_effects:
-            cands = [t for types in raw.values() for t in types if set(t.effect_ids) & set(effs)]
+        for is_enabler in enablers:
+            cands = [t for types in raw.values() for t in types if is_enabler(t)]
             if cands:
                 t = max(cands, key=lambda t: (sum(g > 1e-9 for g in first[t.id][0]), t.meta_group == 2))
                 probe2.modules.append(ModuleSpec(t, default_state(t, self.data), self._default_charge(t)))
