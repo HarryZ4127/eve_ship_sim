@@ -44,7 +44,7 @@ evesim train my_fit.eft --skills me.json --objective applied_dps=1,ehp=0.5 --day
 2. `export EVESIM_CLIENT_ID=<your client id>` (PowerShell: `$env:EVESIM_CLIENT_ID = "<your client id>"`,
    or pass `--client-id` to `evesim login`). The login uses PKCE, so no secret is stored.
 3. `evesim login`: a browser opens for EVE SSO, and tokens are saved to `~/.config/evesim/tokens.json`.
-4. Use `--skills esi:<character name>` (quoted if the name has spaces: `-s "esi:My Name"`) with `stats`, `optimize`, `train` or `skills`.
+4. Use `--skills esi:<character name>` (quoted if the name has spaces: `-s "esi:My Name"`; a logged-in character's plain name works too) with `stats`, `optimize`, `train` or `skills`.
 
 ESI returns `active_skill_level`, so alpha clone caps are applied automatically, and
 your attributes, which set training speed for the advisor.

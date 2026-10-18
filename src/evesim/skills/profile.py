@@ -89,11 +89,17 @@ def load(data: StaticData, spec: str) -> SkillProfile:
         return all_level(data, int(low[3:]))
     if low.startswith("alpha"):
         return clone_grade(data, s)
-    if low.startswith("esi:"):
+    if low == "esi" or low.startswith("esi:"):
         from evesim.skills import esi
         return esi.fetch_profile(data, s[4:].strip() or None)
     p = Path(s)
     if p.exists():
         d = json.loads(p.read_text())
         return from_dict(data, d, name=p.stem, source=str(p))
-    raise ValueError(f"cannot resolve skills {spec!r}: use all0..all5, 'alpha <race>', esi:<name>, or a JSON file")
+    from evesim.skills import esi
+    logged_in = esi.characters()
+    if any(c["name"].lower() == low for c in logged_in):  # a logged-in character's bare name
+        return esi.fetch_profile(data, s)
+    hint = f" (logged in: {', '.join(c['name'] for c in logged_in)})" if logged_in else ""
+    raise ValueError(f"cannot resolve skills {spec!r}: use all0..all5, 'alpha <race>', esi:<name>, "
+                     f"or a JSON file{hint}")

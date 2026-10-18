@@ -76,3 +76,16 @@ def test_missing_client_id(monkeypatch):
     monkeypatch.delenv("EVESIM_CLIENT_ID", raising=False)
     with pytest.raises(RuntimeError, match="developers.eveonline.com"):
         esi._client_id(None)
+
+
+def test_bare_character_name_resolves(data, tokens_dir, monkeypatch):
+    from evesim.skills import profile
+    esi._save_tokens({"7": {"character_id": 7, "name": "Harry Zhu", "client_id": "c", "access_token": "a",
+                            "refresh_token": "r", "expires_at": 0}})
+    seen = []
+    monkeypatch.setattr(esi, "fetch_profile", lambda d, ch=None: seen.append(ch) or "profile")
+    assert profile.load(data, "Harry Zhu") == "profile"
+    assert profile.load(data, "esi") == "profile"
+    assert seen == ["Harry Zhu", None]
+    with pytest.raises(ValueError, match="logged in: Harry Zhu"):
+        profile.load(data, "Someone Else")

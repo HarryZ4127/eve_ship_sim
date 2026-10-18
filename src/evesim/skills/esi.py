@@ -178,7 +178,9 @@ def _record(character: str | None) -> dict:
     for v in tokens.values():
         if character == str(v["character_id"]) or character.lower() == v["name"].lower():
             return v
-    raise RuntimeError(f"character {character!r} is not logged in")
+    names = ", ".join(v["name"] for v in tokens.values())
+    raise RuntimeError(f"character {character!r} is not logged in (logged in: {names}); "
+                       f"run `evesim login` for another character")
 
 
 def access_token(character: str | None = None) -> tuple[str, int]:
