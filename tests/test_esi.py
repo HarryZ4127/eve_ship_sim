@@ -28,6 +28,7 @@ def test_authorize_url_uses_pkce():
     assert q["code_challenge_method"] == ["S256"]
     assert q["client_id"] == ["abc"] and q["state"] == ["st"]
     assert "esi-skills.read_skills.v1" in q["scope"][0]
+    assert "fittings" not in q["scope"][0]  # only scopes evesim reads; others need opting in
     assert len(verifier) >= 43
 
 

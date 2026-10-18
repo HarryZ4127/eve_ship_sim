@@ -80,7 +80,7 @@ def cmd_find(args):
 
 def cmd_login(args):
     from evesim.skills import esi
-    rec = esi.login(args.client_id, args.port, open_browser=not args.no_browser)
+    rec = esi.login(args.client_id, args.port, open_browser=not args.no_browser, save_fittings=args.save_fittings)
     print(f"logged in as {rec['name']} ({rec['character_id']})")
 
 
@@ -247,6 +247,8 @@ def main(argv=None):
     lg.add_argument("--client-id", help="SSO application client ID (or EVESIM_CLIENT_ID)")
     lg.add_argument("--port", type=int, default=8642)
     lg.add_argument("--no-browser", action="store_true")
+    lg.add_argument("--save-fittings", action="store_true",
+                    help="also request esi-fittings.write_fittings.v1 (enable it on your application first)")
     lg.set_defaults(fn=cmd_login)
     ch = sub.add_parser("characters", help="list logged-in characters")
     ch.set_defaults(fn=cmd_characters)

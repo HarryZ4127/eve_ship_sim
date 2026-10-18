@@ -39,11 +39,12 @@ evesim train my_fit.eft --skills me.json --objective applied_dps=1,ehp=0.5 --day
 
 1. Register an application at <https://developers.eveonline.com/>: choose
    *Authentication & API Access*, set the callback to `http://localhost:8642/callback`, and
-   add the scopes `esi-skills.read_skills.v1`, `esi-clones.read_implants.v1` and
-   `esi-fittings.write_fittings.v1`.
-2. `export EVESIM_CLIENT_ID=<your client id>`. The login uses PKCE, so no secret is stored.
+   add the scopes `esi-skills.read_skills.v1` and `esi-clones.read_implants.v1`. A login
+   asking for a scope the application lacks fails with `invalid_scope`.
+2. `export EVESIM_CLIENT_ID=<your client id>` (PowerShell: `$env:EVESIM_CLIENT_ID = "<your client id>"`,
+   or pass `--client-id` to `evesim login`). The login uses PKCE, so no secret is stored.
 3. `evesim login`: a browser opens for EVE SSO, and tokens are saved to `~/.config/evesim/tokens.json`.
-4. Use `--skills esi:<character name>` with `stats`, `optimize`, `train` or `skills`.
+4. Use `--skills esi:<character name>` (quoted if the name has spaces: `-s "esi:My Name"`) with `stats`, `optimize`, `train` or `skills`.
 
 ESI returns `active_skill_level`, so alpha clone caps are applied automatically, and
 your attributes, which set training speed for the advisor.

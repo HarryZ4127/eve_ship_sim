@@ -30,7 +30,10 @@ from evesim.skills.profile import SkillProfile, from_dict
 SSO_AUTHORIZE = "https://login.eveonline.com/v2/oauth/authorize"
 SSO_TOKEN = "https://login.eveonline.com/v2/oauth/token"
 ESI_BASE = os.environ.get("EVESIM_ESI_BASE", "https://esi.evetech.net/latest")
-SCOPES = ["esi-skills.read_skills.v1", "esi-clones.read_implants.v1", "esi-fittings.write_fittings.v1"]
+# Only what evesim reads. Every scope requested must also be enabled on the SSO application,
+# or EVE rejects the login with "invalid_scope".
+SCOPES = ["esi-skills.read_skills.v1", "esi-clones.read_implants.v1"]
+FITTINGS_SCOPE = "esi-fittings.write_fittings.v1"  # for save_fitting; opt in with login(save_fittings=True)
 DEFAULT_PORT = 8642
 USER_AGENT = "evesim (https://github.com/HarryZ4127/eve_ship_sim)"
 
@@ -111,7 +114,7 @@ def _store(tok: dict, client_id: str) -> dict:
 
 
 def login(client_id: str | None = None, port: int = DEFAULT_PORT, open_browser: bool = True,
-          timeout: float = 300) -> dict:
+          timeout: float = 300, save_fittings: bool = False) -> dict:
     """Run the browser login and store the tokens. Returns the token record."""
     cid = _client_id(client_id)
     verifier, challenge = _pkce()
@@ -144,7 +147,7 @@ def login(client_id: str | None = None, port: int = DEFAULT_PORT, open_browser: 
     srv = http.server.HTTPServer(("127.0.0.1", port), Handler)
     th = threading.Thread(target=srv.serve_forever, daemon=True)
     th.start()
-    url = authorize_url(cid, challenge, state, port)
+    url = authorize_url(cid, challenge, state, port, SCOPES + ([FITTINGS_SCOPE] if save_fittings else []))
     print(f"Open this URL to log in:\n{url}")
     if open_browser:
         webbrowser.open(url)
@@ -214,7 +217,8 @@ def fetch_profile(data: StaticData, character: str | None = None) -> SkillProfil
 
 
 def save_fitting(fit_eft_items: dict, character: str | None = None) -> dict:
-    """POST a fitting (ESI fitting JSON) to the character's saved fittings."""
+    """POST a fitting (ESI fitting JSON) to the character's saved fittings. Needs a login
+    with ``save_fittings=True`` (and that scope enabled on the application)."""
     token, cid = access_token(character)
     req = urllib.request.Request(f"{ESI_BASE}/characters/{cid}/fittings/", method="POST",
                                  data=json.dumps(fit_eft_items).encode(),
