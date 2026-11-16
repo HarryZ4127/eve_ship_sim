@@ -1,0 +1,25 @@
+# Crimson Harvest (Oct-Nov 2026) Crimson Gauntlet / Tetrimon base sites in highsec: Blood
+# Raiders deal EM/thermal and are weak to EM/thermal (approximate resists below). Their
+# sites have energy neutralizers, so keep a capacitor margin.
+name = "Crimson Gauntlet"
+ships = ["Rattlesnake", "Praxis", "Myrmidon"]
+
+[objective]
+weights = { applied_dps = 1.0 }
+
+[target]
+preset = "cruiser"
+distance = 20000
+resists = { em = 0.2, thermal = 0.25, kinetic = 0.45, explosive = 0.5 }
+
+[incoming]
+preset = "blood"
+
+[constraints]
+cap_stable = true
+min_cap_stable_fraction = 0.35
+min_ehp = 30000
+min_sustained_tank = 300
+
+[search]
+effort = "normal"

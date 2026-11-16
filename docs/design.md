@@ -199,7 +199,7 @@ for a fit that looks like a real one.
 
 ## Ship coverage
 
-`tools/audit_ships.py` computes every published hull (421) on the empty hull and runs a
+`tools/audit_ships.py` computes every published hull (427 in build 3687575) on the empty hull and runs a
 quick optimization for one hull per ship group (49 groups). All compute without errors,
 and no hull has effects the engine cannot execute. What it found and what was done:
 

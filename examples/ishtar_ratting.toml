@@ -1,0 +1,20 @@
+# Drone Ishtar for Guristas anomalies: damage plus half-weighted sustained tank.
+name = "Ishtar ratting"
+ship = "Ishtar"
+
+[objective]
+weights = { applied_dps = 1.0, sustained_tank = 0.5 }
+
+[target]
+preset = "cruiser"
+distance = 30000
+
+[incoming]
+preset = "guristas"
+
+[constraints]
+cap_stable = true
+min_ehp = 30000
+
+[search]
+effort = "normal"

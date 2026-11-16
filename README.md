@@ -12,7 +12,7 @@ tank, cap stability, budget, tank type, required modules ...).
   targeting, plus cargo, ore/ice/gas yield, scan probe strength, data/relic analyzer
   coherence and strength, salvage chance, remote repair output and EWAR/tackle strength.
   Across 24 reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
-  (see [Validation](docs/design.md#validation)). All 421 hulls compute; T3 cruiser
+  (see [Validation](docs/design.md#validation)). All 427 hulls compute; T3 cruiser
   subsystems, T3 destroyer modes and carrier/supercarrier fighters are supported.
 * **Skills.** Pull them from ESI with an EVE SSO login, load a JSON file, or use
   presets (`all5`, `all0`, or alpha clone caps like `alpha caldari`).

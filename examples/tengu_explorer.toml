@@ -1,0 +1,24 @@
+# A Tengu that probes and hacks (data and relic) and still runs highsec combat sites.
+name = "Tengu explorer PvE"
+ship = "Tengu"
+
+[objective]
+weights = { applied_dps = 1.0, probe_strength = 0.5, hacking_power = 0.5 }
+
+[target]
+preset = "cruiser"
+distance = 20000
+
+[constraints]
+cap_stable = true
+min_ehp = 25000
+min_sustained_tank = 150
+min_probe_strength = 90
+min_hacking_coherence = 120
+
+[fitting]
+subsystems = "auto"
+require = ["Covert Ops Cloaking Device II"]
+
+[search]
+effort = "normal"
