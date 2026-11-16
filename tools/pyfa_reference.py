@@ -94,7 +94,8 @@ def stats(fit):
         out['modules'].append(d)
     out['fighters'] = [{'name': f.item.name, 'amount': f.amount, 'dps': f.getDps().total, 'volley': f.getVolley().total}
                        for f in fit.fighters]
-    out['drones'] = [{'name': d.item.name, 'amount': d.amount, 'active': d.amountActive, 'damageMultiplier': d.getModifiedItemAttr('damageMultiplier'), 'speed': d.getModifiedItemAttr('speed'), 'thermalDamage': d.getModifiedItemAttr('thermalDamage'), 'kineticDamage': d.getModifiedItemAttr('kineticDamage'),'emDamage': d.getModifiedItemAttr('emDamage'),'explosiveDamage': d.getModifiedItemAttr('explosiveDamage')} for d in fit.drones]
+    out['drones'] = [{'name': d.item.name, 'amount': d.amount, 'active': d.amountActive, 'damageMultiplier': d.getModifiedItemAttr('damageMultiplier'), 'speed': d.getModifiedItemAttr('speed'), 'thermalDamage': d.getModifiedItemAttr('thermalDamage'), 'kineticDamage': d.getModifiedItemAttr('kineticDamage'),'emDamage': d.getModifiedItemAttr('emDamage'),'explosiveDamage': d.getModifiedItemAttr('explosiveDamage'),
+                      'mining_yps': d.getMiningYPS(), 'mining_drain': d.getMiningDPS()} for d in fit.drones]
     return out
 
 def parse_eft(text):

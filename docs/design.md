@@ -70,7 +70,8 @@ via `tools/pyfa_reference.py`, on sixteen fits: projectile, missile, drone, lase
 hybrid, an ancillary repairer with cap booster, a T3C with subsystems, a cruise missile
 battleship, two T3 destroyers in different tactical modes, a mining barge, shield and
 armor logistics, four carriers/supercarriers with fighters, and five exploration and
-harvesting fits (probes, data/relic analyzers, salvagers, ice and gas). Every compared value matches to 0.1% (capacitor time-to-empty is
+harvesting fits (probes, data/relic analyzers, salvagers, ice and gas), plus the November 2026 additions: a Dark Blood module set with
+the new Synchronizer rig, a Naga Navy Issue and a Penitence. Every compared value matches to 0.1% (capacitor time-to-empty is
 checked to 5% and currently matches exactly): DPS, volley, drone DPS,
 HP/EHP per layer, all 12 resists, CPU/PG/calibration, speed, align time, signature,
 mass, lock range, scan resolution, capacitor capacity/recharge/usage, stability and

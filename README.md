@@ -11,7 +11,7 @@ tank, cap stability, budget, tank type, required modules ...).
   profile, active/passive tank, a time-domain capacitor simulation, navigation and
   targeting, plus cargo, ore/ice/gas yield, scan probe strength, data/relic analyzer
   coherence and strength, salvage chance, remote repair output and EWAR/tackle strength.
-  Across 21 reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
+  Across 24 reference fits, every number matches [Pyfa](https://github.com/pyfa-org/Pyfa)
   (see [Validation](docs/design.md#validation)). All 421 hulls compute; T3 cruiser
   subsystems, T3 destroyer modes and carrier/supercarrier fighters are supported.
 * **Skills.** Pull them from ESI with an EVE SSO login, load a JSON file, or use

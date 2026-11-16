@@ -80,6 +80,7 @@ def test_fit_matches_pyfa(name, data, all5, same_build):
         if any("mining_drain" in m for m in mods):
             waste = sum(m["mining_drain"] - m["mining_yps"] / (1 + m.get("miningCritChance", 0) * m.get("miningCritBonusYield", 0))
                         for m in mods if "mining_drain" in m)
+            waste += sum(d.get("mining_drain", 0) - d.get("mining_yps", 0) for d in exp.get("drones", []))
             chk("mining_waste", u["mining_waste"], waste)
         strengths = [m["charge_baseSensorStrength"] for m in mods if "charge_baseSensorStrength" in m]
         if strengths:

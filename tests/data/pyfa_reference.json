@@ -1,5 +1,5 @@
 {
- "client_build": 3579973,
+ "client_build": 3687575,
  "generator": "tools/pyfa_reference.py (Pyfa eos, All-V character)",
  "fits": {
   "rifter": "[Rifter, Rifter test]\nGyrostabilizer II\nGyrostabilizer II\nDamage Control II\nSmall Ancillary Armor Repairer\n\n5MN Microwarpdrive II\nWarp Scrambler II\nStasis Webifier II\n\n200mm AutoCannon II, Republic Fleet EMP S\n200mm AutoCannon II, Republic Fleet EMP S\n200mm AutoCannon II, Republic Fleet EMP S\n\nSmall Projectile Burst Aerator I\nSmall Projectile Collision Accelerator I\nSmall Explosive Armor Reinforcer I\n",
@@ -22,11 +22,15 @@
   "heron_combat": "[Heron, combat probes]\nNanofiber Internal Structure II\n\n1MN Afterburner II\nData Analyzer I\nRelic Analyzer I\n\nExpanded Probe Launcher I, Combat Scanner Probe I\n\nSmall Gravity Capacitor Upgrade I\n",
   "venture_gas": "[Venture, gas]\nMining Laser Upgrade II\n\n1MN Afterburner II\n\nGas Cloud Scoop II\nGas Cloud Scoop II\n",
   "skiff_ice": "[Skiff, ice]\nIce Harvester Upgrade II\nIce Harvester Upgrade II\n\nMedium Shield Extender II\n\nIce Harvester II\n\nMedium Ice Harvester Accelerator I\n",
-  "noctis_salvage": "[Noctis, salvage]\nDamage Control II\n\n10MN Afterburner II\n\nSalvager II\nSalvager II\nSmall Tractor Beam II\n\nMedium Salvage Tackle I\nMedium Salvage Tackle I\n"
+  "noctis_salvage": "[Noctis, salvage]\nDamage Control II\n\n10MN Afterburner II\n\nSalvager II\nSalvager II\nSmall Tractor Beam II\n\nMedium Salvage Tackle I\nMedium Salvage Tackle I\n",
+  "armageddon_sync": "[Armageddon, sync]\nDark Blood Heat Sink\nDark Blood Heat Sink\nDark Blood EM Armor Hardener\nDamage Control II\nDark Blood Large Armor Repairer\nDark Blood Multispectrum Energized Membrane\nDark Blood Multispectrum Energized Membrane\n\nDark Blood Heavy Capacitor Booster, Navy Cap Booster 800\nSensor Booster II\nTracking Computer II\nTracking Computer II\n\nMega Pulse Laser II, Conflagration L\nMega Pulse Laser II, Conflagration L\nMega Pulse Laser II, Conflagration L\nMega Pulse Laser II, Conflagration L\nMega Pulse Laser II, Conflagration L\nMega Pulse Laser II, Conflagration L\nDark Blood Heavy Energy Neutralizer\n\nLarge Dark Blood Synchronizer\nLarge Trimark Armor Pump II\nLarge Trimark Armor Pump II\n",
+  "naga_navy": "[Naga Navy Issue, cruise]\nBallistic Control System II\nBallistic Control System II\nDamage Control II\n\n50MN Microwarpdrive II\nLarge Shield Extender II\nLarge Shield Extender II\nMultispectrum Shield Hardener II\nMultispectrum Shield Hardener II\nMissile Guidance Computer II\nWarp Disruptor II\n\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\nCruise Missile Launcher II, Scourge Cruise Missile\n\nMedium Core Defense Field Extender II\nMedium Core Defense Field Extender II\nMedium Core Defense Field Extender II\n",
+  "penitence": "[Penitence, neut]\nDamage Control II\n1600mm Steel Plates II\nMultispectrum Energized Membrane II\nMultispectrum Energized Membrane II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\n\n50MN Microwarpdrive II\nWarp Scrambler II\nStasis Webifier II\nSensor Booster II\nCap Recharger II\nCap Recharger II\n\nHeavy Energy Neutralizer II\nHeavy Energy Neutralizer II\nHeavy Energy Neutralizer II\n\nMedium Trimark Armor Pump II\nMedium Trimark Armor Pump II\n\nHammerhead II x5\n"
  },
  "expected": {
   "rifter": {
    "dps": 221.5122191941707,
+   "weapon_dps": 221.5122191941707,
    "drone_dps": 0,
    "volley": 286.67520589755867,
    "ehp": {
@@ -66,6 +70,7 @@
    "scan_res": 825.0,
    "cap_capacity": 250.0,
    "cap_recharge_ms": 93750.0,
+   "shield_recharge_ms": 468750.0,
    "cap": {
     "stable": false,
     "state": 22.5,
@@ -88,6 +93,8 @@
     "armorRepairFullSpool": 11.555555555555555,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
+   "cargo": 140.0,
    "slots": {
     "high": 3,
     "med": 3,
@@ -95,10 +102,162 @@
     "rig": 3,
     "turret": 3,
     "launcher": 2
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Ancillary Armor Repairer",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 5.0,
+     "power": 5.0,
+     "capacitorNeed": 40.0,
+     "duration": 4500.0,
+     "armorDamageAmount": 52.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "5MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 17.0,
+     "capacitorNeed": 30.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Warp Scrambler II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 9000.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Stasis Webifier II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "200mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 6.9245218815835425,
+     "speed": 1294.173327956541,
+     "maxRange": 750.0,
+     "falloff": 9675.0,
+     "trackingSpeed": 393.75,
+     "cpu": 6.75,
+     "power": 3.97,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "200mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 6.9245218815835425,
+     "speed": 1294.173327956541,
+     "maxRange": 750.0,
+     "falloff": 9675.0,
+     "trackingSpeed": 393.75,
+     "cpu": 6.75,
+     "power": 3.97,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "200mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 6.9245218815835425,
+     "speed": 1294.173327956541,
+     "maxRange": 750.0,
+     "falloff": 9675.0,
+     "trackingSpeed": 393.75,
+     "cpu": 6.75,
+     "power": 3.97,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "Small Projectile Burst Aerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Projectile Collision Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Explosive Armor Reinforcer I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "caracal": {
    "dps": 243.01649723881238,
+   "weapon_dps": 243.01649723881238,
    "drone_dps": 0,
    "volley": 1224.746025836565,
    "ehp": {
@@ -138,6 +297,7 @@
    "scan_res": 337.5,
    "cap_capacity": 1250.0,
    "cap_recharge_ms": 333750.0,
+   "shield_recharge_ms": 937500.0,
    "cap": {
     "stable": false,
     "state": 100.0,
@@ -160,6 +320,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 10.0,
+   "cargo": 450.0,
    "slots": {
     "high": 5,
     "med": 5,
@@ -167,10 +329,207 @@
     "rig": 3,
     "turret": 0,
     "launcher": 5
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Nanofiber Internal Structure II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "50MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 50.0,
+     "power": 165.0,
+     "capacitorNeed": 120.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 5039.764953212238,
+     "falloff": 1.0,
+     "cpu": 41.25,
+     "power": 94.5,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Heavy Missile",
+     "charge_kineticDamage": 244.949205167313,
+     "charge_maxVelocity": 9675.0,
+     "charge_explosionDelay": 9750.0,
+     "charge_aoeCloudSize": 105.0,
+     "charge_aoeVelocity": 127.5
+    },
+    {
+     "name": "Heavy Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 5039.764953212238,
+     "falloff": 1.0,
+     "cpu": 41.25,
+     "power": 94.5,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Heavy Missile",
+     "charge_kineticDamage": 244.949205167313,
+     "charge_maxVelocity": 9675.0,
+     "charge_explosionDelay": 9750.0,
+     "charge_aoeCloudSize": 105.0,
+     "charge_aoeVelocity": 127.5
+    },
+    {
+     "name": "Heavy Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 5039.764953212238,
+     "falloff": 1.0,
+     "cpu": 41.25,
+     "power": 94.5,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Heavy Missile",
+     "charge_kineticDamage": 244.949205167313,
+     "charge_maxVelocity": 9675.0,
+     "charge_explosionDelay": 9750.0,
+     "charge_aoeCloudSize": 105.0,
+     "charge_aoeVelocity": 127.5
+    },
+    {
+     "name": "Heavy Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 5039.764953212238,
+     "falloff": 1.0,
+     "cpu": 41.25,
+     "power": 94.5,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Heavy Missile",
+     "charge_kineticDamage": 244.949205167313,
+     "charge_maxVelocity": 9675.0,
+     "charge_explosionDelay": 9750.0,
+     "charge_aoeCloudSize": 105.0,
+     "charge_aoeVelocity": 127.5
+    },
+    {
+     "name": "Heavy Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 5039.764953212238,
+     "falloff": 1.0,
+     "cpu": 41.25,
+     "power": 94.5,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Heavy Missile",
+     "charge_kineticDamage": 244.949205167313,
+     "charge_maxVelocity": 9675.0,
+     "charge_explosionDelay": 9750.0,
+     "charge_aoeCloudSize": 105.0,
+     "charge_aoeVelocity": 127.5
+    },
+    {
+     "name": "Medium Core Defense Field Extender I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "vexor": {
    "dps": 531.0225057099151,
+   "weapon_dps": 193.70312499999994,
    "drone_dps": 337.3193807099151,
    "volley": 1767.6762728396604,
    "ehp": {
@@ -210,6 +569,7 @@
    "scan_res": 350.0,
    "cap_capacity": 1812.5,
    "cap_recharge_ms": 246075.0,
+   "shield_recharge_ms": 937500.0,
    "cap": {
     "stable": false,
     "state": 189.0,
@@ -232,6 +592,8 @@
     "armorRepairFullSpool": 53.152415153467686,
     "hullRepair": 0
    },
+   "drone_bw": 75.0,
+   "cargo": 480.0,
    "slots": {
     "high": 4,
     "med": 4,
@@ -239,10 +601,221 @@
     "rig": 3,
     "turret": 4,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 28.0,
+     "power": 152.15,
+     "capacitorNeed": 160.0,
+     "duration": 9000.0,
+     "armorDamageAmount": 478.3717363812092,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Navigation Computer II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Omnidirectional Tracking Link II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 39.0,
+     "power": 1.0,
+     "capacitorNeed": 4.0,
+     "duration": 30000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Electron Blaster II",
+     "state": 1,
+     "damageMultiplier": 4.3583203125,
+     "speed": 2160.0000000000005,
+     "maxRange": 1500.0,
+     "falloff": 3750.0,
+     "trackingSpeed": 57.599999999999994,
+     "cpu": 19.5,
+     "power": 82.8,
+     "capacitorNeed": 1.47,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Antimatter Charge M",
+     "charge_thermalDamage": 10.0,
+     "charge_kineticDamage": 14.0
+    },
+    {
+     "name": "Heavy Electron Blaster II",
+     "state": 1,
+     "damageMultiplier": 4.3583203125,
+     "speed": 2160.0000000000005,
+     "maxRange": 1500.0,
+     "falloff": 3750.0,
+     "trackingSpeed": 57.599999999999994,
+     "cpu": 19.5,
+     "power": 82.8,
+     "capacitorNeed": 1.47,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Antimatter Charge M",
+     "charge_thermalDamage": 10.0,
+     "charge_kineticDamage": 14.0
+    },
+    {
+     "name": "Heavy Electron Blaster II",
+     "state": 1,
+     "damageMultiplier": 4.3583203125,
+     "speed": 2160.0000000000005,
+     "maxRange": 1500.0,
+     "falloff": 3750.0,
+     "trackingSpeed": 57.599999999999994,
+     "cpu": 19.5,
+     "power": 82.8,
+     "capacitorNeed": 1.47,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Antimatter Charge M",
+     "charge_thermalDamage": 10.0,
+     "charge_kineticDamage": 14.0
+    },
+    {
+     "name": "Heavy Electron Blaster II",
+     "state": 1,
+     "damageMultiplier": 4.3583203125,
+     "speed": 2160.0000000000005,
+     "maxRange": 1500.0,
+     "falloff": 3750.0,
+     "trackingSpeed": 57.599999999999994,
+     "cpu": 19.5,
+     "power": 82.8,
+     "capacitorNeed": 1.47,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Antimatter Charge M",
+     "charge_thermalDamage": 10.0,
+     "charge_kineticDamage": 14.0
+    },
+    {
+     "name": "Medium Auxiliary Nano Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Auxiliary Nano Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Capacitor Control Circuit I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": [
+    {
+     "name": "Hammerhead II",
+     "amount": 5,
+     "active": 5,
+     "damageMultiplier": 8.432984517747878,
+     "speed": 4000.0,
+     "thermalDamage": 32.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    },
+    {
+     "name": "Hobgoblin II",
+     "amount": 5,
+     "active": 0,
+     "damageMultiplier": 8.432984517747878,
+     "speed": 4000.0,
+     "thermalDamage": 20.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    }
+   ]
   },
   "punisher": {
    "dps": 134.0115869933274,
+   "weapon_dps": 134.0115869933274,
    "drone_dps": 0,
    "volley": 258.99510414234544,
    "ehp": {
@@ -282,6 +855,7 @@
    "scan_res": 800.0,
    "cap_capacity": 500.0,
    "cap_recharge_ms": 120000.0,
+   "shield_recharge_ms": 468750.0,
    "cap": {
     "stable": true,
     "state": 57.26319493614521,
@@ -304,6 +878,8 @@
     "armorRepairFullSpool": 20.444444444444443,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
+   "cargo": 135.0,
    "slots": {
     "high": 4,
     "med": 2,
@@ -311,10 +887,160 @@
     "rig": 3,
     "turret": 4,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Heat Sink II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heat Sink II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 6.0,
+     "power": 6.0,
+     "capacitorNeed": 40.0,
+     "duration": 4500.0,
+     "armorDamageAmount": 92.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Coating II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "200mm Steel Plates II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.0,
+     "power": 12.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Capacitor Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 15.0,
+     "power": 5.0,
+     "capacitorNeed": -200.0,
+     "duration": 12000.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Navy Cap Booster 200"
+    },
+    {
+     "name": "Stasis Webifier II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Focused Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.194308448398485,
+     "speed": 1932.632169748435,
+     "maxRange": 4528.125,
+     "falloff": 3125.0,
+     "trackingSpeed": 307.8125,
+     "cpu": 12.0,
+     "power": 11.46,
+     "capacitorNeed": 1.665,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Multifrequency S",
+     "charge_emDamage": 7.0,
+     "charge_thermalDamage": 5.0
+    },
+    {
+     "name": "Small Focused Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.194308448398485,
+     "speed": 1932.632169748435,
+     "maxRange": 4528.125,
+     "falloff": 3125.0,
+     "trackingSpeed": 307.8125,
+     "cpu": 12.0,
+     "power": 11.46,
+     "capacitorNeed": 1.665,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Multifrequency S",
+     "charge_emDamage": 7.0,
+     "charge_thermalDamage": 5.0
+    },
+    {
+     "name": "Small Focused Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.194308448398485,
+     "speed": 1932.632169748435,
+     "maxRange": 4528.125,
+     "falloff": 3125.0,
+     "trackingSpeed": 307.8125,
+     "cpu": 12.0,
+     "power": 11.46,
+     "capacitorNeed": 1.665,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Multifrequency S",
+     "charge_emDamage": 7.0,
+     "charge_thermalDamage": 5.0
+    },
+    {
+     "name": "Small Energy Burst Aerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Energy Collision Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Energy Locus Coordinator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "myrmidon_aar": {
    "dps": 569.3962263156375,
+   "weapon_dps": 122.44804687499997,
    "drone_dps": 446.94817944063755,
    "volley": 2184.52438963755,
    "ehp": {
@@ -354,6 +1080,7 @@
    "scan_res": 250.0,
    "cap_capacity": 3625.0,
    "cap_recharge_ms": 435000.00000000006,
+   "shield_recharge_ms": 1050000.0,
    "cap": {
     "stable": true,
     "state": 53.01585973954593,
@@ -376,6 +1103,8 @@
     "armorRepairFullSpool": 231.07621661388063,
     "hullRepair": 0
    },
+   "drone_bw": 100.0,
+   "cargo": 400.0,
    "slots": {
     "high": 5,
     "med": 5,
@@ -383,10 +1112,237 @@
     "rig": 3,
     "turret": 5,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Medium Ancillary Armor Repairer",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 138.92,
+     "capacitorNeed": 160.0,
+     "duration": 7649.999999999999,
+     "armorDamageAmount": 369.9906398573414,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Nanite Repair Paste"
+    },
+    {
+     "name": "Medium Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 28.0,
+     "power": 159.75,
+     "capacitorNeed": 160.0,
+     "duration": 7649.999999999999,
+     "armorDamageAmount": 657.7611375241626,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Capacitor Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 165.0,
+     "capacitorNeed": -400.0,
+     "duration": 12000.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Navy Cap Booster 400"
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Navigation Computer II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Energy Nosferatu II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 200.0,
+     "capacitorNeed": -36.0,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Link Augmentor II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 55.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Ion Blaster II",
+     "state": 1,
+     "damageMultiplier": 5.603554687500001,
+     "speed": 3240.0000000000005,
+     "maxRange": 2812.5,
+     "falloff": 2500.0,
+     "trackingSpeed": 39.6,
+     "cpu": 23.25,
+     "power": 125.1,
+     "capacitorNeed": 3.06403125,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Void M",
+     "charge_thermalDamage": 17.7,
+     "charge_kineticDamage": 17.7
+    },
+    {
+     "name": "Heavy Ion Blaster II",
+     "state": 1,
+     "damageMultiplier": 5.603554687500001,
+     "speed": 3240.0000000000005,
+     "maxRange": 2812.5,
+     "falloff": 2500.0,
+     "trackingSpeed": 39.6,
+     "cpu": 23.25,
+     "power": 125.1,
+     "capacitorNeed": 3.06403125,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Void M",
+     "charge_thermalDamage": 17.7,
+     "charge_kineticDamage": 17.7
+    },
+    {
+     "name": "Medium Auxiliary Nano Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Auxiliary Nano Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Nanobot Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": [
+    {
+     "name": "Ogre II",
+     "amount": 2,
+     "active": 2,
+     "damageMultiplier": 8.432984517747878,
+     "speed": 4000.0,
+     "thermalDamage": 64.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    },
+    {
+     "name": "Hammerhead II",
+     "amount": 2,
+     "active": 2,
+     "damageMultiplier": 8.432984517747878,
+     "speed": 4000.0,
+     "thermalDamage": 32.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    },
+    {
+     "name": "Hobgoblin II",
+     "amount": 5,
+     "active": 1,
+     "damageMultiplier": 8.432984517747878,
+     "speed": 4000.0,
+     "thermalDamage": 20.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    }
+   ]
   },
   "loki": {
    "dps": 422.877050362126,
+   "weapon_dps": 422.877050362126,
    "drone_dps": 0,
    "volley": 1351.0916272896334,
    "ehp": {
@@ -416,7 +1372,7 @@
    "cpu_used": 275.3,
    "cpu_out": 412.5,
    "pg_used": 817.75,
-   "pg_out": 1275.0,
+   "pg_out": 1320.0,
    "calibration_used": 150.0,
    "max_velocity": 678.2590176196809,
    "align_time": 7.124790554257624,
@@ -426,6 +1382,7 @@
    "scan_res": 300.0,
    "cap_capacity": 1937.5,
    "cap_recharge_ms": 182812.5,
+   "shield_recharge_ms": 1050000.0,
    "cap": {
     "stable": true,
     "state": 94.24388631310926,
@@ -448,6 +1405,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 25.0,
+   "cargo": 450.0,
    "slots": {
     "high": 8,
     "med": 3,
@@ -455,10 +1414,194 @@
     "rig": 3,
     "turret": 5,
     "launcher": 2
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "425mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 12.282651157178487,
+     "speed": 3194.9987026551603,
+     "maxRange": 3750.0,
+     "falloff": 25396.875,
+     "trackingSpeed": 39.6,
+     "cpu": 14.06,
+     "power": 103.95,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Barrage M",
+     "charge_kineticDamage": 10.0,
+     "charge_explosiveDamage": 12.0
+    },
+    {
+     "name": "425mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 12.282651157178487,
+     "speed": 3194.9987026551603,
+     "maxRange": 3750.0,
+     "falloff": 25396.875,
+     "trackingSpeed": 39.6,
+     "cpu": 14.06,
+     "power": 103.95,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Barrage M",
+     "charge_kineticDamage": 10.0,
+     "charge_explosiveDamage": 12.0
+    },
+    {
+     "name": "425mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 12.282651157178487,
+     "speed": 3194.9987026551603,
+     "maxRange": 3750.0,
+     "falloff": 25396.875,
+     "trackingSpeed": 39.6,
+     "cpu": 14.06,
+     "power": 103.95,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Barrage M",
+     "charge_kineticDamage": 10.0,
+     "charge_explosiveDamage": 12.0
+    },
+    {
+     "name": "425mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 12.282651157178487,
+     "speed": 3194.9987026551603,
+     "maxRange": 3750.0,
+     "falloff": 25396.875,
+     "trackingSpeed": 39.6,
+     "cpu": 14.06,
+     "power": 103.95,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Barrage M",
+     "charge_kineticDamage": 10.0,
+     "charge_explosiveDamage": 12.0
+    },
+    {
+     "name": "425mm AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 12.282651157178487,
+     "speed": 3194.9987026551603,
+     "maxRange": 3750.0,
+     "falloff": 25396.875,
+     "trackingSpeed": 39.6,
+     "cpu": 14.06,
+     "power": 103.95,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Barrage M",
+     "charge_kineticDamage": 10.0,
+     "charge_explosiveDamage": 12.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Loki Core - Augmented Nuclear Reactor",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Loki Defensive - Covert Reconfiguration",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Loki Offensive - Projectile Scoping Array",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Loki Propulsion - Intercalated Nanofibers",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "raven_cruise": {
    "dps": 633.6093238415247,
+   "weapon_dps": 633.6093238415247,
    "drone_dps": 0,
    "volley": 4020.584301037624,
    "ehp": {
@@ -498,6 +1641,7 @@
    "scan_res": 138.75,
    "cap_capacity": 6875.0,
    "cap_recharge_ms": 733125.0,
+   "shield_recharge_ms": 1875000.0,
    "cap": {
     "stable": false,
     "state": 180.0,
@@ -520,6 +1664,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 50.0,
+   "cargo": 830.0,
    "slots": {
     "high": 7,
     "med": 7,
@@ -527,10 +1673,240 @@
     "rig": 3,
     "turret": 4,
     "launcher": 6
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 115.0,
+     "power": 165.0,
+     "capacitorNeed": 144.0,
+     "duration": 4000.0,
+     "shieldBonus": 375.35999999999996,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Shield Boost Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 55.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Missile Guidance Computer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "capacitorNeed": 7.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Missile Range Script"
+    },
+    {
+     "name": "100MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 50.0,
+     "power": 688.0,
+     "capacitorNeed": 87.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 6345.525783397773,
+     "falloff": 1.0,
+     "cpu": 54.57,
+     "power": 1361.7,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 670.0973835062707,
+     "charge_maxVelocity": 11738.250000000002,
+     "charge_explosionDelay": 23310.000000000004,
+     "charge_aoeCloudSize": 247.5,
+     "charge_aoeVelocity": 103.5
+    },
+    {
+     "name": "Large Warhead Calefaction Catalyst I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Bay Loading Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Capacitor Control Circuit I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "svipul_mode": {
    "dps": 151.04204341736485,
+   "weapon_dps": 151.04204341736485,
    "drone_dps": 0,
    "volley": 382.2336078634114,
    "ehp": {
@@ -570,6 +1946,7 @@
    "scan_res": 662.5,
    "cap_capacity": 600.0,
    "cap_recharge_ms": 180000.0,
+   "shield_recharge_ms": 600000.0,
    "cap": {
     "stable": false,
     "state": 76.5,
@@ -592,6 +1969,8 @@
     "armorRepairFullSpool": 11.555555555555555,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
+   "cargo": 430.0,
    "slots": {
     "high": 6,
     "med": 4,
@@ -599,10 +1978,194 @@
     "rig": 3,
     "turret": 4,
     "launcher": 1
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Ancillary Armor Repairer",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 5.0,
+     "power": 5.0,
+     "capacitorNeed": 40.0,
+     "duration": 4500.0,
+     "armorDamageAmount": 52.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "5MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 17.0,
+     "capacitorNeed": 30.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Warp Scrambler II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 9000.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Stasis Webifier II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 5.539617505266833,
+     "speed": 2530.643781130593,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 109.15,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 5.539617505266833,
+     "speed": 2530.643781130593,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 109.15,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 5.539617505266833,
+     "speed": 2530.643781130593,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 109.15,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 5.539617505266833,
+     "speed": 2530.643781130593,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 109.15,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 5.539617505266833,
+     "speed": 2530.643781130593,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 109.15,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "Small Projectile Burst Aerator I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Projectile Collision Accelerator I",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Small Explosive Armor Reinforcer I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "svipul_defense": {
    "dps": 45.0598916081657,
+   "weapon_dps": 45.0598916081657,
    "drone_dps": 0,
    "volley": 133.07471099999998,
    "ehp": {
@@ -642,6 +2205,7 @@
    "scan_res": 662.5,
    "cap_capacity": 750.0,
    "cap_recharge_ms": 180000.0,
+   "shield_recharge_ms": 600000.0,
    "cap": {
     "stable": true,
     "state": 84.95790978618379,
@@ -664,6 +2228,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
+   "cargo": 430.0,
    "slots": {
     "high": 6,
     "med": 4,
@@ -671,10 +2237,91 @@
     "rig": 3,
     "turret": 4,
     "launcher": 1
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Gyrostabilizer II",
+     "state": 0,
+     "damageMultiplier": 1.1,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 22.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 4.821547499999999,
+     "speed": 2953.2852000000003,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 99.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    },
+    {
+     "name": "220mm Vulcan AutoCannon II",
+     "state": 1,
+     "damageMultiplier": 4.821547499999999,
+     "speed": 2953.2852000000003,
+     "maxRange": 1350.0,
+     "falloff": 12416.25,
+     "trackingSpeed": 48.57599999999999,
+     "cpu": 16.5,
+     "power": 99.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Republic Fleet EMP S",
+     "charge_emDamage": 10.35,
+     "charge_kineticDamage": 1.15,
+     "charge_explosiveDamage": 2.3
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "hulk_mining": {
    "dps": 0.0,
+   "weapon_dps": 0.0,
    "drone_dps": 0,
    "volley": 0.0,
    "ehp": {
@@ -714,6 +2361,7 @@
    "scan_res": 825.0,
    "cap_capacity": 781.25,
    "cap_recharge_ms": 140625.0,
+   "shield_recharge_ms": 750000.0,
    "cap": {
     "stable": true,
     "state": 54.62695479246904,
@@ -736,13 +2384,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 50.0,
    "cargo": 350.0,
-   "mining_yield": 43.931058866782024,
-   "remote_reps": {
-    "shield": 0,
-    "armor": 0,
-    "hull": 0
-   },
    "slots": {
     "high": 2,
     "med": 4,
@@ -750,10 +2393,134 @@
     "rig": 2,
     "turret": 0,
     "launcher": 0
-   }
+   },
+   "mining_yield": 43.931058866782024,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Mining Laser Upgrade II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Mining Laser Upgrade II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Kinetic Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 20.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 22.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Modulated Strip Miner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 19500.0,
+     "falloff": 1.0,
+     "cpu": 71.78,
+     "power": 12.0,
+     "capacitorNeed": 24.750000000000004,
+     "duration": 32512.499999999996,
+     "miningAmount": 599.4707062500001,
+     "miningWasteProbability": 37.6,
+     "miningWastedVolumeMultiplier": 1.0,
+     "miningCritChance": 0.015,
+     "miningCritBonusYield": 2.5,
+     "charge": "Common Moon Mining Crystal Type A II",
+     "mining_yps": 19.129591933391012,
+     "mining_drain": 25.370909397923885
+    },
+    {
+     "name": "Modulated Strip Miner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 19500.0,
+     "falloff": 1.0,
+     "cpu": 71.78,
+     "power": 12.0,
+     "capacitorNeed": 24.750000000000004,
+     "duration": 32512.499999999996,
+     "miningAmount": 599.4707062500001,
+     "miningWasteProbability": 37.6,
+     "miningWastedVolumeMultiplier": 1.0,
+     "miningCritChance": 0.015,
+     "miningCritBonusYield": 2.5,
+     "charge": "Common Moon Mining Crystal Type A II",
+     "mining_yps": 19.129591933391012,
+     "mining_drain": 25.370909397923885
+    },
+    {
+     "name": "Medium Asteroid Ore Compressor I",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 66000.0,
+     "falloff": 1.0,
+     "cpu": 20.0,
+     "power": 50.0,
+     "capacitorNeed": 100.0,
+     "duration": 60000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": [
+    {
+     "name": "Mining Drone II",
+     "amount": 5,
+     "active": 5,
+     "damageMultiplier": 1.5,
+     "speed": 0.0,
+     "thermalDamage": 0.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 5.671875,
+     "mining_drain": 7.6003125
+    }
+   ]
   },
   "scimitar_logi": {
    "dps": 0.0,
+   "weapon_dps": 0.0,
    "drone_dps": 0,
    "volley": 0.0,
    "ehp": {
@@ -793,6 +2560,7 @@
    "scan_res": 500.0,
    "cap_capacity": 2411.71875,
    "cap_recharge_ms": 244888.31250000003,
+   "shield_recharge_ms": 784898.4375000001,
    "cap": {
     "stable": false,
     "state": 54.0,
@@ -815,13 +2583,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 45.0,
    "cargo": 440.0,
-   "mining_yield": 0.0,
-   "remote_reps": {
-    "shield": 340.0,
-    "armor": 0.0,
-    "hull": 0.0
-   },
    "slots": {
     "high": 4,
     "med": 5,
@@ -829,10 +2592,165 @@
     "rig": 2,
     "turret": 2,
     "launcher": 1
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 340.0,
+    "armor": 0.0,
+    "hull": 0.0
+   },
+   "modules": [
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Power Diagnostic System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Power Diagnostic System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Omnidirectional Tracking Link II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 39.0,
+     "power": 1.0,
+     "capacitorNeed": 4.0,
+     "duration": 30000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Shield Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 32160.0,
+     "falloff": 1.0,
+     "cpu": 61.5,
+     "power": 250.0,
+     "capacitorNeed": 101.8125,
+     "duration": 8000.0,
+     "shieldBonus": 680.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Shield Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 32160.0,
+     "falloff": 1.0,
+     "cpu": 61.5,
+     "power": 250.0,
+     "capacitorNeed": 101.8125,
+     "duration": 8000.0,
+     "shieldBonus": 680.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Shield Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 32160.0,
+     "falloff": 1.0,
+     "cpu": 61.5,
+     "power": 250.0,
+     "capacitorNeed": 101.8125,
+     "duration": 8000.0,
+     "shieldBonus": 680.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Shield Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 32160.0,
+     "falloff": 1.0,
+     "cpu": 61.5,
+     "power": 250.0,
+     "capacitorNeed": 101.8125,
+     "duration": 8000.0,
+     "shieldBonus": 680.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
   },
   "guardian_logi": {
    "dps": 0.0,
+   "weapon_dps": 0.0,
    "drone_dps": 0,
    "volley": 0.0,
    "ehp": {
@@ -872,6 +2790,7 @@
    "scan_res": 481.25,
    "cap_capacity": 2953.125,
    "cap_recharge_ms": 219600.00000000003,
+   "shield_recharge_ms": 857812.5,
    "cap": {
     "stable": false,
     "state": 114.0,
@@ -894,13 +2813,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 25.0,
    "cargo": 465.0,
-   "mining_yield": 0.0,
-   "remote_reps": {
-    "shield": 0.0,
-    "armor": 291.0,
-    "hull": 0.0
-   },
    "slots": {
     "high": 6,
     "med": 2,
@@ -908,10 +2822,164 @@
     "rig": 2,
     "turret": 3,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0.0,
+    "armor": 291.0,
+    "hull": 0.0
+   },
+   "modules": [
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "1600mm Steel Plates II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 550.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Power Diagnostic System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.5,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "10MN Afterburner II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 25.0,
+     "power": 55.0,
+     "capacitorNeed": 22.5,
+     "duration": 7500.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 57600.0,
+     "falloff": 1.0,
+     "cpu": 48.0,
+     "power": 231.0,
+     "capacitorNeed": 68.4375,
+     "duration": 6000.0,
+     "armorDamageAmount": 512.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 57600.0,
+     "falloff": 1.0,
+     "cpu": 48.0,
+     "power": 231.0,
+     "capacitorNeed": 68.4375,
+     "duration": 6000.0,
+     "armorDamageAmount": 512.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 57600.0,
+     "falloff": 1.0,
+     "cpu": 48.0,
+     "power": 231.0,
+     "capacitorNeed": 68.4375,
+     "duration": 6000.0,
+     "armorDamageAmount": 512.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Remote Capacitor Transmitter II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 82875.0,
+     "falloff": 1.0,
+     "cpu": 53.0,
+     "power": 176.0,
+     "capacitorNeed": 68.625,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Trimark Armor Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Trimark Armor Pump I",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": [
+    {
+     "name": "Light Armor Maintenance Bot II",
+     "amount": 5,
+     "active": 5,
+     "damageMultiplier": 1.5,
+     "speed": 0.0,
+     "thermalDamage": 0.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    }
+   ]
   },
   "thanatos_fighters": {
    "dps": 1921.8598980327827,
+   "weapon_dps": 0,
    "drone_dps": 1921.8598980327827,
    "volley": 14130.703125,
    "ehp": {
@@ -951,6 +3019,7 @@
    "scan_res": 81.25,
    "cap_capacity": 68750.0,
    "cap_recharge_ms": 3150000.0,
+   "shield_recharge_ms": 11250000.0,
    "cap": {
     "stable": true,
     "state": 100,
@@ -973,13 +3042,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
    "cargo": 2800.0,
-   "mining_yield": 0,
-   "remote_reps": {
-    "shield": 0,
-    "armor": 0,
-    "hull": 0
-   },
    "slots": {
     "high": 5,
     "med": 5,
@@ -987,12 +3051,84 @@
     "rig": 3,
     "turret": 0,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [
+    {
+     "name": "Templar II",
+     "amount": 6,
+     "dps": 640.6199660109276,
+     "volley": 4710.234375
+    },
+    {
+     "name": "Templar II",
+     "amount": 6,
+     "dps": 640.6199660109276,
+     "volley": 4710.234375
+    },
+    {
+     "name": "Templar II",
+     "amount": 6,
+     "dps": 640.6199660109276,
+     "volley": 4710.234375
+    },
+    {
+     "name": "Siren II",
+     "amount": 3,
+     "dps": 0,
+     "volley": 0
+    }
+   ],
+   "drones": []
   },
   "nyx_fighters": {
-   "dps": 15906.117834915482,
-   "drone_dps": 15906.117834915482,
-   "volley": 298686.65625,
+   "dps": 17419.85522248572,
+   "weapon_dps": 0,
+   "drone_dps": 17419.85522248572,
+   "volley": 327990.09375,
    "ehp": {
     "shield": 472906.40394088667,
     "armor": 1023965.1416122004,
@@ -1030,6 +3166,7 @@
    "scan_res": 75.0,
    "cap_capacity": 101250.0,
    "cap_recharge_ms": 3795000.0,
+   "shield_recharge_ms": 15000000.0,
    "cap": {
     "stable": true,
     "state": 100,
@@ -1052,13 +3189,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
    "cargo": 1750.0,
-   "mining_yield": 0,
-   "remote_reps": {
-    "shield": 0,
-    "armor": 0,
-    "hull": 0
-   },
    "slots": {
     "high": 6,
     "med": 5,
@@ -1066,12 +3198,90 @@
     "rig": 3,
     "turret": 0,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [
+    {
+     "name": "Mantis II",
+     "amount": 6,
+     "dps": 4162.777815818152,
+     "volley": 80584.453125
+    },
+    {
+     "name": "Mantis II",
+     "amount": 6,
+     "dps": 4162.777815818152,
+     "volley": 80584.453125
+    },
+    {
+     "name": "Mantis II",
+     "amount": 6,
+     "dps": 4162.777815818152,
+     "volley": 80584.453125
+    },
+    {
+     "name": "Mantis II",
+     "amount": 6,
+     "dps": 4162.777815818152,
+     "volley": 80584.453125
+    },
+    {
+     "name": "Templar II",
+     "amount": 6,
+     "dps": 768.743959213113,
+     "volley": 5652.28125
+    }
+   ],
+   "drones": []
   },
   "hel_fighters": {
-   "dps": 4146.376221706676,
-   "drone_dps": 4146.376221706676,
-   "volley": 28886.625,
+   "dps": 4488.346044485701,
+   "weapon_dps": 0,
+   "drone_dps": 4488.346044485701,
+   "volley": 31240.6875,
    "ehp": {
     "shield": 965517.2413793103,
     "armor": 653594.7712418301,
@@ -1109,6 +3319,7 @@
    "scan_res": 87.5,
    "cap_capacity": 97500.0,
    "cap_recharge_ms": 3660000.0,
+   "shield_recharge_ms": 15000000.0,
    "cap": {
     "stable": true,
     "state": 100,
@@ -1131,13 +3342,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
    "cargo": 1720.0,
-   "mining_yield": 0,
-   "remote_reps": {
-    "shield": 0,
-    "armor": 0,
-    "hull": 0
-   },
    "slots": {
     "high": 6,
     "med": 7,
@@ -1145,10 +3351,88 @@
     "rig": 3,
     "turret": 0,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [
+    {
+     "name": "Ametat II",
+     "amount": 6,
+     "dps": 940.4170126423192,
+     "volley": 6473.671875
+    },
+    {
+     "name": "Ametat II",
+     "amount": 6,
+     "dps": 940.4170126423192,
+     "volley": 6473.671875
+    },
+    {
+     "name": "Ametat II",
+     "amount": 6,
+     "dps": 940.4170126423192,
+     "volley": 6473.671875
+    },
+    {
+     "name": "Ametat II",
+     "amount": 6,
+     "dps": 940.4170126423192,
+     "volley": 6473.671875
+    },
+    {
+     "name": "Einherji II",
+     "amount": 6,
+     "dps": 726.6779939164244,
+     "volley": 5346.0
+    }
+   ],
+   "drones": []
   },
   "chimera_fighters": {
    "dps": 1697.4310392246248,
+   "weapon_dps": 0,
    "drone_dps": 1697.4310392246248,
    "volley": 12529.6875,
    "ehp": {
@@ -1188,6 +3472,7 @@
    "scan_res": 75.0,
    "cap_capacity": 62500.0,
    "cap_recharge_ms": 2880000.0,
+   "shield_recharge_ms": 11250000.0,
    "cap": {
     "stable": true,
     "state": 100,
@@ -1210,13 +3495,8 @@
     "armorRepairFullSpool": 0,
     "hullRepair": 0
    },
+   "drone_bw": 0.0,
    "cargo": 2600.0,
-   "mining_yield": 0,
-   "remote_reps": {
-    "shield": 0,
-    "armor": 0,
-    "hull": 0
-   },
    "slots": {
     "high": 5,
     "med": 7,
@@ -1224,7 +3504,78 @@
     "rig": 3,
     "turret": 0,
     "launcher": 0
-   }
+   },
+   "mining_yield": 0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Fighter Support Unit II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 75.0,
+     "power": 90000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [
+    {
+     "name": "Dragonfly II",
+     "amount": 6,
+     "dps": 565.8103464082083,
+     "volley": 4176.5625
+    },
+    {
+     "name": "Dragonfly II",
+     "amount": 6,
+     "dps": 565.8103464082083,
+     "volley": 4176.5625
+    },
+    {
+     "name": "Dragonfly II",
+     "amount": 6,
+     "dps": 565.8103464082083,
+     "volley": 4176.5625
+    },
+    {
+     "name": "Cenobite II",
+     "amount": 3,
+     "dps": 0,
+     "volley": 0
+    }
+   ],
+   "drones": []
   },
   "astero_explo": {
    "dps": 0.0,
@@ -2004,6 +4355,915 @@
    ],
    "fighters": [],
    "drones": []
+  },
+  "armageddon_sync": {
+   "dps": 706.449463540269,
+   "weapon_dps": 706.449463540269,
+   "drone_dps": 0,
+   "volley": 3224.134740829594,
+   "ehp": {
+    "shield": 14738.916256157634,
+    "armor": 59217.20717609137,
+    "hull": 27363.18407960199
+   },
+   "hp": {
+    "shield": 9350.0,
+    "armor": 16830.0,
+    "hull": 11000.0
+   },
+   "resonance": {
+    "shield_em": 0.875,
+    "shield_thermal": 0.7000000000000001,
+    "shield_kinetic": 0.525,
+    "shield_explosive": 0.4375,
+    "armor_em": 0.12131185889523331,
+    "armor_thermal": 0.3000399615193462,
+    "armor_kinetic": 0.34619995559924566,
+    "armor_explosive": 0.3692799526391954,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 596.5,
+   "cpu_out": 653.12,
+   "pg_used": 20409.0,
+   "pg_out": 16875.0,
+   "calibration_used": 400.0,
+   "max_velocity": 125.0,
+   "align_time": 14.021089482504806,
+   "sig_radius": 450.0,
+   "mass": 105200000.0,
+   "lock_range": 134062.5,
+   "scan_res": 232.375,
+   "cap_capacity": 7750.0,
+   "cap_recharge_ms": 2475000.0,
+   "shield_recharge_ms": 1875000.0,
+   "cap": {
+    "stable": false,
+    "state": 192.0,
+    "used_per_s": 104.69535914016889,
+    "recharge_peak": 68.20564131884886
+   },
+   "tank_sustained": {
+    "passiveShield": 12.466666666666667,
+    "shieldRepair": 0,
+    "armorRepair": 8.073649010963933,
+    "armorRepairPreSpool": 8.073649010963933,
+    "armorRepairFullSpool": 8.073649010963933,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 12.466666666666667,
+    "shieldRepair": 0,
+    "armorRepair": 92.0,
+    "armorRepairPreSpool": 92.0,
+    "armorRepairFullSpool": 92.0,
+    "hullRepair": 0
+   },
+   "drone_bw": 125.0,
+   "cargo": 750.0,
+   "slots": {
+    "high": 7,
+    "med": 4,
+    "low": 7,
+    "rig": 3,
+    "turret": 5,
+    "launcher": 5
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Dark Blood Heat Sink",
+     "state": 0,
+     "damageMultiplier": 1.12,
+     "falloff": 1.0,
+     "cpu": 20.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood Heat Sink",
+     "state": 0,
+     "damageMultiplier": 1.12,
+     "falloff": 1.0,
+     "cpu": 20.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood EM Armor Hardener",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.0,
+     "power": 1.0,
+     "capacitorNeed": 30.0,
+     "duration": 20000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood Large Armor Repairer",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 46.0,
+     "power": 1800.0,
+     "capacitorNeed": 450.0,
+     "duration": 11250.0,
+     "armorDamageAmount": 1035.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood Multispectrum Energized Membrane",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood Multispectrum Energized Membrane",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Dark Blood Heavy Capacitor Booster",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1750.0,
+     "capacitorNeed": -800.0,
+     "duration": 11250.0,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Navy Cap Booster 800"
+    },
+    {
+     "name": "Sensor Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.0,
+     "power": 1.0,
+     "capacitorNeed": 12.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Tracking Computer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "capacitorNeed": 10.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Tracking Computer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "capacitorNeed": 10.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Mega Pulse Laser II",
+     "state": 1,
+     "damageMultiplier": 7.589771047150647,
+     "speed": 4563.857582497566,
+     "maxRange": 18034.896575619503,
+     "falloff": 16249.039958600853,
+     "trackingSpeed": 3.8388356902194523,
+     "cpu": 39.75,
+     "power": 2475.0,
+     "capacitorNeed": 33.75,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Conflagration L",
+     "charge_emDamage": 35.4,
+     "charge_thermalDamage": 35.4
+    },
+    {
+     "name": "Dark Blood Heavy Energy Neutralizer",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 40679.99999999999,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 2000.0,
+     "capacitorNeed": 375.0,
+     "duration": 24000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Dark Blood Synchronizer",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Trimark Armor Pump II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Trimark Armor Pump II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "naga_navy": {
+   "dps": 599.0461280466249,
+   "weapon_dps": 599.0461280466249,
+   "drone_dps": 0,
+   "volley": 5548.346090199205,
+   "ehp": {
+    "shield": 55537.62592939044,
+    "armor": 4357.298474945534,
+    "hull": 6840.796019900497
+   },
+   "hp": {
+    "shield": 17063.999999999996,
+    "armor": 2500.0,
+    "hull": 2750.0
+   },
+   "resonance": {
+    "shield_em": 0.4237947036854237,
+    "shield_thermal": 0.33903576294833904,
+    "shield_kinetic": 0.25427682221125425,
+    "shield_explosive": 0.21189735184271186,
+    "armor_em": 0.425,
+    "armor_thermal": 0.4675,
+    "armor_kinetic": 0.6375,
+    "armor_explosive": 0.765,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 565.5,
+   "cpu_out": 593.75,
+   "pg_used": 820.54,
+   "pg_out": 812.5,
+   "calibration_used": 225.0,
+   "max_velocity": 1589.84375,
+   "align_time": 9.357486937559262,
+   "sig_radius": 1658.4626733652758,
+   "mass": 20000000.0,
+   "lock_range": 100000.0,
+   "scan_res": 262.5,
+   "cap_capacity": 2900.0,
+   "cap_recharge_ms": 543750.0,
+   "shield_recharge_ms": 1050000.0,
+   "cap": {
+    "stable": false,
+    "state": 210.0,
+    "used_per_s": 23.599999999999998,
+    "recharge_peak": 13.333333333333334
+   },
+   "tank_sustained": {
+    "passiveShield": 40.628571428571426,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 40.628571428571426,
+    "shieldRepair": 0,
+    "armorRepair": 0,
+    "armorRepairPreSpool": 0,
+    "armorRepairFullSpool": 0,
+    "hullRepair": 0
+   },
+   "drone_bw": 0.0,
+   "cargo": 700.0,
+   "slots": {
+    "high": 7,
+    "med": 7,
+    "low": 3,
+    "rig": 3,
+    "turret": 0,
+    "launcher": 6
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Ballistic Control System II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "50MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 50.0,
+     "power": 165.0,
+     "capacitorNeed": 120.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Large Shield Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 45.0,
+     "power": 120.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Shield Hardener II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 32.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Missile Guidance Computer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 1.0,
+     "capacitorNeed": 7.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Warp Disruptor II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 24000.0,
+     "cpu": 44.0,
+     "power": 1.0,
+     "capacitorNeed": 22.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Cruise Missile Launcher II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "speed": 9261.968036236713,
+     "falloff": 1.0,
+     "cpu": 24.75,
+     "power": 68.09,
+     "miningWastedVolumeMultiplier": 1.0,
+     "charge": "Scourge Cruise Missile",
+     "charge_kineticDamage": 924.7243483665341,
+     "charge_maxVelocity": 11156.625,
+     "charge_explosionDelay": 22155.0,
+     "charge_aoeCloudSize": 227.08124999999998,
+     "charge_aoeVelocity": 112.03875000000001
+    },
+    {
+     "name": "Medium Core Defense Field Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Core Defense Field Extender II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": []
+  },
+  "penitence": {
+   "dps": 505.9790710648727,
+   "weapon_dps": 0.0,
+   "drone_dps": 505.9790710648727,
+   "volley": 2023.9162842594908,
+   "ehp": {
+    "shield": 7011.23595505618,
+    "armor": 87203.28349491036,
+    "hull": 7462.686567164179
+   },
+   "hp": {
+    "shield": 3412.5,
+    "armor": 15011.999999999998,
+    "hull": 3000.0
+   },
+   "resonance": {
+    "shield_em": 0.875,
+    "shield_thermal": 0.7000000000000001,
+    "shield_kinetic": 0.2625,
+    "shield_explosive": 0.109375,
+    "armor_em": 0.19959360122397465,
+    "armor_thermal": 0.25947168159116707,
+    "armor_kinetic": 0.149695200917981,
+    "armor_explosive": 0.07983744048958986,
+    "hull_em": 0.402,
+    "hull_thermal": 0.402,
+    "hull_kinetic": 0.402,
+    "hull_explosive": 0.402
+   },
+   "cpu_used": 499.5,
+   "cpu_out": 575.0,
+   "pg_used": 7613.0,
+   "pg_out": 1812.5,
+   "calibration_used": 150.0,
+   "max_velocity": 1708.9276481613133,
+   "align_time": 9.518060144609395,
+   "sig_radius": 805.0,
+   "mass": 19341250.0,
+   "lock_range": 179562.5,
+   "scan_res": 487.5,
+   "cap_capacity": 3800.0,
+   "cap_recharge_ms": 172800.00000000003,
+   "shield_recharge_ms": 937500.0,
+   "cap": {
+    "stable": false,
+    "state": 96.0,
+    "used_per_s": 79.65277777777777,
+    "recharge_peak": 54.97685185185184
+   },
+   "tank_sustained": {
+    "passiveShield": 9.1,
+    "shieldRepair": 0,
+    "armorRepair": 0.0,
+    "armorRepairPreSpool": 0.0,
+    "armorRepairFullSpool": 0.0,
+    "hullRepair": 0
+   },
+   "tank_peak": {
+    "passiveShield": 9.1,
+    "shieldRepair": 0,
+    "armorRepair": 40.888888888888886,
+    "armorRepairPreSpool": 40.888888888888886,
+    "armorRepairFullSpool": 40.888888888888886,
+    "hullRepair": 0
+   },
+   "drone_bw": 50.0,
+   "cargo": 475.0,
+   "slots": {
+    "high": 5,
+    "med": 6,
+    "low": 7,
+    "rig": 2,
+    "turret": 2,
+    "launcher": 4
+   },
+   "mining_yield": 0.0,
+   "remote_reps": {
+    "shield": 0,
+    "armor": 0,
+    "hull": 0
+   },
+   "modules": [
+    {
+     "name": "Damage Control II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "1600mm Steel Plates II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 35.0,
+     "power": 550.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Multispectrum Energized Membrane II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Drone Damage Amplifier II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Armor Repairer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 28.0,
+     "power": 138.0,
+     "capacitorNeed": 160.0,
+     "duration": 9000.0,
+     "armorDamageAmount": 368.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "50MN Microwarpdrive II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 50.0,
+     "power": 165.0,
+     "capacitorNeed": 120.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Warp Scrambler II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 9000.0,
+     "cpu": 36.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Stasis Webifier II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 10000.0,
+     "cpu": 30.0,
+     "power": 1.0,
+     "capacitorNeed": 4.5,
+     "duration": 5000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Sensor Booster II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 16.0,
+     "power": 1.0,
+     "capacitorNeed": 12.0,
+     "duration": 10000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Cap Recharger II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "cpu": 11.25,
+     "power": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Energy Neutralizer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 70000.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 2250.0,
+     "capacitorNeed": 375.0,
+     "duration": 24000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Energy Neutralizer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 70000.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 2250.0,
+     "capacitorNeed": 375.0,
+     "duration": 24000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Heavy Energy Neutralizer II",
+     "state": 1,
+     "damageMultiplier": 1.0,
+     "maxRange": 70000.0,
+     "falloff": 1.0,
+     "cpu": 40.0,
+     "power": 2250.0,
+     "capacitorNeed": 375.0,
+     "duration": 24000.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Trimark Armor Pump II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    },
+    {
+     "name": "Medium Trimark Armor Pump II",
+     "state": 0,
+     "damageMultiplier": 1.0,
+     "falloff": 1.0,
+     "miningWastedVolumeMultiplier": 1.0
+    }
+   ],
+   "fighters": [],
+   "drones": [
+    {
+     "name": "Hammerhead II",
+     "amount": 5,
+     "active": 5,
+     "damageMultiplier": 12.649476776621817,
+     "speed": 4000.0,
+     "thermalDamage": 32.0,
+     "kineticDamage": 0.0,
+     "emDamage": 0.0,
+     "explosiveDamage": 0.0,
+     "mining_yps": 0,
+     "mining_drain": 0
+    }
+   ]
   }
  }
 }
