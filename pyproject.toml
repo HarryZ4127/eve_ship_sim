@@ -19,5 +19,8 @@ evesim = "evesim.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+evesim = ["data/*.json.gz"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

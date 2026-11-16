@@ -61,10 +61,11 @@ class Weapon:
         mult = 1.0 + (self.spool_max if spooled else 0.0)
         return self.volley_total * mult / cycle
 
-    def dps_by_type(self) -> dict[str, float]:
+    def dps_by_type(self, reload: bool = False) -> dict[str, float]:
         if self.cycle_s <= 0:
             return {k: 0.0 for k in C.DAMAGE_TYPES}
-        return {k: v * self.count / self.cycle_s for k, v in self.volley.items()}
+        scale = self.dps(reload=reload) / self.dps() if reload and self.dps() else 1.0
+        return {k: v * self.count / self.cycle_s * scale for k, v in self.volley.items()}
 
     def range_summary(self) -> str:
         if self.kind == "missile":

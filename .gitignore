@@ -8,3 +8,4 @@ dist/
 # built static data and tokens live in the user cache dir, but guard local copies too
 *.json.gz
 .evesim/
+!src/evesim/data/prior.json.gz

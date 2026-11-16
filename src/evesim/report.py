@@ -110,6 +110,10 @@ def result_text(results: list[Result], spec: Spec) -> str:
                 if ok and c.bound not in (0, math.inf) and abs(v - c.bound) <= 0.02 * abs(c.bound):
                     tight = "  (binding)"
                 L.append(f"   [{'ok' if ok else 'XX'}] {c.metric:<14} {_n(v, 1):>12} {bound}{tight}")
+        if "typicality" in b.stats.extras:
+            L.append(f"Typicality {b.stats.extras['typicality']:.2f} (how closely each slot follows what pilots "
+                     f"fit on this hull; 1 = the most common choice everywhere)"
+                     + (f"; started from a {b.origin}" if b.origin else ""))
         L.append("")
         L.append(b.fit.to_eft().rstrip())
         L.append("")
@@ -122,6 +126,8 @@ def result_text(results: list[Result], spec: Spec) -> str:
                 label = f"{w.type.name} / {w.charge.name}" if w else "no weapons"
                 L.append(f"   {label}: score {a.score:.3f}, " +
                          ", ".join(f"{m} {_n(a.metrics[m], 1)}" for m in spec.weights)
+                         + (f", typicality {a.stats.extras['typicality']:.2f}" if "typicality" in a.stats.extras else "")
+                         + (f"  [{a.origin}]" if a.origin else "")
                          + ("" if a.feasible else "  [infeasible]"))
         L.append("")
     return "\n".join(L).rstrip() + "\n"

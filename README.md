@@ -20,6 +20,12 @@ tank, cap stability, budget, tank type, required modules ...).
   scoring every candidate with the exact simulator. You set the objective (one metric,
   a weighted mix of any number, or a Pareto trade-off frontier) and the constraints in a
   short TOML file. It can also pick the best hull from a whole ship class.
+* **Learns from real fits.** A model trained on 1.2 million killmail fits and the EVE
+  University wiki's fittings knows what pilots actually put in each slot of each hull.
+  The optimizer starts from the hull's most common real fits and prefers modules pilots
+  use, so results look like fits you would fly (a passive-shield Rattlesnake, a drone
+  Ishtar with an X-Large booster), not a pile of mismatched modules that edges out
+  1% more DPS. `evesim fits SHIP` lists the most common fits of any hull.
 * **Training advisor.** Ranks skills by how much one more level improves your objective
   per day of training at your attributes, builds a plan for a day budget, and finds
   skills that unlock a better fit.
@@ -91,7 +97,7 @@ require = ["Warp Scrambler II"]
 exclude = ["Polarized Heavy Assault Missile Launcher"]
 ```
 
-`evesim metrics` lists the 57 metrics you can maximize or constrain:
+`evesim metrics` lists the 58 metrics you can maximize or constrain:
 
 | area | metrics |
 |---|---|
@@ -105,6 +111,7 @@ exclude = ["Polarized Heavy Assault Missile Launcher"]
 | mining | `mining_yield` (ore), `ice_yield`, `gas_yield` |
 | exploration | `probe_strength`, `hacking_coherence`, `hacking_strength`, `hacking_power` (data and relic together), `data_coherence`, `data_strength`, `relic_coherence`, `relic_strength`, `salvage_chance` |
 | cost and fitting | `price`, `dps_per_misk`, `ehp_per_misk`, `cpu_left`, `pg_left` |
+| practicality | `typicality` (how closely the fit follows what pilots fit on the hull, 0-1) |
 
 [docs/requirements.md](docs/requirements.md) documents every field and how to choose good requirements.
 
@@ -140,6 +147,9 @@ is only a lower bound. Add them to `exclude` if you don't want that trade.
 | `evesim stats FIT.eft` | full stats for an EFT fit (`-` reads stdin); `--json` for machine output |
 | `evesim optimize SPEC.toml` | find the best fit (or a Pareto frontier); `--effort quick/normal/thorough`, `--eft-out`, `--json` |
 | `evesim train FIT.eft` | skill training advice for a fit; `--days`, `--refit` (unlocks), `--spec` or `--objective` |
+| `evesim fits SHIP` | the hull's most common real fits (PvE losses + curated; `--activity pvp/any`), simulated with your skills |
+| `evesim corpus fetch` | download recent killmail fits (EVE Ref) and EVE University wiki fits; `--days N` |
+| `evesim prior build` | retrain the fit model from the downloaded fits (a trained model ships with evesim) |
 | `evesim metrics` | list objective/constraint metrics |
 
 Fits use the EFT text format (fighter squadrons as `Templar II x6`) that the game client (*Copy to clipboard* / *Import from
@@ -151,12 +161,19 @@ Not modelled yet: command bursts, the effect of your webs and paints
 on your own applied damage, mutated modules, drugs, and Reactive Armor Hardener
 adaptation. EWAR is reported as each module's strength and range, not as its effect on a
 particular target. The optimizer is a heuristic over an exact simulator, so it is not
-guaranteed globally optimal. [docs/design.md](docs/design.md) covers how it works, what
+guaranteed globally optimal. By default it trades a little of the objective for fits that
+look like real ones (`[search] practicality = 0` turns that off), counts reload time in
+damage, and leaves Polarized weapons out (`[fitting] polarized = true` allows them).
+The real-fit model reflects what pilots fit and lose, which is not always what is best:
+PvE losses lean towards fits that failed, so it is smoothed with all fits of the hull,
+and the objective still decides when one choice is clearly better. [docs/design.md](docs/design.md) covers how it works, what
 was validated, and open decisions; `tools/audit_ships.py` checks coverage of every hull.
 
 Static data comes from Pyfa's copy of CCP's FSD export because it is reachable,
-refreshed every patch, and already includes `modifierInfo`. EVE Online and all related
-data are property of CCP hf.
+refreshed every patch, and already includes `modifierInfo`. Killmails come from
+[EVE Ref](https://data.everef.net/killmails/)'s daily archives of ESI killmails, and
+curated fits from the [EVE University wiki](https://wiki.eveuniversity.org/). EVE Online
+and all related data are property of CCP hf.
 
 ## Browser demo
 

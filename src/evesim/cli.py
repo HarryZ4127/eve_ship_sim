@@ -220,6 +220,73 @@ def cmd_metrics(args):
         print(f"{m.name:<20} {'max' if m.higher_is_better else 'min'}  {m.unit:<6} {m.description}")
 
 
+def cmd_corpus_fetch(args):
+    from evesim import corpus
+    data = _data(args)
+    print(f"caching real fits in {corpus.corpus_dir()}")
+    if args.days:
+        n = corpus.fetch_killmails(data, days=args.days, log=lambda m: print(m), refresh=args.refresh)
+        print(f"killmails: {n} new fits")
+    if args.wiki:
+        corpus.fetch_uniwiki(data, log=lambda m: print(m))
+
+
+def cmd_corpus_info(args):
+    import collections
+    from evesim import corpus
+    data = _data(args)
+    tags, ships = collections.Counter(), collections.Counter()
+    for f in corpus.load():
+        tags[f.tag] += 1
+        ships[f.ship] += 1
+    print(f"{sum(tags.values())} fits in {corpus.corpus_dir()}: " + ", ".join(f"{k} {v}" for k, v in tags.most_common()))
+    print("most common hulls: " + ", ".join(f"{data.types[s].name} {n}" for s, n in ships.most_common(15)
+                                            if s in data.types))
+
+
+def cmd_prior_build(args):
+    from evesim import corpus, prior
+    data = _data(args)
+    model = prior.train(corpus.load(), data, log=print)
+    if args.out:
+        out = Path(args.out)
+    else:
+        import os
+        base = os.environ.get("XDG_CACHE_HOME") or os.path.join(os.path.expanduser("~"), ".cache")
+        out = Path(base) / "evesim" / "prior.json.gz"
+    prior.save(model, out)
+    print(f"wrote {out} ({out.stat().st_size // 1024} KiB)")
+
+
+def cmd_fits(args):
+    """The most common real fits of a hull, simulated with your skills."""
+    from evesim.fit import Fit
+    from evesim.prior import get_prior
+    from evesim.stats import compute
+    data = _data(args)
+    pr = get_prior(data)
+    if pr is None:
+        raise FileNotFoundError("no trained fit model: run `evesim corpus fetch` and `evesim prior build`")
+    ship = data.type_by_name(args.ship)
+    char = _skills(args, data).character(data)
+    tag = {"pve": "pve", "pvp": "pvp", "any": "all"}[args.activity]
+    fits = pr.top_fits(ship.id, tag)[:args.top]
+    if not fits:
+        print(f"no recorded fits for {ship.name}")
+    print(f"{ship.name}: {pr.fits_seen(ship.id):.0f} fits recorded ({pr.fits_seen(ship.id, 'pve'):.0f} PvE)")
+    for real in fits:
+        fit = Fit.from_eft(real.eft(data, name=f"{real.tag}, {real.source}"), data)
+        from evesim.optimize.spec import _profile
+        st = compute(fit, char, profile=_profile(args.profile))
+        totals = {s: st.slots[s][1] for s in ("high", "med", "low", "rig")}
+        totals["subsystem"] = int(ship.attr("maxSubSystems", 0.0))
+        typ = pr.typicality(fit, totals, tag)
+        print(f"\n# {real.tag}, {real.source}: DPS {st.dps:,.0f}, EHP {st.ehp_total:,.0f}, "
+              f"tank {st.sustained_ehps_reload:,.0f} EHP/s, typicality {typ:.2f}"
+              + ("" if not st.problems else f"  [with these skills: {'; '.join(st.problems[:3])}]"))
+        print(fit.to_eft().rstrip())
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="evesim", description="EVE Online ship simulator and fit optimizer")
     p.add_argument("--data", help="static data file (default: %s)" % default_data_path())
@@ -300,6 +367,28 @@ def main(argv=None):
     tr.add_argument("--offline", action="store_true")
     tr.add_argument("--quiet", "-q", action="store_true")
     tr.set_defaults(fn=cmd_train)
+
+    co = sub.add_parser("corpus", help="real fits from killmails and community sites, for training")
+    csub = co.add_subparsers(dest="corpus_cmd", required=True)
+    cf = csub.add_parser("fetch", help="download killmail fits (EVE Ref) and EVE University wiki fits")
+    cf.add_argument("--days", type=int, default=60, help="days of killmails to cache (default 60; 0 = none)")
+    cf.add_argument("--no-wiki", dest="wiki", action="store_false", help="skip the EVE University wiki")
+    cf.add_argument("--refresh", action="store_true", help="download days already cached again")
+    cf.set_defaults(fn=cmd_corpus_fetch)
+    ci = csub.add_parser("info", help="summarize the cached fits")
+    ci.set_defaults(fn=cmd_corpus_info)
+    pb = sub.add_parser("prior", help="the fit model trained on real fits")
+    psub = pb.add_subparsers(dest="prior_cmd", required=True)
+    pbb = psub.add_parser("build", help="train it from the cached fits")
+    pbb.add_argument("--out", help="where to write it (default ~/.cache/evesim/prior.json.gz)")
+    pbb.set_defaults(fn=cmd_prior_build)
+    fs = sub.add_parser("fits", help="the most common real fits of a hull, simulated with your skills")
+    fs.add_argument("ship")
+    fs.add_argument("--activity", choices=["pve", "pvp", "any"], default="pve")
+    fs.add_argument("--top", type=int, default=5)
+    fs.add_argument("--profile", default="uniform", help="incoming damage profile for EHP")
+    skills_arg(fs)
+    fs.set_defaults(fn=cmd_fits)
 
     me = sub.add_parser("metrics", help="list metrics usable in objectives and constraints")
     me.set_defaults(fn=cmd_metrics)

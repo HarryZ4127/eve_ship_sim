@@ -77,6 +77,11 @@ def _ewar_sum(s: Stats, kinds) -> float:
     return sum(e["per_second"] for e in s.utility.get("ewar", []) if e["kind"] in kinds)
 
 
+def _dps(s: Stats, sp: "Spec", skip: tuple = ()) -> float:
+    """Raw DPS, counting reload time when the spec asks for it (the default)."""
+    return sum(w.dps(reload=sp.reload) for w in s.weapons if w.kind not in skip)
+
+
 def _hack(s: Stats, kind: str, field: str) -> float:
     return s.utility.get("hacking", {}).get(kind, {}).get(field, 0.0)
 
@@ -102,11 +107,11 @@ def _cap_seconds(s: Stats, _spec) -> float:
 
 
 METRICS: dict[str, Metric] = {m.name: m for m in [
-    Metric("dps", True, lambda s, sp: s.dps, "HP/s", "raw DPS of weapons and drones"),
-    Metric("weapon_dps", True, lambda s, sp: s.weapon_dps, "HP/s", "raw DPS without drones"),
+    Metric("dps", True, lambda s, sp: _dps(s, sp), "HP/s", "raw DPS of weapons and drones"),
+    Metric("weapon_dps", True, lambda s, sp: _dps(s, sp, ("drone", "fighter")), "HP/s", "raw DPS without drones"),
     Metric("drone_dps", True, lambda s, sp: s.drone_dps, "HP/s", "raw drone DPS"),
     Metric("fighter_dps", True, lambda s, sp: s.fighter_dps, "HP/s", "raw fighter squadron DPS"),
-    Metric("applied_dps", True, lambda s, sp: applied_dps(s, sp.target), "HP/s",
+    Metric("applied_dps", True, lambda s, sp: applied_dps(s, sp.target, reload=sp.reload), "HP/s",
            "DPS landing on [target] after tracking/explosion and its resists"),
     Metric("volley", True, lambda s, sp: s.volley, "HP", "alpha strike"),
     Metric("ehp", True, lambda s, sp: s.ehp_total, "HP", "effective HP against [incoming]"),
@@ -130,7 +135,9 @@ METRICS: dict[str, Metric] = {m.name: m for m in [
     Metric("hull_ehp", True, lambda s, sp: s.ehp["hull"], "HP"),
     Metric("survival_time", True, _survival_time, "s",
            "seconds until dead under [incoming] dps, after sustained repairs (inf if the tank holds)"),
-    Metric("dps_per_misk", True, lambda s, sp: s.dps / max((s.price or 0.0) / 1e6, 0.01), "DPS/M ISK",
+    Metric("typicality", True, lambda s, sp: s.extras.get("typicality", 1.0), "",
+           "how much the fit resembles real fits of the hull (1 = the most common choice in every slot)"),
+    Metric("dps_per_misk", True, lambda s, sp: _dps(s, sp) / max((s.price or 0.0) / 1e6, 0.01), "DPS/M ISK",
            "raw DPS per million ISK of fit price"),
     Metric("ehp_per_misk", True, lambda s, sp: s.ehp_total / max((s.price or 0.0) / 1e6, 0.01), "EHP/M ISK"),
     Metric("cargo", True, lambda s, sp: s.utility.get("cargo", 0.0), "m3", "cargo hold"),
@@ -241,7 +248,7 @@ METRIC_GROUPS = {
     "speed": ["nav"], "align_time": ["nav"], "signature": ["nav"],
     "lock_range": ["targeting"], "scan_resolution": ["targeting"],
     "cap_seconds": ["cap"], "cap_stable_fraction": ["cap"], "cap_delta": ["cap"],
-    "price": [], "cpu_left": ["fitting"], "pg_left": ["fitting"],
+    "price": [], "typicality": [], "cpu_left": ["fitting"], "pg_left": ["fitting"],
     "hull_ehp": ["ehp"], "survival_time": ["ehp", "tank", "cap"], "dps_per_misk": ["dps"], "ehp_per_misk": ["ehp"],
     "cargo": ["cargo"], "warp_speed": ["warp"], "mass": ["nav"], "max_targets": ["sensors"],
     "sensor_strength": ["sensors"], "lock_time": ["targeting"], "drone_control_range": ["drone_range"],
@@ -308,6 +315,10 @@ class Spec:
     pg_margin: float = 0.0
     effort: str = "normal"       # quick | normal | thorough
     seed: int = 1
+    reload: bool = True          # damage metrics include reload time (rapid launchers, crystals...)
+    polarized: bool = False      # allow Polarized weapons (they zero your own resists)
+    practicality: float = 1.0    # weight of the learned "what real fits look like" prior (0 = off)
+    activity: str = "pve"        # which real fits the prior learns from: pve | pvp | any
     name: str = ""
 
     @property
@@ -394,6 +405,7 @@ def from_dict(d: dict) -> Spec:
     elif "minimize" in obj:
         sp.weights = {obj["minimize"]: 1.0}
     sp.scales = {k: float(v) for k, v in obj.get("scales", {}).items()}
+    sp.reload = bool(obj.get("reload", True))
     if "pareto" in obj:
         sp.pareto = list(obj["pareto"])
         sp.pareto_points = int(obj.get("points", sp.pareto_points))
@@ -443,6 +455,7 @@ def from_dict(d: dict) -> Spec:
         sp.drones = bool(f["drones"])
     sp.oversized_prop = bool(f.get("oversized_prop", False))
     sp.smartbombs = bool(f.get("smartbombs", False))
+    sp.polarized = bool(f.get("polarized", False))
     sp.fill_slots = bool(f.get("fill_slots", True))
     sp.cpu_margin = float(f.get("cpu_margin", 0))
     sp.pg_margin = float(f.get("pg_margin", 0))
@@ -459,6 +472,12 @@ def from_dict(d: dict) -> Spec:
     sp.effort = s.get("effort", sp.effort)
     sp.seed = int(s.get("seed", sp.seed))
     sp.screen_top = int(s.get("screen_top", sp.screen_top))
+    sp.practicality = float(s.get("practicality", sp.practicality))
+    sp.activity = str(s.get("activity", sp.activity)).lower()
+    if sp.activity not in ("pve", "pvp", "any"):
+        raise ValueError("search.activity must be pve, pvp or any")
+    if sp.practicality < 0:
+        raise ValueError("search.practicality must be 0 (off) or more")
     if sp.effort not in ("screen", "quick", "normal", "thorough"):
         raise ValueError("search.effort must be quick, normal or thorough")
     return sp

@@ -10,6 +10,7 @@ from evesim.fit import (DroneSpec, FighterSpec, Fit, ModuleSpec, can_activate, c
                         default_state, fighter_class, is_launcher, is_turret, module_fits_ship, ship_modes, slot_of)
 from evesim.optimize import pareto
 from evesim.optimize.search import SHIP_CLASSES, Optimizer
+from evesim.prior import get_prior
 from evesim.optimize.spec import METRICS, from_dict, _profile
 from evesim.skills import profile as skillprof
 from evesim.stats import compute
@@ -28,8 +29,11 @@ def _clean(o):
     return o
 
 
-def init(path):
+def init(path, prior_path=None):
     global _data
+    if prior_path:
+        import os
+        os.environ["EVESIM_PRIOR"] = prior_path
     _data = StaticData.load(path)
     ships = sorted(t.name for t in _data.types.values() if t.category_id == CAT_SHIP and t.market_group)
     grades = sorted(g["name"] for g in _data.clone_grades.values())
@@ -110,11 +114,13 @@ def optimize(req_json, log):
                 ok = (v == math.inf) if c.bound == math.inf else c.shortfall(v) == 0
                 cons.append({"metric": c.metric, "kind": c.kind, "bound": c.bound, "value": v, "ok": ok})
             item["best"] = {"feasible": b.feasible, "score": b.score, "metrics": b.metrics,
-                            "constraints": cons, "stats": _stats_dict(b.stats, spec.target)}
+                            "constraints": cons, "stats": _stats_dict(b.stats, spec.target),
+                            "typicality": b.stats.extras.get("typicality"), "origin": b.origin}
             item["alternatives"] = [{
                 "label": next((f"{m.type.name} / {m.charge.name}" for m in a.fit.modules
                                if m.charge and m.slot == "high"), "no weapons"),
-                "score": a.score, "feasible": a.feasible,
+                "score": a.score, "feasible": a.feasible, "typicality": a.stats.extras.get("typicality"),
+                "origin": a.origin, "eft": a.fit.to_eft(),
                 "metrics": {m: a.metrics[m] for m in spec.weights}} for a in r.alternatives]
         out.append(item)
     return json.dumps(_clean({"skills": name, "weights": spec.weights, "results": out,
@@ -237,7 +243,35 @@ def simulate_fit(req_json):
                      "charge_qty": int(g(it, "capacity") // (m.charge.attrs.get(C.A_VOLUME) or 1.0)) if m.charge else 0}
                     for m, it in zip(fit.modules, st.calc.modules)]
     d["drones_active"] = [x.active for x in fit.drones]
+    pr = get_prior(_data)
+    if pr is not None:
+        totals = {s: st.slots[s][1] for s in ("high", "med", "low", "rig")}
+        totals["subsystem"] = int(ship.attr("maxSubSystems", 0.0))
+        d["typicality"] = pr.typicality(fit, totals, "pve")
+        d["real_fits_seen"] = pr.fits_seen(ship.id)
     return json.dumps(_clean(d))
+
+
+def real_fits(req_json):
+    """The hull's most common real fits (killmails and curated), simulated with these skills."""
+    req = json.loads(req_json)
+    ship = _data.types[int(req["ship"])]
+    pr = get_prior(_data)
+    if pr is None:
+        return json.dumps({"fits": [], "seen": 0})
+    char, _ = _char(req.get("skills", "all5"), req.get("skills_json"))
+    tag = {"pve": "pve", "pvp": "pvp", "any": "all"}.get(req.get("activity", "pve"), "pve")
+    out = []
+    for real in pr.top_fits(ship.id, tag)[:8]:
+        label = f"{'Curated' if real.tag == 'curated' else real.tag.upper()} fit, {real.source}"
+        fit = Fit.from_eft(real.eft(_data, name=label), _data)
+        st = compute(fit, char, profile=_profile(req.get("profile", "uniform")))
+        totals = {s: st.slots[s][1] for s in ("high", "med", "low", "rig")}
+        totals["subsystem"] = int(ship.attr("maxSubSystems", 0.0))
+        out.append({"label": label, "eft": fit.to_eft(), "dps": st.dps, "ehp": st.ehp_total,
+                    "tank": st.sustained_ehps_reload, "problems": st.problems[:3],
+                    "typicality": pr.typicality(fit, totals, tag)})
+    return json.dumps(_clean({"fits": out, "seen": pr.fits_seen(ship.id), "seen_pve": pr.fits_seen(ship.id, "pve")}))
 
 
 def parse_eft(req_json):

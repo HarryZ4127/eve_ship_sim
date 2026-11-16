@@ -17,6 +17,8 @@ src/evesim/
   optimize/search.py optimizer
   optimize/pareto.py trade-off frontier over several metrics
   advisor.py         skill training advisor
+  corpus.py          real fits: killmail victims (EVE Ref archives), EVE University wiki fits
+  prior.py           model of what real fits look like, trained on the corpus
   report.py, cli.py  output and command line
 ```
 
@@ -126,12 +128,74 @@ exact and makes the search smart.
    max active) and ammo, then verify with the full capacitor simulation. If averages
    were too optimistic, the local search continues with the simulation on.
 
-Score = `sum(weight * metric / scale)` − 1000 × (relative constraint violation), plus a
-tiny tie-breaker that prefers spare CPU/PG and lower price. Feasible fits always win,
-infeasible ones are graded by how close they get, and plateaus (an oversized module
-that can be swapped for a smaller one with no immediate gain) can be walked off.
+Score = `sum(weight * metric / scale)` + practicality term − 1000 × (relative constraint
+violation), plus a tiny tie-breaker that prefers less CPU/PG used (against the bare
+hull's output) and lower price. Feasible fits always win, infeasible ones are graded by
+how close they get, and plateaus (an oversized module that can be swapped for a smaller
+one with no immediate gain) can be walked off. The practicality term and the real-fit
+starting points are described in the next section.
 
 Typical run times on one core: quick 2–10 s, normal 20–40 s per hull.
+
+## Learning from real fits
+
+Optimizing only the stated objective produced fits that were legal and scored well but
+were not what anyone would fly: medium lasers and one stray missile launcher on a
+battleship, a small armor repairer on a shield tank, heat sinks next to drone damage
+amplifiers, empty slots filled with co-processors. These are all choices that a single
+objective cannot tell apart from good ones, because they cost it nothing. Real fits carry
+that missing knowledge, so evesim learns from them.
+
+**Corpus.** `evesim corpus fetch` downloads EVE Ref's daily archives of ESI killmails and
+keeps each victim's fitted modules, loaded charges, drones and fighters (about 10,000
+fits a day). A loss with no player among the attackers is tagged PvE. Fits from the EVE
+University wiki's `ShipFitting` template (incursion doctrines, exploration, travel ...)
+are added as curated fits, each counting like ten killmails. Losses where CONCORD or an
+empire faction's police or navy took part count as PvP: those are gankers and outlaws,
+about a quarter of all NPC-only kills. The shipped model was trained on 120 days (July to
+November 2026): 1.2 million fits, of which 962,000 PvP losses, 110,000 PvE losses and
+450 curated fits were used after leaving out 128,000 mostly empty fits (new players'
+losses).
+
+**Model.** For each hull and slot type, a multinomial over *module families* (a module
+and its meta variants: Damage Control I/II/'Radical'/Shadow Serpentis are one family),
+with "empty" as one more outcome. Hulls with few fits borrow from their ship group and
+from all ships through Dirichlet smoothing, and the PvE distribution is smoothed towards
+all fits of the hull, since PvE losses alone over-represent fits that failed. The model
+also keeps each hull's most common complete fits and the charge most often loaded in
+each weapon.
+
+**Use in the search.**
+
+* Each slot adds `0.05 * practicality * max(log(p(choice) / p(most common module)), -4)`
+  points. The floor keeps rare or brand-new modules possible when they are clearly better.
+  An empty slot never scores above the most common module, so the model shapes which
+  modules are fitted, not whether slots are filled.
+* The most common families of each slot join the candidate pools even when they move no
+  metric the spec names, so the fill step can add a damage control or a cap recharger
+  where pilots do.
+* The hull's most common real fits (2 for quick, 4 for normal, 8 for thorough effort)
+  are adapted to the character (modules it cannot use are replaced by the best usable
+  variant of the same family) and searched from, alongside the usual weapon setups.
+* The weapon real pilots use most on the hull always gets a full search, and mixed
+  turret/launcher setups are only tried where real fits mix them.
+
+Same specs, all-V skills, normal effort, with the prior off and on (applied DPS counts
+reloads; typicality is measured with the shipped model in both cases):
+
+| case | prior off | prior on |
+|---|---|---|
+| Praxis, Crimson Harvest (Blood Raiders, 300 EHP/s, cap stable) | 835 DPS, typicality 0.19 | 864 DPS, 0.36 |
+| Rattlesnake, same | 869 DPS, 0.10 | 896 DPS, 0.49 |
+| Myrmidon, same | 578 DPS, 0.06 | 550 DPS, 0.32 |
+| Ishtar ratting (applied DPS + ½ tank vs Guristas) | 547 DPS, 2,092 EHP/s, 0.03 | 675 DPS, 2,670 EHP/s, 0.33 |
+| Tengu explorer (DPS + probes + hacking) | 642 DPS, probe 130, 0.37 | 673 DPS, probe 111, 0.52 |
+
+Without the prior the Praxis mixed medium lasers with one missile launcher and the Myrmidon
+paired a small armor repairer with a shield booster. With it, they come out as the kinds
+of fits pilots fly, and in four of the five cases with *more* damage, because starting from
+real fits gets the search out of poor local optima. The Myrmidon gives up 5% of its damage
+for a fit that looks like a real one.
 
 ## Ship coverage
 
@@ -209,6 +273,13 @@ Unlock analysis re-optimizes the hull with each candidate skill set (sets that u
 upgrades of items already in the fit first). Every re-run also yields fits the current
 skills can already fly, and the best of those is the reference, so a better search
 result is not mistaken for a skill benefit.
+
+## Damage and reloads
+
+Damage metrics in specs count reload time by default (`reload = false` under
+`[objective]` restores the in-space rate). Without it, rapid launchers looked 75% better
+than they are over a fight, and the optimizer favoured them everywhere. The stats report
+and Pyfa comparisons still show DPS without reloads, as Pyfa does.
 
 ## Not modelled (yet)
 

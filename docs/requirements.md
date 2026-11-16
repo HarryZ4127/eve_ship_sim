@@ -65,6 +65,8 @@ weights = { applied_dps = 1.0, ehp = 0.5 }
 ```
 
 The score is `sum(weight * metric / scale)`. Scales put metrics on comparable footing.
+Damage metrics count reload time (rapid launchers, crystals, ...) unless you set
+`reload = false` under `[objective]`.
 With weight 1, one "scale unit" is worth one point:
 
 | metric | scale | metric | scale |
@@ -173,6 +175,7 @@ static base prices are used and budgets become unreliable (a warning is printed)
 | `exclude` | `[]` | modules never to use |
 | `subsystems` | `[]` | the four subsystems of a T3 cruiser, or `"auto"` to choose them |
 | `smartbombs` | `false` | allow smartbombs as utility (they also hit your own drones) |
+| `polarized` | `false` | allow Polarized weapons (more damage, but they zero your resists) |
 | `fill_slots` | `true` | fill slots the objective leaves empty with EHP/DPS |
 | `cpu_margin`, `pg_margin` | 0 | keep this much CPU/PG free |
 
@@ -182,7 +185,19 @@ static base prices are used and budgets become unreliable (a warning is printed)
 effort = "normal"           # quick (~5-10 s per hull), normal (~20-40 s), thorough (minutes)
 seed = 1                    # the search is randomized but reproducible for a given seed
 screen_top = 5              # with many hulls: how many get the full search after screening
+practicality = 1.0          # how strongly to prefer what real pilots fit (0 = pure optimum, 2 = close to real fits)
+activity = "pve"            # which real fits to learn from: pve, pvp or any
 ```
+
+**Practicality.** evesim ships a model trained on real fits (see
+[design](design.md#learning-from-real-fits)). The search starts from the hull's most
+common real fits as well as from scratch, and each slot's choice adds
+`0.05 * practicality * log(p(choice) / p(most common module))` to the score, at most 0.2
+points of penalty per slot. With the default weight, a module nobody uses on that hull
+has to be worth about 20 DPS (or 2,000 EHP) more than the usual choice to be picked. The
+report shows each fit's `typicality`: 1.0 means the most common module in every slot;
+ordinary real fits score about 0.3 to 0.7. You can also constrain it
+(`min_typicality = 0.4`).
 
 ## Reading the result
 

@@ -246,6 +246,7 @@ dialog textarea { min-height: 260px; }
             <button type="button" class="copy" id="fit-import">Import EFT</button>
             <button type="button" class="copy" id="fit-copy">Copy EFT</button>
             <button type="button" class="copy" id="fit-strip">Strip fit</button>
+            <button type="button" class="copy" id="fit-real">Real fits</button>
           </div>
         </div>
         <div class="ring" id="ring"></div>
@@ -272,6 +273,17 @@ dialog textarea { min-height: 260px; }
       <div class="readout" id="fit-summary"></div>
     </aside>
   </section>
+
+  <dialog id="real-dialog" aria-labelledby="real-title">
+    <div class="dlg">
+      <div class="banner"><h2 id="real-title">Real fits</h2>
+        <div class="field" style="flex:0 0 160px"><label for="real-activity">From</label>
+          <select id="real-activity"><option value="pve">PvE losses + curated</option><option value="pvp">PvP losses</option><option value="any">All</option></select></div></div>
+      <p class="sub" id="real-sub">The most common fits of this hull in recent killmails and on the EVE University wiki, simulated with your skills.</p>
+      <div id="real-list" class="readout"></div>
+      <div class="tools" style="display:flex;gap:8px"><button type="button" class="copy" id="real-close">Close</button></div>
+    </div>
+  </dialog>
 
   <dialog id="eft-dialog" aria-labelledby="eft-title">
     <form method="dialog" class="dlg">
@@ -354,7 +366,15 @@ dialog textarea { min-height: 260px; }
             <label><input type="checkbox" value="storyline" checked> Storyline</label>
             <label><input type="checkbox" value="faction"> Faction</label>
           </div></div>
-        <div class="checks"><label><input type="checkbox" id="f-nopol"> Exclude Polarized weapons (they zero your resists)</label></div>
+        <div class="row">
+          <div class="field"><label for="f-style">Fit style</label>
+            <select id="f-style"><option value="1" selected>Like real fits (recommended)</option><option value="2">Close to real fits</option><option value="0">Pure optimum (ignore real fits)</option></select></div>
+          <div class="field"><label for="f-activity">Learn from</label>
+            <select id="f-activity"><option value="pve" selected>PvE fits</option><option value="pvp">PvP fits</option><option value="any">All fits</option></select></div>
+        </div>
+        <p class="hint">Real fits come from 1.2 million killmails and EVE University fittings. The search starts from the hull's most common fits and prefers modules pilots actually use, unless something else is clearly better for your objective.</p>
+        <div class="checks"><label><input type="checkbox" id="f-pol"> Allow Polarized weapons (they zero your resists)</label></div>
+        <div class="checks"><label><input type="checkbox" id="f-reload" checked> Count reload time in damage</label></div>
         <div class="field"><label for="f-require">Must fit (comma-separated)</label><input id="f-require" placeholder="Warp Scrambler II, Stasis Webifier II"></div>
         <div class="field"><label for="f-exclude">Never fit (comma-separated)</label><input id="f-exclude"></div>
         <p class="hint">T3 cruisers pick their own subsystems. T3 destroyers pick their tactical mode.</p>
@@ -422,7 +442,7 @@ const METRIC_LABEL = { dps: "Raw DPS", applied_dps: "Applied DPS", weapon_dps: "
   lock_range: "Lock range", lock_time: "Lock time", scan_resolution: "Scan resolution", max_targets: "Max targets", sensor_strength: "Sensor strength",
   weapon_range: "Weapon range", price: "Price", dps_per_misk: "DPS per M ISK", ehp_per_misk: "EHP per M ISK",
   cap_seconds: "Cap duration", cap_stable_fraction: "Cap stable %", cap_delta: "Cap surplus", cap_capacity: "Cap capacity", cap_recharge: "Cap recharge",
-  cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Ore yield", remote_repair: "Remote repair",
+  typicality: "Typicality", cpu_left: "CPU left", pg_left: "Powergrid left", cargo: "Cargo", mining_yield: "Ore yield", remote_repair: "Remote repair",
   ice_yield: "Ice yield", gas_yield: "Gas yield", probe_strength: "Probe strength", data_coherence: "Data coherence", data_strength: "Data strength",
   relic_coherence: "Relic coherence", relic_strength: "Relic strength",
   hacking_coherence: "Hacking coherence (data + relic)", hacking_strength: "Hacking strength (data + relic)", hacking_power: "Hacking power (data + relic)", salvage_chance: "Salvage chance",
@@ -609,14 +629,18 @@ function renderOpt(res, example) {
     h += `<div class="card"><div class="banner"><div><div class="ship">${esc(r.ship)}</div>
       <div class="sub">${fmt(r.evaluations)} fits scored in ${fmt(r.seconds, 1)} s · skills: ${esc(res.skills)}</div></div>
       <span class="pill ${b.feasible ? "ok" : "bad"}">${b.feasible ? "All constraints met" : "Best compromise: constraints not met"}</span></div>
+      ${b.typicality != null ? `<div class="sub">Typicality <b class="num">${fmt(b.typicality, 2)}</b> (1 = the most common module in every slot)${b.origin ? ` · started from a ${esc(b.origin)}` : " · built from scratch"}</div>` : ""}
       <div class="cons">${keys.map((k) => `<div><span class="lbl">Objective</span> ${label(k)} ${w[k] !== 1 ? `×${w[k]}` : ""} <span class="num">${fmt(b.metrics[k], 1)} ${esc(unitOf(k))}</span></div>`).join("")}
       ${b.constraints.map((c) => `<div><span class="pill ${c.ok ? "ok" : "bad"}">${c.ok ? "met" : "missed"}</span> ${label(c.metric)}
         <span class="num">${fmt(c.value, 1)}</span> <span class="sub">${c.bound === "inf" ? "must be stable" : (c.kind === "min" ? "≥ " : "≤ ") + fmt(c.bound, 1)}</span></div>`).join("")}</div></div>`;
     h += renderStats(b.stats, { subtitle: "Optimized fit", key: keys[0], showEft: "eft-" + r.ship.replace(/\W/g, ""), profile: $("#opt-profile").value });
     if (r.alternatives.length) {
-      h += `<div class="card"><h2>Other weapon setups tried</h2><div class="scroll"><table><thead><tr><th>Weapons</th><th class="r">Score</th>${keys.map((k) => `<th class="r">${label(k)}</th>`).join("")}</tr></thead><tbody>`;
-      h += `<tr><td><b>Chosen</b></td><td class="r num">${fmt(b.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(b.metrics[k], 1)}</td>`).join("")}</tr>`;
-      for (const a of r.alternatives) h += `<tr><td>${esc(a.label)}${a.feasible ? "" : ' <span class="pill bad">infeasible</span>'}</td><td class="r num">${fmt(a.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(a.metrics[k], 1)}</td>`).join("")}</tr>`;
+      h += `<div class="card"><h2>Other fits tried</h2><div class="scroll"><table><thead><tr><th>Weapons</th><th class="r">Score</th>${keys.map((k) => `<th class="r">${label(k)}</th>`).join("")}<th class="r">Typicality</th><th></th></tr></thead><tbody>`;
+      h += `<tr><td><b>Chosen</b>${b.origin ? `<div class="sub">${esc(b.origin)}</div>` : ""}</td><td class="r num">${fmt(b.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(b.metrics[k], 1)}</td>`).join("")}<td class="r num">${fmt(b.typicality, 2)}</td><td></td></tr>`;
+      r.alternatives.forEach((a, i) => {
+        const id = `alt-${r.ship.replace(/\W/g, "")}-${i}`;
+        h += `<tr><td>${esc(a.label)}${a.origin ? `<div class="sub">${esc(a.origin)}</div>` : ""}${a.feasible ? "" : ' <span class="pill bad">infeasible</span>'}<pre hidden id="${id}">${esc(a.eft)}</pre></td><td class="r num">${fmt(a.score, 2)}</td>${keys.map((k) => `<td class="r num">${fmt(a.metrics[k], 1)}</td>`).join("")}<td class="r num">${fmt(a.typicality, 2)}</td><td><button type="button" class="copy" data-open="${id}">Open</button></td></tr>`;
+      });
       h += `</tbody></table></div></div>`;
     }
   }
@@ -724,10 +748,11 @@ $("#opt-form").addEventListener("submit", async (e) => {
       objective: pareto ? { pareto: Object.keys(weights), points: num("#opt-points") || 8 } : { weights },
       target: { preset: $("#opt-target").value, ...(num("#opt-distance") != null ? { distance: num("#opt-distance") } : {}) },
       incoming, constraints,
-      fitting: { tank: $("#f-tank").value, propulsion: $("#f-prop").value, meta, require: list("#f-require"), exclude: list("#f-exclude"), subsystems: "auto" },
-      search: { effort: $("#opt-effort").value, ...(byClass ? { screen_top: num("#opt-top") || 3 } : {}) },
+      fitting: { tank: $("#f-tank").value, propulsion: $("#f-prop").value, meta, require: list("#f-require"), exclude: list("#f-exclude"), subsystems: "auto", polarized: $("#f-pol").checked },
+      search: { effort: $("#opt-effort").value, practicality: Number($("#f-style").value), activity: $("#f-activity").value, ...(byClass ? { screen_top: num("#opt-top") || 3 } : {}) },
     };
-    const req = Object.assign(await skillsReq(e.target), { spec, no_polarized: $("#f-nopol").checked });
+    spec.objective.reload = $("#f-reload").checked;
+    const req = Object.assign(await skillsReq(e.target), { spec });
     const res = JSON.parse(await call("optimize", JSON.stringify(req)));
     logSink("Done");
     out.insertAdjacentHTML("beforeend", renderOpt(res, false));
@@ -1064,6 +1089,7 @@ function renderFitStats() {
     ${tile("Speed", fmt(n.max_velocity), "m/s", `align ${fmt(n.align_time, 2)} s`)}
     ${tile("Signature", fmt(n.signature_radius), "m", `warp ${fmt(n.warp_speed, 1)} AU/s`)}
     ${tile("Lock range", fmt(t.lock_range / 1000, 1), "km", `${fmt(t.scan_resolution)} mm · ${t.max_targets} targets`)}
+    ${d.typicality != null ? tile("Typicality", fmt(d.typicality, 2), "", `vs ${fmt(d.real_fits_seen)} real fits of this hull`) : ""}
     ${roleTiles(d.utility)}
     </div>`;
   $("#fit-summary").innerHTML = h;
@@ -1292,6 +1318,25 @@ function initFitting() {
   $("#fit-skills").addEventListener("change", async () => { if ($("#fit-skills").value === "file") return; await refreshSkills(); });
   $("#fit-skills-file").addEventListener("change", refreshSkills);
   $("#fit-import").addEventListener("click", () => { $("#eft-err").hidden = true; $("#eft-dialog").showModal(); });
+  async function showRealFits() {
+    const list = $("#real-list");
+    list.innerHTML = '<p class="hint">Simulating the real fits with your skills…</p>';
+    try {
+      const req = Object.assign(await skillsReq($("#fit-form")), { ship: FIT.ship, activity: $("#real-activity").value, profile: $("#fit-profile").value });
+      const r = JSON.parse(await call("real_fits", JSON.stringify(req)));
+      $("#real-sub").textContent = `${fmt(r.seen)} fits of this hull recorded (${fmt(r.seen_pve)} PvE). The most common ones, simulated with your skills:`;
+      list.innerHTML = r.fits.length ? r.fits.map((f, i) => `<div class="card"><div class="banner"><b>${esc(f.label)}</b>
+          <button type="button" class="copy" data-open="real-eft-${i}">Load</button></div>
+          <div class="sub num">DPS ${fmt(f.dps)} · EHP ${fmt(f.ehp)} · tank ${fmt(f.tank, 1)} EHP/s · typicality ${fmt(f.typicality, 2)}</div>
+          ${f.problems.length ? `<div class="sub" style="color:var(--bad)">With your skills: ${esc(f.problems.join("; "))}</div>` : ""}
+          <pre class="eft" id="real-eft-${i}">${esc(f.eft)}</pre></div>`).join("")
+        : '<p class="hint">No fits of this hull were seen often enough.</p>';
+    } catch (err) { list.innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+  }
+  $("#fit-real").addEventListener("click", () => { if (!FIT) return; $("#real-dialog").showModal(); showRealFits(); });
+  $("#real-activity").addEventListener("change", showRealFits);
+  $("#real-close").addEventListener("click", () => $("#real-dialog").close());
+  $("#real-list").addEventListener("click", (e) => { if (e.target.closest("[data-open]")) $("#real-dialog").close(); });
   $("#eft-load").addEventListener("click", async (e) => {
     e.preventDefault();
     try {

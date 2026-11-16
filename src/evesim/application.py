@@ -95,14 +95,15 @@ def weapon_factor(w: Weapon, t: Target) -> float:
     return 1.0
 
 
-def applied_dps(stats: Stats, t: Target) -> float:
-    """DPS that lands on the target after application and its resists."""
+def applied_dps(stats: Stats, t: Target, reload: bool = False) -> float:
+    """DPS that lands on the target after application and its resists (with ``reload``,
+    averaged over reloads)."""
     total = 0.0
     for w in stats.weapons:
         f = weapon_factor(w, t)
         if f <= 0:
             continue
-        by_type = w.dps_by_type()
+        by_type = w.dps_by_type(reload)
         total += f * sum(by_type[k] * t.resonance.get(k, 1.0) for k in C.DAMAGE_TYPES)
     return total
 

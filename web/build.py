@@ -14,6 +14,7 @@ Pillow. Without it the page shows lettered tiles instead of pictures.
 
 import argparse
 import base64
+import os
 import gzip
 import json
 import shutil
@@ -68,6 +69,13 @@ def main():
     files = {str(p.relative_to(SRC)): p.read_text() for p in SRC.rglob("*.py")}
     files["webapi.py"] = (HERE / "webapi.py").read_text()
     (out / "evesim_src.json").write_text(json.dumps(files))
+    # The trained fit model, as plain JSON for the same reason as the static data.
+    from evesim.prior import default_prior_path
+    prior_path = default_prior_path()
+    if prior_path.exists():
+        with gzip.open(prior_path, "rb") as f:
+            (out / "prior.json").write_bytes(f.read())
+        os.environ["EVESIM_PRIOR"] = str(prior_path)
 
     ref = json.loads((HERE.parent / "tests" / "data" / "pyfa_reference.json").read_text())["fits"]
     samples = {SAMPLE_NAMES.get(k, k): ref[k] for k in SAMPLE_NAMES if k in ref}

@@ -29,9 +29,10 @@ async function boot() {
   await installStdlib();
   py = await loadPyodide({ indexURL: base + "pyodide/" });
   postMessage({ type: "status", msg: "Loading the simulator and game data" });
-  const [src, data] = await Promise.all([
+  const [src, data, prior] = await Promise.all([
     fetch(base + "evesim_src.json").then((r) => r.json()),
     fetch(base + "staticdata.json").then((r) => r.arrayBuffer()),
+    fetch(base + "prior.json").then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null),
   ]);
   for (const [path, text] of Object.entries(src)) {
     const full = "/lib/evesim/" + path;
@@ -39,8 +40,9 @@ async function boot() {
     py.FS.writeFile(full, text);
   }
   py.FS.writeFile("/staticdata.json", new Uint8Array(data));
+  if (prior) py.FS.writeFile("/prior.json", new Uint8Array(prior));
   py.runPython('import sys; sys.path.insert(0, "/lib/evesim"); import webapi');
-  return py.runPython('webapi.init("/staticdata.json")');
+  return py.runPython(prior ? 'webapi.init("/staticdata.json", "/prior.json")' : 'webapi.init("/staticdata.json")');
 }
 
 const ready = boot();
@@ -52,7 +54,7 @@ self.onmessage = async (e) => {
     let result;
     if (op === "init") result = info;
     else if (op === "catalog") result = py.runPython("webapi.catalog()");
-    else if (["simulate", "simulate_fit", "ship_info", "charges", "parse_eft"].includes(op)) {
+    else if (["simulate", "simulate_fit", "ship_info", "charges", "parse_eft", "real_fits"].includes(op)) {
       py.globals.set("REQ", payload);
       result = py.runPython(`webapi.${op}(REQ)`);
     } else if (op === "optimize" || op === "train") {

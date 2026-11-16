@@ -15,11 +15,14 @@ Pipeline per ship:
    the bare hull; the best few configurations go forward.
 3. **Search.** For each weapon configuration: greedy fill of mid/low/rig slots,
    then first-improvement local search over single-slot swaps, then iterated
-   local search with random perturbations. Drones and ammo are re-picked at the
-   end.
+   local search with random perturbations. The hull's most common real fits
+   (from the trained prior, adapted to the character's skills) are searched
+   from as well. Drones and ammo are re-picked at the end.
 
-Score = sum(weight * metric / scale) - penalty * (relative constraint violation),
-so feasible fits always beat infeasible ones and the shortfall is graded.
+Score = sum(weight * metric / scale) + practicality term - penalty * (relative
+constraint violation), so feasible fits always beat infeasible ones and the
+shortfall is graded. The practicality term (see :mod:`evesim.prior`) is how much
+each slot's choice resembles what real pilots fit on the hull.
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ from __future__ import annotations
 import math
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from evesim.data.store import CAT_DRONE, CAT_FIGHTER, CAT_MODULE, StaticData, Type
 from evesim.dogma import const as C
@@ -35,10 +38,15 @@ from evesim.dogma.engine import Character
 from evesim.fit import (FIGHTER_TUBE_ATTRS, DroneSpec, FighterSpec, Fit, ModuleSpec, charge_fits, default_state,
                         fighter_class, is_launcher, is_turret, module_fits_ship, ship_modes, slot_of)
 from evesim.market import Prices
+from evesim.corpus import FLAG_SLOT
+from evesim.prior import EMPTY, family as module_family, get_prior
 from evesim.optimize.spec import DAMAGE_METRICS, METRIC_ATTRS, METRICS, Spec
 from evesim.stats import _MINING_EFFECTS, _REMOTE_REPAIR, E_HACKING, E_SALVAGING, EWAR_EFFECTS, Stats, compute
 
 PENALTY = 1000.0
+PRACTICALITY_POINTS = 0.05  # score points per nat of slot log-likelihood, at practicality = 1
+TYPICAL_PER_SLOT = 8       # most common module families per slot added to the candidates
+SEEDS = {"screen": 0, "quick": 2, "normal": 4, "thorough": 8}  # real fits searched from
 CACHE_LIMIT = 20_000  # evaluations kept for re-use; cleared when full and between hulls
 GROUP_PROPULSION = 46
 GROUP_PROBE_LAUNCHER = 481
@@ -103,6 +111,8 @@ class Evaluation:
     violation: float
     metrics: dict[str, float]
     problems: list[str]
+    practicality: float = 0.0   # slot log-likelihood under the prior (0 = most typical)
+    origin: str = ""            # what the search started from, e.g. a real fit
 
     @property
     def feasible(self) -> bool:
@@ -162,6 +172,10 @@ class Optimizer:
         self._cost: dict[int, tuple[float, float, float]] = {}  # measured cpu/pg/calibration per module
         self._sim_default = False  # search on capacitor averages; finalists are re-checked with the sim
         self.screened: list[tuple[str, float]] = []  # (hull, screening score) when many hulls were ranked
+        self.prior = get_prior(data) if spec.practicality > 0 else None
+        self.prior_tag = {"pve": "pve", "pvp": "pvp", "any": "all"}[spec.activity]
+        self._families: dict[int, list[Type]] | None = None
+        self._pool_cache: dict[tuple, dict[str, list[Type]]] = {}
 
     # ---- evaluation -------------------------------------------------------------------------
     def _key(self, fit: Fit) -> tuple:
@@ -185,6 +199,12 @@ class Optimizer:
         st.price = self.prices.fit_price(fit)
         st.calc = None  # the dogma state is large; nothing downstream needs it once stats exist
         self.evaluations += 1
+        prac = 0.0
+        if self.prior is not None:
+            totals = {s: st.slots[s][1] for s in ("high", "med", "low", "rig") if s in st.slots}
+            totals["subsystem"] = int(fit.ship.attr("maxSubSystems", 0.0))
+            prac, n_slots = self.prior.score_fit(fit, totals, self.prior_tag)
+            st.extras["typicality"] = math.exp(prac / n_slots) if n_slots else 1.0
         metrics = {m: METRICS[m].fn(st, self.spec) for m in self.metric_names}
 
         viol = 0.0
@@ -221,13 +241,17 @@ class Optimizer:
             if m in HACKING_COMBINED:  # same idea for objectives: a little credit for one kind
                 kinds = _hack_kinds(metrics, m)
                 shaping += 0.05 * w * (sum(kinds) / 2 - v) / self.scales.get(m, 1.0)
-        # Tiny tie-breaker: among equal fits prefer spare CPU/PG and lower price, which lets the
+        # Tiny tie-breaker: among equal fits prefer less CPU/PG used (against the bare hull's
+        # output, so modules that only add CPU are not rewarded) and lower price, which lets the
         # search walk off plateaus (e.g. swap an oversized module for one that leaves room).
-        cpu_used, cpu_out = st.resources["cpu"]
-        pg_used, pg_out = st.resources["power"]
-        frugal = 1e-3 * ((cpu_out - cpu_used) / max(cpu_out, 1.0) + (pg_out - pg_used) / max(pg_out, 1.0)) \
+        cpu_used = st.resources["cpu"][0]
+        pg_used = st.resources["power"][0]
+        frugal = -1e-3 * (cpu_used / max(fit.ship.attr("cpuOutput", 1.0), 1.0)
+                          + pg_used / max(fit.ship.attr("powerOutput", 1.0), 1.0)) \
             - 1e-4 * (st.price or 0.0) / 1e8
-        ev = Evaluation(fit, st, obj + frugal + shaping - PENALTY * viol, obj, viol, metrics, st.problems)
+        typical = PRACTICALITY_POINTS * self.spec.practicality * prac
+        ev = Evaluation(fit, st, obj + frugal + shaping + typical - PENALTY * viol, obj, viol, metrics, st.problems,
+                        practicality=prac)
         if len(self._cache) >= CACHE_LIMIT:
             self._cache.clear()
         self._cache[key] = ev
@@ -304,6 +328,8 @@ class Optimizer:
     def _usable(self, t: Type, ship: Type, meta: set) -> bool:
         if t.id in self.exclude:
             return False
+        if not self.spec.polarized and t.name.startswith("Polarized "):
+            return False
         if t.market_group is None:
             return False
         if t.meta_group not in meta:
@@ -321,18 +347,8 @@ class Optimizer:
             if t.category_id != CAT_MODULE:
                 continue
             slot = slot_of(t)
-            if slot not in raw or _is_weapon(t):
+            if slot not in raw or not self._candidate_ok(t, ship):
                 continue
-            if not self._usable(t, ship, self.allowed_meta) or not self._layer_ok(t):
-                continue
-            if t.group_id == GROUP_SMARTBOMB and not self.spec.smartbombs:
-                continue
-            if t.group_id == GROUP_PROPULSION:
-                kind = "mwd" if C.E_MWD in t.effect_ids else "ab" if C.E_AB in t.effect_ids else "other"
-                if self.spec.propulsion == "none" or kind == "other":
-                    continue
-                if self.spec.propulsion in ("mwd", "ab") and kind != self.spec.propulsion:
-                    continue
             if not (self._touched(t) & self.relevant_attr_ids) and not self._helps_fitting(t):
                 continue
             raw[slot].append(t)
@@ -412,7 +428,57 @@ class Optimizer:
                     self._cost[t.id] = cost[:3]
                 vecs.append((t, g1 + g2, cost, 0.0))
             pools[slot] = [v[0] for v in _pareto_by_family([(t, g, c) for t, g, c, _ in vecs])]
+        if self.prior is not None:
+            # What real pilots fit here goes in too, even when it does not move a metric the spec
+            # names (a damage control, a cap recharger ...): the search weighs it with the prior.
+            for slot in pools:
+                logp, _, _ = self.prior.table(ship.id, slot, self.prior_tag)
+                have = {self.prior.family(t) for t in pools[slot]}
+                for fam, _ in sorted(logp.items(), key=lambda kv: -kv[1])[:TYPICAL_PER_SLOT]:
+                    if fam == EMPTY or fam in have:
+                        continue
+                    t = self._variant_of_family(fam, ship, slot)
+                    if t is not None and plausible(t):
+                        pools[slot].append(t)
         return pools
+
+    def _candidate_ok(self, t: Type, ship: Type) -> bool:
+        """A non-weapon module the spec allows on this hull."""
+        if _is_weapon(t) or not self._usable(t, ship, self.allowed_meta) or not self._layer_ok(t):
+            return False
+        if t.group_id == GROUP_SMARTBOMB and not self.spec.smartbombs:
+            return False
+        if t.group_id == GROUP_PROPULSION:
+            kind = "mwd" if C.E_MWD in t.effect_ids else "ab" if C.E_AB in t.effect_ids else "other"
+            if self.spec.propulsion == "none" or kind == "other":
+                return False
+            if self.spec.propulsion in ("mwd", "ab") and kind != self.spec.propulsion:
+                return False
+        return True
+
+    def _weapon_ok(self, t: Type, ship: Type) -> bool:
+        if self.spec.weapons in ("drone", "none"):
+            return False
+        if self.spec.weapons == "turret" and not is_turret(t) or self.spec.weapons == "missile" and not is_launcher(t):
+            return False
+        return self._usable(t, ship, self.allowed_meta)
+
+    def _family_index(self) -> dict[int, list[Type]]:
+        if self._families is None:
+            self._families = {}
+            for t in self.data.types.values():
+                if t.category_id == CAT_MODULE and t.market_group is not None:
+                    self._families.setdefault(module_family(t), []).append(t)
+        return self._families
+
+    def _variant_of_family(self, fam: int, ship: Type, slot: str, weapon: bool = False) -> Type | None:
+        """The best variant of a module family this character may fit: Tech II first, then the
+        highest meta level, then the cheapest."""
+        ok = self._weapon_ok if weapon else self._candidate_ok
+        vs = [t for t in self._family_index().get(fam, []) if slot_of(t) == slot and ok(t, ship)]
+        if not vs:
+            return None
+        return max(vs, key=lambda t: (t.meta_group == 2, t.meta_level, -self.prices(t.id)))
 
     def _default_charge(self, t: Type) -> Type | None:
         if t.group_id == GROUP_PROBE_LAUNCHER:
@@ -531,7 +597,21 @@ class Optimizer:
             cfg = WeaponConfig([(cheap[2], cheap[3], cheap[4])])
             if cfg.label() not in {c.label() for c in configs}:
                 configs.append(cfg)
-        # Mixed hardpoints: add the best weapon of the other kind to leftover high slots.
+        # The weapon real pilots use most on this hull gets a full search too, even if it is not
+        # among the top few by raw damage (better application, cheaper fitting ...).
+        if self.prior is not None:
+            logp, _, _ = self.prior.table(ship.id, "high", self.prior_tag)
+            by_fam = {}
+            for r in picked:
+                by_fam.setdefault(self.prior.family(r[2]), r)
+            ranked = sorted((f for f in by_fam if f in logp), key=lambda f: -logp[f])
+            if ranked:
+                r = by_fam[ranked[0]]
+                cfg = WeaponConfig([(r[2], r[3], r[4])])
+                if cfg.label() not in {c.label() for c in configs}:
+                    configs.append(cfg)
+        # Mixed hardpoints: add the best weapon of the other kind to leftover high slots (with a
+        # prior, only where real fits of the hull mix weapon kinds).
         for cfg in list(configs):
             w, ammo, n = cfg.racks[0]
             left = n_high - n
@@ -539,6 +619,10 @@ class Optimizer:
             m = min(left, other_hp)
             if m > 0 and self.spec.weapons == "any":
                 other = next((r for r in picked if is_turret(r[2]) != is_turret(w)), None)
+                if other and self.prior is not None:
+                    logp, unseen, best = self.prior.table(ship.id, "high", self.prior_tag)
+                    if logp.get(self.prior.family(other[2]), unseen) - best < -3.0:
+                        other = None
                 if other:
                     configs.append(WeaponConfig(cfg.racks + [(other[2], other[3], m)]))
         return configs
@@ -770,11 +854,18 @@ class Optimizer:
                 return slots, current
             current, slots = best[0], best[1]
 
-    def optimize_config(self, base: Fit, cfg: WeaponConfig, drones: list[Type]) -> Evaluation:
+    def optimize_config(self, base: Fit, cfg: WeaponConfig, drones: list[Type],
+                        seed: dict[str, list[Type]] | None = None) -> Evaluation:
+        """Search the non-weapon slots for one weapon setup. With ``seed`` (modules per slot,
+        e.g. from a real fit) the search starts from those modules instead of empty slots."""
         armed = self.pick_drones(self._apply_weapons(base, cfg), drones)
-        pools = self.module_pools(base.ship, armed)
-        if self.spec.effort != "screen":
-            self.log(f"  {cfg.label()}: candidates " + " ".join(f"{k}={len(v)}" for k, v in pools.items()))
+        pool_key = (tuple(sorted((w.id, n) for w, _, n in cfg.racks)), tuple(sorted(m.type.id for m in base.modules)))
+        pools = self._pool_cache.get(pool_key)
+        if pools is None:
+            pools = self._pool_cache[pool_key] = self.module_pools(base.ship, armed)
+            if self.spec.effort != "screen":
+                self.log(f"  {cfg.label()}: candidates " + " ".join(f"{k}={len(v)}" for k, v in pools.items()))
+        pools = {k: list(v) for k, v in pools.items()}
         calc = armed.calc(self.char)
         used = {s: sum(1 for m in armed.modules if m.slot == s) for s in ("high", "med", "low", "rig")}
         free = {"high": int(calc.get(calc.ship, C.A_HI_SLOTS)) - used["high"],
@@ -782,14 +873,24 @@ class Optimizer:
                 "low": int(calc.get(calc.ship, C.A_LOW_SLOTS)) - used["low"],
                 "rig": int(calc.get(calc.ship, C.A_RIG_SLOTS)) - used["rig"]}
         slots: dict[str, list[Type]] = {"high": [], "med": [], "low": [], "rig": []}
+        if seed:
+            for slot in slots:
+                slots[slot] = list(seed.get(slot, []))[:max(free.get(slot, 0), 0)]
+                for t in slots[slot]:
+                    if t not in pools.setdefault(slot, []):
+                        pools[slot].append(t)  # so the search can keep it after swapping it out
         if self.spec.propulsion in ("mwd", "ab"):
             # Required propulsion gets a reserved mid slot; the search may only swap variants.
             props = [t for t in pools["med"] if t.group_id == GROUP_PROPULSION]
             pools = dict(pools, med=[t for t in pools["med"] if t.group_id != GROUP_PROPULSION], prop=props)
+            seeded = [t for t in slots["med"] if t.group_id == GROUP_PROPULSION]
+            slots["med"] = [t for t in slots["med"] if t.group_id != GROUP_PROPULSION]
             if props and free["med"] > 0:
                 free["med"] -= 1
                 free["prop"] = 1
-                slots["prop"] = [max(props, key=lambda t: self.evaluate(self._assemble(armed, {"prop": [t]})).score)]
+                slots["med"] = slots["med"][:free["med"]]
+                slots["prop"] = seeded[:1] or [max(props, key=lambda t: self.evaluate(
+                    self._assemble(armed, {"prop": [t]})).score)]
             else:
                 slots["prop"] = []
         modes = ship_modes(base.ship, self.data)
@@ -805,6 +906,8 @@ class Optimizer:
         slots, current = self._local_search(armed, slots, free, pools, current)
 
         rounds, size = EFFORT[self.spec.effort][1:]
+        if seed:
+            rounds = min(rounds, 1)  # a real fit is already a good start: polish it, do not shake it
         best_slots, best = slots, current
         for _ in range(rounds):
             trial = {k: list(v) for k, v in best_slots.items()}
@@ -844,7 +947,9 @@ class Optimizer:
         """Put something useful in slots the objective did not need: whatever adds the most
         EHP and DPS without lowering the objective or breaking a constraint."""
         def utility(ev: Evaluation) -> float:
-            return ev.metrics["ehp"] / 10_000.0 + ev.metrics["dps"] / 100.0
+            # EHP and DPS, plus how typical the fit is (the prior's share of the score).
+            typical = PRACTICALITY_POINTS * self.spec.practicality * ev.practicality
+            return ev.metrics["ehp"] / 10_000.0 + ev.metrics["dps"] / 100.0 + typical
 
         for slot in ("med", "low", "rig"):
             while len(slots.get(slot, [])) < free.get(slot, 0) and pools.get(slot):
@@ -915,17 +1020,77 @@ class Optimizer:
             self.log(f"{ship.name}: {len(configs)} weapon configuration(s): " + "; ".join(c.label() for c in configs))
         drones = self.drone_candidates(ship)
         evals = []
+        self._pool_cache.clear()
         for cfg in configs:
             ev = self.optimize_config(base, cfg, drones)
             if self.spec.effort != "screen":
                 self.log(f"  {cfg.label()}: score {ev.score:.3f} ({'feasible' if ev.feasible else 'infeasible'})")
             evals.append(ev)
+        armed_configs = [c for c in configs if c.racks]
+        for sbase, cfg, seed, origin in self.seed_fits(ship, base):
+            variants = [(cfg, origin)]
+            if not cfg.racks and armed_configs:
+                # Real fits without weapons (drone boats, utility highs): also try them with the
+                # best weapon setup in the high slots.
+                variants.append((armed_configs[0], f"{origin} + {armed_configs[0].label()}"))
+            for c, label in variants:
+                ev = replace(self.optimize_config(sbase, c, drones, seed=seed), origin=label)
+                self.log(f"  from {label}: score {ev.score:.3f} ({'feasible' if ev.feasible else 'infeasible'})")
+                evals.append(ev)
         evals.sort(key=lambda e: -e.score)
         res.best = evals[0]
         res.alternatives = evals[1:]
         res.evaluations = self.evaluations - n0
         res.seconds = time.time() - t0
         return res
+
+    def seed_fits(self, ship: Type, base: Fit) -> list[tuple[Fit, WeaponConfig, dict[str, list[Type]], str]]:
+        """The hull's most common real fits as starting points: (base fit, weapons, modules per
+        slot, label). Modules the character cannot use are swapped for a usable variant of the
+        same family, or dropped; the spec's own rules (tank, propulsion, exclusions) apply."""
+        if self.prior is None:
+            return []
+        out = []
+        damage = bool(self.relevant & DAMAGE_METRICS) and self.spec.weapons not in ("drone", "none")
+        fixed = [m.type for m in base.modules]
+        auto_subsystems = bool(ship.attrs.get(1367)) and self.spec.subsystems == ["auto"]
+        for real in self.prior.top_fits(ship.id, self.prior_tag)[:SEEDS[self.spec.effort]]:
+            racks: dict[Type, int] = {}
+            ammo: dict[Type, Type] = {}
+            slots: dict[str, list[Type]] = {"high": [], "med": [], "low": [], "rig": []}
+            subsystems = []
+            left = list(fixed)
+            for flag, tid, charge in real.modules:
+                slot, t = FLAG_SLOT.get(flag), self.data.types.get(tid)
+                if slot is None or t is None:
+                    continue
+                if slot == "subsystem":
+                    subsystems.append(t)
+                    continue
+                weapon = _is_weapon(t)
+                v = t if (self._weapon_ok(t, ship) if weapon else self._candidate_ok(t, ship)) else \
+                    self._variant_of_family(module_family(t), ship, slot, weapon=weapon)
+                if v is None:
+                    continue
+                if v in left:
+                    left.remove(v)  # already fitted because the spec requires it
+                elif weapon:
+                    if damage:
+                        racks[v] = racks.get(v, 0) + 1
+                        ch = self.data.types.get(charge) if charge else None
+                        if ch is not None and ch in self._charges(v):
+                            ammo.setdefault(v, ch)
+                else:
+                    slots[slot].append(v)
+            sbase = base
+            if auto_subsystems:
+                if len(subsystems) != 4 or not all(self.char.meets(t) for t in subsystems):
+                    continue
+                sbase = self.base_fit(ship, subsystems)
+            cfg = WeaponConfig([(w, ammo.get(w) or max(self._charges(w), key=_charge_damage), n)
+                                for w, n in racks.items()])
+            out.append((sbase, cfg, slots, f"real fit ({real.source}, {real.tag})"))
+        return out
 
     def pick_subsystems(self, ship: Type) -> list[Type]:
         """Choose a T3 cruiser's subsystems: screen every combination with a greedy fit."""
